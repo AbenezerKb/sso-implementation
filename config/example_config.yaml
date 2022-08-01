@@ -1,0 +1,9 @@
+database:
+  url: postgresql://postgres:1234@db:5432/postgres
+redis:
+  url: redis://redis:6379/0
+casbin:
+  path: config/casbin.conf
+server:
+  port: 8000
+  timeout: 30
