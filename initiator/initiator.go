@@ -32,20 +32,16 @@ func Initiate() {
 	cache := InitCache(viper.GetString("redis.url"), log)
 	log.Info(context.Background(), "cache initialized")
 
-	log.Info(context.Background(), "initializing casbinEnforcer")
-	enforcer := InitEnforcer(viper.GetString("casbin.path"), viper.GetString("database.url"), log)
-	log.Info(context.Background(), "casbinEnforcer initialized")
-
 	log.Info(context.Background(), "initializing persistence layer")
 	persistence := InitPersistence(db, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cache, enforcer, log)
+	module := InitModule(persistence, cache, log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
-	handler := InitHandler(module, enforcer, log)
+	handler := InitHandler(module, log)
 	log.Info(context.Background(), "handler initialized")
 
 	log.Info(context.Background(), "initializing server")
@@ -55,7 +51,8 @@ func Initiate() {
 	log.Info(context.Background(), "server initialized")
 
 	log.Info(context.Background(), "initializing router")
-	InitRouter(server, handler, module, enforcer, log)
+	v1 := server.Group("/v1")
+	InitRouter(server, v1, handler, module, log)
 	log.Info(context.Background(), "router initialized")
 
 	srv := &http.Server{
