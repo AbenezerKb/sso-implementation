@@ -1,0 +1,25 @@
+image: golang:1.18
+
+.go-cache:
+  variables:
+    GOPATH: $CI_PROJECT_DIR/.go
+  before_script:
+    - mkdir -p .go
+  cache:
+    paths:
+      - .go/pkg/mod/
+
+stages:
+  - test
+test:
+  extends: .go-cache
+  stage: test
+  services:
+    - redis:latest
+    - name: cockroachdb/cockroach:latest
+      alias: db
+      command: ["start-single-node", "--insecure"]
+  tags:
+    - sso
+  script:
+    - go test -v ./... -p=1 -count=1
