@@ -16,8 +16,12 @@ type MetaData struct {
 }
 
 type ErrorResponse struct {
-	Code        int      `json:"code"`
-	Message     string   `json:"message,omitempty"`
-	Description string   `json:"description,omitempty"`
-	FieldError  []string `json:"field_error,omitempty"`
+	Code        int          `json:"code"`
+	Message     string       `json:"message,omitempty"`
+	Description string       `json:"description,omitempty"`
+	FieldError  []FieldError `json:"field_error,omitempty"`
+}
+type FieldError struct {
+	Name        string `json:"field_name"`
+	Description string `json:"description"`
 }

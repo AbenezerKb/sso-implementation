@@ -36,11 +36,15 @@ func ErrorHandler() gin.HandlerFunc {
 		}
 	}
 }
-func Errorfields(err error) []string {
-	var errors []string
+func Errorfields(err error) []model.FieldError {
+	var errors []model.FieldError
 	if data, ok := err.(validation.Errors); ok {
 		for i, v := range data {
-			errors = append(errors, fmt.Sprintf("%v %v", i, v))
+			errors = append(errors, model.FieldError{
+				Name:        i,
+				Description: fmt.Sprintf("%v %v", i, v),
+			},
+			)
 		}
 		return errors
 	}
