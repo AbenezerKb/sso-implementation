@@ -30,10 +30,10 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, err
 	registeredUser, err := o.db.CreateUser(ctx, db.CreateUserParams{
 		FirstName:      userParam.FirstName,
 		LastName:       userParam.LastName,
-		Email:          sql.NullString{String: userParam.Email, Valid: true},
+		Email:          sql.NullString{String: userParam.Email},
 		Gender:         userParam.Gender,
 		MiddleName:     userParam.MiddleName,
-		ProfilePicture: sql.NullString{String: userParam.ProfilePicture, Valid: true},
+		ProfilePicture: sql.NullString{String: userParam.ProfilePicture},
 		Phone:          userParam.Phone,
 		Password:       userParam.Password,
 	})
@@ -52,7 +52,7 @@ func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (db.User, erro
 		if reflect.ValueOf(user).IsZero() {
 			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
 		} else {
-			err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
 			o.logger.Error(ctx, zap.Error(err).String)
 			return db.User{}, err
 		}
@@ -72,4 +72,30 @@ func (o *oauth) GetUserByEmail(ctx context.Context, email string) (db.User, erro
 		}
 	}
 	return user, nil
+}
+func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, error) {
+	user, err := o.db.GetUserByPhone(ctx, phone)
+	if err != nil {
+		if reflect.ValueOf(user).IsZero() {
+			return false, nil
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, zap.Error(err).String)
+			return false, err
+		}
+	}
+	return true, nil
+}
+func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {
+	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email})
+	if err != nil {
+		if reflect.ValueOf(user).IsZero() {
+			return false, nil
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, zap.Error(err).String)
+			return false, err
+		}
+	}
+	return true, nil
 }

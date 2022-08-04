@@ -21,7 +21,7 @@ type registrationTest struct {
 func TestRegistertion(t *testing.T) {
 
 	a := &registrationTest{}
-	a.server, a.db = test.GetServer("../../config")
+	a.server, a.db = test.GetServer("../../../config")
 
 	a.apiTest.InitializeTest(t, "Login test", "features/registration.feature", a.InitializeScenario)
 }
@@ -64,7 +64,7 @@ func (r *registrationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 
-		r.apiTest.URL = "/v1/oauth/login"
+		r.apiTest.URL = "/v1/register"
 		r.apiTest.Method = http.MethodPost
 		r.apiTest.InitializeServer(r.server)
 		return ctx, nil

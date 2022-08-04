@@ -10,7 +10,6 @@ import (
 	"sso/platform/logger"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/joomcode/errorx"
 	"go.uber.org/zap"
 )
 
@@ -35,15 +34,21 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, err
 		return nil, err
 	}
 
-	_, err := o.oauthPersistence.GetUserByPhone(ctx, userParam.Phone)
-	if err != nil && !errorx.IsOfType(err, errors.ErrNoRecordFound) {
+	exists, err := o.oauthPersistence.UserByPhoneExists(ctx, userParam.Phone)
+	if err != nil {
 		return nil, err
+	}
+	if exists {
+		return nil, errors.ErrDataExists.Wrap(err, "user with this phone already exists")
 	}
 
 	if userParam.Email != "" {
-		_, err := o.oauthPersistence.GetUserByEmail(ctx, userParam.Email)
+		exists, err := o.oauthPersistence.UserByEmailExists(ctx, userParam.Email)
 		if err != nil {
 			return nil, err
+		}
+		if exists {
+			return nil, errors.ErrDataExists.Wrap(err, "user with this email already exists")
 		}
 	}
 

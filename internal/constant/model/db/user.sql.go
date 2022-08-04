@@ -10,30 +10,6 @@ import (
 	"database/sql"
 )
 
-const checkUserByPhoneOrEmail = `-- name: CheckUserByPhoneOrEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE email = $1 or phone = $1
-`
-
-func (q *Queries) CheckUserByPhoneOrEmail(ctx context.Context, email sql.NullString) (User, error) {
-	row := q.db.QueryRow(ctx, checkUserByPhoneOrEmail, email)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FirstName,
-		&i.MiddleName,
-		&i.LastName,
-		&i.Email,
-		&i.Phone,
-		&i.Password,
-		&i.UserName,
-		&i.Gender,
-		&i.ProfilePicture,
-		&i.Status,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     first_name,
@@ -160,30 +136,6 @@ SELECT id, first_name, middle_name, last_name, email, phone, password, user_name
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByPhone, phone)
-	var i User
-	err := row.Scan(
-		&i.ID,
-		&i.FirstName,
-		&i.MiddleName,
-		&i.LastName,
-		&i.Email,
-		&i.Phone,
-		&i.Password,
-		&i.UserName,
-		&i.Gender,
-		&i.ProfilePicture,
-		&i.Status,
-		&i.CreatedAt,
-	)
-	return i, err
-}
-
-const getUserByPhoneOrEmail = `-- name: GetUserByPhoneOrEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE email = $1 or phone = $1
-`
-
-func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, email sql.NullString) (User, error) {
-	row := q.db.QueryRow(ctx, getUserByPhoneOrEmail, email)
 	var i User
 	err := row.Scan(
 		&i.ID,

@@ -7,10 +7,12 @@ package db
 import (
 	"database/sql"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID             int64
+	ID             uuid.UUID
 	FirstName      string
 	MiddleName     string
 	LastName       string
