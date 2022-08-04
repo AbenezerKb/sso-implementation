@@ -3,10 +3,6 @@ package initiator
 import (
 	"context"
 	"fmt"
-	"github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +10,11 @@ import (
 	"sso/platform/logger"
 	"syscall"
 	"time"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 func Initiate() {
@@ -48,6 +49,7 @@ func Initiate() {
 	server := gin.New()
 	server.Use(middleware.GinLogger(log))
 	server.Use(ginzap.RecoveryWithZap(log.GetZapLogger().Named("gin.recovery"), true))
+	server.Use(middleware.ErrorHandler())
 	log.Info(context.Background(), "server initialized")
 
 	log.Info(context.Background(), "initializing router")
