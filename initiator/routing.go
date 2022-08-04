@@ -1,10 +1,12 @@
 package initiator
 
 import (
-	"github.com/gin-gonic/gin"
+	"sso/internal/glue/routing/oauth"
 	"sso/platform/logger"
+
+	"github.com/gin-gonic/gin"
 )
 
 func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, module Module, log logger.Logger) {
-	// TODO implement
+	oauth.InitRoute(group, handler.oauth)
 }

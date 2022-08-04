@@ -38,6 +38,7 @@ func ErrorHandler() gin.HandlerFunc {
 						Message: "Unknown server error",
 					})
 				}
+				return
 			}
 		}
 	}
