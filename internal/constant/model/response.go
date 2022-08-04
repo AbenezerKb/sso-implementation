@@ -19,6 +19,7 @@ type ErrorResponse struct {
 	Code        int          `json:"code"`
 	Message     string       `json:"message,omitempty"`
 	Description string       `json:"description,omitempty"`
+	StackTrace  string       `json:"stack_trace,omitempty"`
 	FieldError  []FieldError `json:"field_error,omitempty"`
 }
 type FieldError struct {

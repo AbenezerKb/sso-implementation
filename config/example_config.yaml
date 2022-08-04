@@ -1,3 +1,4 @@
+debug: false
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
 redis:

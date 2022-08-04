@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -13,6 +14,7 @@ import (
 )
 
 func ErrorHandler() gin.HandlerFunc {
+	debugMode := viper.GetBool("debug")
 	return func(c *gin.Context) {
 		c.Next()
 		for _, err := range c.Errors {
@@ -20,12 +22,16 @@ func ErrorHandler() gin.HandlerFunc {
 			for _, e := range errors.Error {
 				if errorx.IsOfType(err, e.ErrorType) {
 					er := errorx.Cast(err)
-					constant.ErrorResponse(c, &model.ErrorResponse{
-						Code:        e.ErrorCode,
-						Message:     er.Message(),
-						FieldError:  Errorfields(er.Cause()),
-						Description: fmt.Sprintf("Error: %v", er),
-					})
+					response := model.ErrorResponse{
+						Code:       e.ErrorCode,
+						Message:    er.Message(),
+						FieldError: ErrorFields(er.Cause()),
+					}
+					if debugMode {
+						response.Description = fmt.Sprintf("Error: %v", er)
+						response.StackTrace = fmt.Sprintf("%+v", errorx.EnsureStackTrace(err))
+					}
+					constant.ErrorResponse(c, &response)
 				} else {
 					constant.ErrorResponse(c, &model.ErrorResponse{
 						Code:    http.StatusInternalServerError,
@@ -36,17 +42,17 @@ func ErrorHandler() gin.HandlerFunc {
 		}
 	}
 }
-func Errorfields(err error) []model.FieldError {
-	var errors []model.FieldError
+func ErrorFields(err error) []model.FieldError {
+	var errs []model.FieldError
 	if data, ok := err.(validation.Errors); ok {
 		for i, v := range data {
-			errors = append(errors, model.FieldError{
+			errs = append(errs, model.FieldError{
 				Name:        i,
 				Description: fmt.Sprintf("%v %v", i, v),
 			},
 			)
 		}
-		return errors
+		return errs
 	}
 	return nil
 }
