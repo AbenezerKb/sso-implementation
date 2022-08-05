@@ -22,7 +22,7 @@ type registrationTest struct {
 func TestRegistertion(t *testing.T) {
 
 	a := &registrationTest{}
-	a.server, a.db = test.GetServer("../../../config")
+	a.server, a.db = test.GetServer("../../../")
 
 	a.apiTest.InitializeTest(t, "Login test", "features/registration.feature", a.InitializeScenario)
 }

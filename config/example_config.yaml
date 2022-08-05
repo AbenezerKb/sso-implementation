@@ -1,6 +1,8 @@
 debug: false
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
+migration:
+  path: internal/constant/query/schemas
 redis:
   url: redis://redis:6379/0
 server:
