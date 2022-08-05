@@ -23,6 +23,6 @@ type ErrorResponse struct {
 	FieldError  []FieldError `json:"field_error,omitempty"`
 }
 type FieldError struct {
-	Name        string `json:"field_name"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
 }
