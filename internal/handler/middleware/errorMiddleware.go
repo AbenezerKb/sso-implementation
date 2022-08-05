@@ -17,29 +17,31 @@ func ErrorHandler() gin.HandlerFunc {
 	debugMode := viper.GetBool("debug")
 	return func(c *gin.Context) {
 		c.Next()
-		e := c.Errors[0] // FIXME: how to handle multiple errors?
-		err := e.Unwrap()
-		for _, e := range errors.Error {
-			if errorx.IsOfType(err, e.ErrorType) {
-				er := errorx.Cast(err)
-				response := model.ErrorResponse{
-					Code:       e.ErrorCode,
-					Message:    er.Message(),
-					FieldError: ErrorFields(er.Cause()),
+		if len(c.Errors) > 0 {
+			e := c.Errors[0] // FIXME: how to handle multiple errors?
+			err := e.Unwrap()
+			for _, e := range errors.Error {
+				if errorx.IsOfType(err, e.ErrorType) {
+					er := errorx.Cast(err)
+					response := model.ErrorResponse{
+						Code:       e.ErrorCode,
+						Message:    er.Message(),
+						FieldError: ErrorFields(er.Cause()),
+					}
+					if debugMode {
+						response.Description = fmt.Sprintf("Error: %v", er)
+						response.StackTrace = fmt.Sprintf("%+v", errorx.EnsureStackTrace(err))
+					}
+					constant.ErrorResponse(c, &response)
+					return
 				}
-				if debugMode {
-					response.Description = fmt.Sprintf("Error: %v", er)
-					response.StackTrace = fmt.Sprintf("%+v", errorx.EnsureStackTrace(err))
-				}
-				constant.ErrorResponse(c, &response)
-				return
 			}
+			constant.ErrorResponse(c, &model.ErrorResponse{
+				Code:    http.StatusInternalServerError,
+				Message: "Unknown server error",
+			})
+			return
 		}
-		constant.ErrorResponse(c, &model.ErrorResponse{
-			Code:    http.StatusInternalServerError,
-			Message: "Unknown server error",
-		})
-		return
 	}
 }
 func ErrorFields(err error) []model.FieldError {
