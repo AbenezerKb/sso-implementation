@@ -29,10 +29,10 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	registeredUser, err := o.db.CreateUser(ctx, db.CreateUserParams{
 		FirstName:      userParam.FirstName,
 		LastName:       userParam.LastName,
-		Email:          sql.NullString{String: userParam.Email},
+		Email:          sql.NullString{String: userParam.Email, Valid: true},
 		Gender:         userParam.Gender,
 		MiddleName:     userParam.MiddleName,
-		ProfilePicture: sql.NullString{String: userParam.ProfilePicture},
+		ProfilePicture: sql.NullString{String: userParam.ProfilePicture, Valid: true},
 		Phone:          userParam.Phone,
 		Password:       userParam.Password,
 	})
@@ -98,7 +98,7 @@ func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, erro
 	return true, nil
 }
 func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {
-	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email})
+	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
 	if err != nil {
 		if reflect.ValueOf(user).IsZero() {
 			return false, nil
