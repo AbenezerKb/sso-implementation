@@ -3,6 +3,7 @@ packages:
   - name: "db"
     path: "../internal/constant/model/db"
     engine: "postgresql"
+    emit_json_tags: true
     sql_package: "pgx/v4"
     schema: "../internal/constant/query/schemas"
     queries: "../internal/constant/query/queries"

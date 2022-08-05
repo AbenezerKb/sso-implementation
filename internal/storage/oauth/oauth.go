@@ -25,8 +25,7 @@ func InitOAuth(logger logger.Logger, db *db.Queries) storage.OAuthPersistence {
 	}
 }
 
-// oauth implements OAuthPersistence
-func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, error) {
+func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, error) {
 	registeredUser, err := o.db.CreateUser(ctx, db.CreateUserParams{
 		FirstName:      userParam.FirstName,
 		LastName:       userParam.LastName,
@@ -42,7 +41,19 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, err
 		o.logger.Error(ctx, zap.Error(err).String)
 		return nil, err
 	}
-	return &registeredUser, nil
+	return &dto.User{
+		ID:             registeredUser.ID,
+		Status:         registeredUser.Status.String,
+		UserName:       registeredUser.UserName,
+		FirstName:      registeredUser.FirstName,
+		MiddleName:     registeredUser.MiddleName,
+		LastName:       registeredUser.LastName,
+		Email:          registeredUser.Email.String,
+		Phone:          registeredUser.Phone,
+		Gender:         registeredUser.Gender,
+		CreatedAt:      registeredUser.CreatedAt,
+		ProfilePicture: registeredUser.ProfilePicture.String,
+	}, nil
 }
 
 func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (db.User, error) {

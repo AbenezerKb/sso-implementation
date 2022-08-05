@@ -2,8 +2,9 @@ package oauth
 
 import (
 	"context"
+	"golang.org/x/crypto/bcrypt"
+	"log"
 	"sso/internal/constant/errors"
-	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
@@ -27,10 +28,10 @@ func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, 
 	}
 }
 
-func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, error) {
+func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, error) {
 	if err := userParam.ValidateUser(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, zap.Error(err).String)
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
 		return nil, err
 	}
 
@@ -52,9 +53,21 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*db.User, err
 		}
 	}
 
+	userParam.Password = o.HashAndSalt([]byte(userParam.Password))
 	user, err := o.oauthPersistence.Register(ctx, userParam)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
+}
+func (o *oauth) HashAndSalt(pwd []byte) string {
+	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return string(hash)
+}
+func (o *oauth) ComparePassword(hashedPwd, plainPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPassword))
+	return err == nil
 }

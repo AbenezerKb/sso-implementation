@@ -3,15 +3,14 @@ package test
 import (
 	"context"
 	"fmt"
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"os"
 	"sso/initiator"
 	"sso/internal/constant/model/db"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
-
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
 )
 
 type TestInstance struct {
@@ -60,6 +59,7 @@ func Initiate(path string) {
 	server := gin.New()
 	server.Use(middleware.GinLogger(log))
 	server.Use(ginzap.RecoveryWithZap(log.GetZapLogger().Named("gin.recovery"), true))
+	server.Use(middleware.ErrorHandler())
 	log.Info(context.Background(), "server initialized")
 
 	log.Info(context.Background(), "initializing router")
@@ -68,7 +68,7 @@ func Initiate(path string) {
 	log.Info(context.Background(), "router initialized")
 
 	Instance = TestInstance{server, db}
-	// return server, db
+
 }
 
 func GetServer(path string) (*gin.Engine, *db.Queries) {

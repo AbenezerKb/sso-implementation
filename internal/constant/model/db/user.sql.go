@@ -28,15 +28,15 @@ RETURNING id, first_name, middle_name, last_name, email, phone, password, user_n
 `
 
 type CreateUserParams struct {
-	FirstName      string
-	MiddleName     string
-	LastName       string
-	Email          sql.NullString
-	Phone          string
-	UserName       string
-	Password       string
-	Gender         string
-	ProfilePicture sql.NullString
+	FirstName      string         `json:"first_name"`
+	MiddleName     string         `json:"middle_name"`
+	LastName       string         `json:"last_name"`
+	Email          sql.NullString `json:"email"`
+	Phone          string         `json:"phone"`
+	UserName       string         `json:"user_name"`
+	Password       string         `json:"password"`
+	Gender         string         `json:"gender"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {

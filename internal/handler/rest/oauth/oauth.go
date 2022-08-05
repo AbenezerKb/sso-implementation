@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -39,5 +40,5 @@ func (o *oauth) Register(ctx *gin.Context) {
 		return
 	}
 	o.logger.Info(ctx, "registered user")
-	constant.SuccessResponse(ctx, 200, registeredUser, nil)
+	constant.SuccessResponse(ctx, http.StatusCreated, registeredUser, nil)
 }

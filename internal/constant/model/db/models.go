@@ -12,16 +12,16 @@ import (
 )
 
 type User struct {
-	ID             uuid.UUID
-	FirstName      string
-	MiddleName     string
-	LastName       string
-	Email          sql.NullString
-	Phone          string
-	Password       string
-	UserName       string
-	Gender         string
-	ProfilePicture sql.NullString
-	Status         sql.NullString
-	CreatedAt      time.Time
+	ID             uuid.UUID      `json:"id"`
+	FirstName      string         `json:"first_name"`
+	MiddleName     string         `json:"middle_name"`
+	LastName       string         `json:"last_name"`
+	Email          sql.NullString `json:"email"`
+	Phone          string         `json:"phone"`
+	Password       string         `json:"password"`
+	UserName       string         `json:"user_name"`
+	Gender         string         `json:"gender"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+	Status         sql.NullString `json:"status"`
+	CreatedAt      time.Time      `json:"created_at"`
 }

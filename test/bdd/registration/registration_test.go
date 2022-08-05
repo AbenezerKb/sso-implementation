@@ -2,6 +2,7 @@ package registration
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sso/internal/constant/model/db"
 	"sso/test"
@@ -53,7 +54,7 @@ func (r *registrationTest) theRegistrationShouldFailWith(msg string) error {
 		return err
 	}
 
-	if err := r.apiTest.AssertBodyColumn("error_description", msg); err != nil {
+	if err := r.apiTest.AssertPathValue(fmt.Sprintf(`{"message":"%s"}`, msg), "message", string(r.apiTest.ResponseBody), "error.field_error.0.description"); err != nil {
 		return err
 	}
 
@@ -66,6 +67,8 @@ func (r *registrationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 		r.apiTest.URL = "/v1/register"
 		r.apiTest.Method = http.MethodPost
+		r.apiTest.Headers = map[string]string{}
+		r.apiTest.Headers["Content-Type"] = "application/json"
 		r.apiTest.InitializeServer(r.server)
 		return ctx, nil
 	})
