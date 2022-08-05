@@ -36,6 +36,11 @@ func Initiate() {
 	db := InitDB(viper.GetString("database.url"), log)
 	log.Info(context.Background(), "database initialized")
 
+	log.Info(context.Background(), "initializing migration")
+	m := InitiateMigration(viper.GetString("migration.path"), viper.GetString("database.url"), log)
+	UpMigration(m, log)
+	log.Info(context.Background(), "migration initialized")
+
 	log.Info(context.Background(), "initializing cache")
 	cache := InitCache(viper.GetString("redis.url"), log)
 	log.Info(context.Background(), "cache initialized")
