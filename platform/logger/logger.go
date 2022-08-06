@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"github.com/jackc/pgx/v4"
 	"time"
 
 	"go.uber.org/zap"
@@ -25,6 +26,8 @@ type Logger interface {
 	Panic(ctx context.Context, msg string, fields ...zap.Field)
 
 	Fatal(ctx context.Context, msg string, fields ...zap.Field)
+
+	Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{})
 
 	extract(ctx context.Context) []zap.Field
 }
@@ -89,4 +92,20 @@ func (l *logger) extract(ctx context.Context) []zap.Field {
 	}
 
 	return fields
+}
+func (l *logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
+	var fields []zap.Field
+	for k, v := range data {
+		fields = append(fields, zap.Any(k, v))
+	}
+	switch level {
+	case pgx.LogLevelInfo:
+		l.With(l.extract(ctx)...).Info(ctx, msg, fields...)
+	case pgx.LogLevelWarn:
+		l.With(l.extract(ctx)...).Warn(ctx, msg, fields...)
+	case pgx.LogLevelError:
+		l.With(l.extract(ctx)...).Error(ctx, msg, fields...)
+	default:
+		l.With(l.extract(ctx)...).Debug(ctx, msg, fields...)
+	}
 }
