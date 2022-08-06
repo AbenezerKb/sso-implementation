@@ -3,7 +3,6 @@ package oauth
 import (
 	"context"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
@@ -31,7 +30,7 @@ func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, 
 func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, error) {
 	if err := userParam.ValidateUser(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return nil, err
 	}
 
@@ -53,20 +52,27 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 		}
 	}
 
-	userParam.Password = o.HashAndSalt([]byte(userParam.Password))
+	userParam.Password, err = o.HashAndSalt(ctx, []byte(userParam.Password))
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := o.oauthPersistence.Register(ctx, userParam)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
-func (o *oauth) HashAndSalt(pwd []byte) string {
+
+func (o *oauth) HashAndSalt(ctx context.Context, pwd []byte) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
 	if err != nil {
-		log.Fatal(err)
+		o.logger.Error(ctx, "could not hash password", zap.Error(err))
+		return "", err
 	}
-	return string(hash)
+	return string(hash), nil
 }
+
 func (o *oauth) ComparePassword(hashedPwd, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPassword))
 	return err == nil
