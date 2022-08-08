@@ -30,13 +30,13 @@ func (o *oauth) Register(ctx *gin.Context) {
 	userParam := dto.User{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
-		o.logger.Error(ctx, zap.Error(err).String)
-		ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		o.logger.Info(ctx, zap.Error(err).String)
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
 	registeredUser, err := o.oauthModule.Register(ctx.Request.Context(), userParam)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	o.logger.Info(ctx, "registered user")

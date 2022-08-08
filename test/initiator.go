@@ -32,12 +32,17 @@ func Initiate(path string) {
 		log.Info(context.Background(), "using default config name 'config'")
 	}
 	log.Info(context.Background(), "initializing config")
-	initiator.InitConfig(configName, path, log)
+	initiator.InitConfig(configName, path+"config", log)
 	log.Info(context.Background(), "config initialized")
 
 	log.Info(context.Background(), "initializing database")
 	db := initiator.InitDB(viper.GetString("database.url"), log)
 	log.Info(context.Background(), "database initialized")
+
+	log.Info(context.Background(), "initializing migration")
+	m := initiator.InitiateMigration(path+viper.GetString("migration.path"), viper.GetString("database.url"), log)
+	initiator.UpMigration(m, log)
+	log.Info(context.Background(), "migration initialized")
 
 	log.Info(context.Background(), "initializing cache")
 	cache := initiator.InitCache(viper.GetString("redis.url"), log)

@@ -10,5 +10,5 @@ CREATE TABLE users (
     "gender" varchar NOT NULL,
     "profile_picture" varchar,
     "status" varchar DEFAULT 'inactive',
-    "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "created_at" timestamptz NOT NULL default now()
 );

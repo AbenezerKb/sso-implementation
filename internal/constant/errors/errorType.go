@@ -35,9 +35,9 @@ var Error = []ErrorType{
 }
 
 var (
-	invalidInput = errorx.NewNamespace("validation error")
+	invalidInput = errorx.NewNamespace("validation error").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	dbError      = errorx.NewNamespace("db error")
-	duplicate    = errorx.NewNamespace("duplicate")
+	duplicate    = errorx.NewNamespace("duplicate").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 )
 
 var (
