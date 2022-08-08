@@ -2,8 +2,9 @@ package dto
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/dongri/phonenumber"
 	validation "github.com/go-ozzo/ozzo-validation"
@@ -23,6 +24,7 @@ type User struct {
 	Status         string    `json:"status,omitempty"`
 	ProfilePicture string    `json:"profile_picture,omitempty"`
 	CreatedAt      time.Time `json:"created_at,omitempty"`
+	OTP            string    `json:"otp"`
 }
 
 func (u User) ValidateUser() error {
@@ -35,7 +37,12 @@ func (u User) ValidateUser() error {
 		validation.Field(&u.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
 	)
 }
-
+func (u User) ValidateLoginCredentials() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Phone, validation.By(validatePhone)),
+		validation.Field(&u.Email, is.EmailFormat.Error("email is not valid")),
+	)
+}
 func validatePhone(phone interface{}) error {
 	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")
 	if str == "" {

@@ -153,3 +153,33 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 	)
 	return i, err
 }
+
+const getUserByPhoneOrUserNameOrEmail = `-- name: GetUserByPhoneOrUserNameOrEmail :one
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE phone = $1 OR user_name = $2 OR email = $3
+`
+
+type GetUserByPhoneOrUserNameOrEmailParams struct {
+	Phone    string         `json:"phone"`
+	UserName string         `json:"user_name"`
+	Email    sql.NullString `json:"email"`
+}
+
+func (q *Queries) GetUserByPhoneOrUserNameOrEmail(ctx context.Context, arg GetUserByPhoneOrUserNameOrEmailParams) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneOrUserNameOrEmail, arg.Phone, arg.UserName, arg.Email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}

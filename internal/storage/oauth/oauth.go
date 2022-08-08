@@ -56,33 +56,57 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	}, nil
 }
 
-func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (db.User, error) {
+func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (*dto.User, error) {
 	user, err := o.db.GetUserByPhone(ctx, phone)
 	if err != nil {
 
 		if reflect.ValueOf(user).IsZero() {
-			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
 		} else {
 			err = errors.ErrReadError.Wrap(err, "could not read user data")
 			o.logger.Error(ctx, zap.Error(err).String)
-			return db.User{}, err
+			return &dto.User{}, err
 		}
 	}
-	return user, nil
+	return &dto.User{
+		ID:             user.ID,
+		Status:         user.Status.String,
+		UserName:       user.UserName,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName,
+		LastName:       user.LastName,
+		Email:          user.Email.String,
+		Phone:          user.Phone,
+		Gender:         user.Gender,
+		ProfilePicture: user.ProfilePicture.String,
+		Password:       user.Password,
+	}, nil
 }
-func (o *oauth) GetUserByEmail(ctx context.Context, email string) (db.User, error) {
+func (o *oauth) GetUserByEmail(ctx context.Context, email string) (*dto.User, error) {
 	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
 	if err != nil {
 
 		if reflect.ValueOf(user).IsZero() {
-			return db.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
 		} else {
 			err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 			o.logger.Error(ctx, zap.Error(err).String)
-			return db.User{}, err
+			return &dto.User{}, err
 		}
 	}
-	return user, nil
+
+	return &dto.User{
+		ID:             user.ID,
+		Status:         user.Status.String,
+		UserName:       user.UserName,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName,
+		LastName:       user.LastName,
+		Email:          user.Email.String,
+		Phone:          user.Phone,
+		Gender:         user.Gender,
+		ProfilePicture: user.ProfilePicture.String,
+	}, nil
 }
 func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, error) {
 	user, err := o.db.GetUserByPhone(ctx, phone)
@@ -97,6 +121,11 @@ func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, erro
 	}
 	return true, nil
 }
+
+func (o *oauth) GetUserByPhoneOrUserNameOrEmail(ctx context.Context, query string) (*dto.User, error) {
+	return nil, nil
+}
+
 func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {
 	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
 	if err != nil {
