@@ -53,7 +53,7 @@ func Initiate(path string) {
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitModule(persistence, cache, log)
+	module := initiator.InitModule(persistence, cache, path+viper.GetString("private_key"), log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

@@ -50,7 +50,7 @@ func Initiate() {
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cache, log)
+	module := InitModule(persistence, cache, viper.GetString("private_key"), log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

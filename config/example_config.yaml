@@ -8,4 +8,4 @@ redis:
 server:
   port: 8000
   timeout: 30
-private_key: ./privatekey.example.pem
+private_key: privatekey.example.pem
