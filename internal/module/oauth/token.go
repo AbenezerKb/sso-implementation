@@ -2,8 +2,6 @@ package oauth
 
 import (
 	"context"
-	"io/ioutil"
-	"log"
 	"sso/internal/constant/model/dto"
 	"time"
 
@@ -11,10 +9,6 @@ import (
 )
 
 func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string, error) {
-	keyFile, err := ioutil.ReadFile("./privatekey.pem")
-	if err != nil {
-		log.Fatal("Error reading own private key : \n", err)
-	}
 	claims := dto.AccessToken{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
@@ -23,12 +17,8 @@ func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string
 			Subject:   user.ID.String(),
 		},
 	}
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyFile)
-	if err != nil {
-		return "", nil
-	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(privateKey)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(o.privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -36,16 +26,6 @@ func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string
 }
 
 func (o *oauth) GenerateRefreshToken(ctx context.Context, user *dto.User) (string, error) {
-	keyFile, err := ioutil.ReadFile("./privatekey.pem")
-	if err != nil {
-		log.Fatal("Error reading own private key : \n", err)
-	}
-
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyFile)
-	if err != nil {
-		return "", nil
-	}
-
 	cliams := jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
 		Issuer:    "test",
@@ -53,7 +33,7 @@ func (o *oauth) GenerateRefreshToken(ctx context.Context, user *dto.User) (strin
 		Subject:   user.ID.String(),
 	}
 
-	rfToken, err := jwt.NewWithClaims(jwt.SigningMethodPS512, cliams).SignedString(privateKey)
+	rfToken, err := jwt.NewWithClaims(jwt.SigningMethodPS512, cliams).SignedString(o.privateKey)
 	if err != nil {
 		return "", err
 	}
@@ -62,17 +42,6 @@ func (o *oauth) GenerateRefreshToken(ctx context.Context, user *dto.User) (strin
 }
 
 func (o *oauth) GenerateIdToken(ctx context.Context, user *dto.User) (string, error) {
-	keyFile, err := ioutil.ReadFile("./privatekey.pem")
-
-	if err != nil {
-		log.Fatal("Error reading own private key : \n", err)
-	}
-
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyFile)
-	if err != nil {
-		return "", nil
-	}
-
 	claims := dto.IDTokenPayload{
 		FirstName:   user.FirstName,
 		MiddleName:  user.MiddleName,
@@ -85,7 +54,7 @@ func (o *oauth) GenerateIdToken(ctx context.Context, user *dto.User) (string, er
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(privateKey)
+	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(o.privateKey)
 	if err != nil {
 		return "", err
 	}

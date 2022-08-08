@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"crypto/rsa"
 	"log"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -22,13 +23,15 @@ type oauth struct {
 	logger           logger.Logger
 	oauthPersistence storage.OAuthPersistence
 	cache            *redis.Client
+	privateKey       *rsa.PrivateKey
 }
 
-func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, cache *redis.Client) module.OAuthModule {
+func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, cache *redis.Client, privateKey *rsa.PrivateKey) module.OAuthModule {
 	return &oauth{
 		logger,
 		oauthPersistence,
 		cache,
+		privateKey,
 	}
 }
 
@@ -73,7 +76,7 @@ func (o *oauth) Login(ctx context.Context, userParam dto.User) (*dto.TokenRespon
 	}
 
 	var query string
-	
+
 	if userParam.UserName != "" && userParam.Password != "" {
 		query = userParam.UserName
 	} else if userParam.Phone != "" && userParam.OTP != "" {
