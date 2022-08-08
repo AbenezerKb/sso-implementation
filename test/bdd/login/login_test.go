@@ -22,7 +22,7 @@ type loginTest struct {
 func TestLogin(t *testing.T) {
 
 	a := &loginTest{}
-	a.server, a.db = test.GetServer("../../../config")
+	a.server, a.db = test.GetServer("../../../")
 
 	a.apiTest.InitializeTest(t, "Login test", "features/login.feature", a.InitializeScenario)
 }
