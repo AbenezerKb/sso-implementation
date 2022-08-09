@@ -1,5 +1,8 @@
 image: golang:1.18
 
+variables:
+  TAG_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:latest
+
 .go-cache:
   variables:
     GOPATH: $CI_PROJECT_DIR/.go
@@ -11,6 +14,8 @@ image: golang:1.18
 
 stages:
   - test
+  - publish
+  - deploy
 test:
   extends: .go-cache
   stage: test
@@ -35,3 +40,115 @@ test:
 
   script:
     - CONFIG_NAME=$CONFIG_NAME go test -v ./... -p=1 -count=1
+  except:
+    - pre-production
+    - production
+
+publish:
+  image: docker:latest
+  stage: publish
+  tags:
+    - sso
+  services:
+    - docker:dind
+  script:
+    - docker build -t $TAG_LATEST .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker push $TAG_LATEST
+    - docker rmi -f $(docker images --filter "dangling=true" -q --no-trunc) || clean_up_status=$?
+  only:
+    refs:
+      - main
+      - staging
+      - pre-production
+      - production
+
+deploy-for-main:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - sso
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SERVERIP_MAIN >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker service update --force sso_sso"
+
+  only:
+    refs:
+      - main
+
+deploy-for-staging:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - sso
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SERVERIP_STAGING >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker service update --force sso_sso"
+
+  only:
+    refs:
+      - staging
+deploy-for-pre-production:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - sso
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SERVERIP_PRE_PRODUCTION >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker service update --force sso_sso"
+
+  only:
+    refs:
+      - pre-production
+deploy-for-production:
+  image: alpine:latest
+  stage: deploy
+  tags:
+    - sso
+  before_script:
+    - apk update && apk add openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$SSH_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $SERVERIP_PRODUCTION >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+
+  script:
+    - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+    - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker service update --force sso_sso"
+
+  only:
+    refs:
+      - production
