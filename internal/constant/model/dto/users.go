@@ -24,7 +24,7 @@ type User struct {
 	Status         string    `json:"status,omitempty"`
 	ProfilePicture string    `json:"profile_picture,omitempty"`
 	CreatedAt      time.Time `json:"created_at,omitempty"`
-	OTP            string    `json:"otp"`
+	OTP            string    `json:"otp,omitempty"`
 }
 
 func (u User) ValidateUser() error {
