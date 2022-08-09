@@ -74,3 +74,20 @@ func (o *oauth) Login(ctx *gin.Context) {
 	//ctx.Redirect(http.StatusFound, redirectUrl)
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }
+
+func (o *oauth) RequestOTP(ctx *gin.Context) {
+	phone := ctx.Param("phone")
+	Rqtype := ctx.Param("type")
+	if phone == "" || Rqtype == "" {
+		o.logger.Error(ctx, "invalid input", zap.String("phone", phone))
+		ctx.Error(errors.ErrInvalidUserInput.New("invalid phone"))
+		return
+	}
+	err := o.oauthModule.RequestOTP(ctx.Request.Context(), phone, Rqtype)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	o.logger.Info(ctx, "OTP sent", zap.String("phone", phone))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}

@@ -3,14 +3,15 @@ package oauth
 import (
 	"context"
 	"crypto/rsa"
-	"github.com/dongri/phonenumber"
-	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
+
+	"github.com/dongri/phonenumber"
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type oauth struct {
@@ -35,6 +36,11 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	if err := userParam.ValidateUser(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		return nil, err
+	}
+
+	err := o.VerifyOTP(ctx, userParam.Phone, userParam.OTP)
+	if err != nil {
 		return nil, err
 	}
 
@@ -104,15 +110,11 @@ func (o *oauth) Login(ctx context.Context, userParam dto.User) (*dto.TokenRespon
 			return nil, err
 		}
 	} else if userParam.Phone != "" && userParam.OTP != "" {
-		otp, err := o.otpCache.GetOTP(ctx, userParam.Phone)
+		err := o.VerifyOTP(ctx, userParam.Phone, userParam.OTP)
 		if err != nil {
 			return nil, err
 		}
-		if otp != userParam.OTP {
-			err = errors.ErrInvalidUserInput.New("invalid credentials")
-			o.logger.Info(ctx, "invalid otp", zap.Error(err))
-			return nil, err
-		}
+
 	}
 
 	accessToken, err := o.GenerateAccessToken(ctx, user)
@@ -154,4 +156,18 @@ func (o *oauth) HashAndSalt(ctx context.Context, pwd []byte) (string, error) {
 func (o *oauth) ComparePassword(hashedPwd, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPassword))
 	return err == nil
+}
+
+func (o *oauth) VerifyUserStatus(ctx context.Context, phone string) error {
+	user, err := o.oauthPersistence.GetUserByPhone(ctx, phone)
+	if err != nil {
+		return err
+	}
+
+	if user.Status != "ACTIVE" {
+		err := errors.ErrInvalidUserInput.New("Account is deactivated")
+		o.logger.Info(ctx, "user is not active", zap.Error(err))
+		return err
+	}
+	return nil
 }

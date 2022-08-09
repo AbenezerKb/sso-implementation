@@ -24,7 +24,7 @@ type User struct {
 	Status         string    `json:"status,omitempty"`
 	ProfilePicture string    `json:"profile_picture,omitempty"`
 	CreatedAt      time.Time `json:"created_at,omitempty"`
-	OTP            string    `json:"otp"`
+	OTP            string    `json:"otp,omitempty"`
 }
 
 func (u User) ValidateUser() error {
@@ -35,6 +35,7 @@ func (u User) ValidateUser() error {
 		validation.Field(&u.Email, is.EmailFormat.Error("email is not valid")),
 		validation.Field(&u.Phone, validation.Required.Error("phone is required"), validation.By(validatePhone)),
 		validation.Field(&u.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
+		validation.Field(&u.OTP, validation.Required.Error("otp is required"), validation.Length(6, 6).Error("otp must be 6 characters")),
 	)
 }
 func (u User) ValidateLoginCredentials() error {

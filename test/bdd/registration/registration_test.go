@@ -3,7 +3,6 @@ package registration
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"sso/internal/constant/model/dto"
 	"sso/test"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/cucumber/godog"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 )
 
 type registrationTest struct {
@@ -20,17 +20,37 @@ type registrationTest struct {
 		OK   bool     `json:"ok"`
 		Data dto.User `json:"data"`
 	}
+	redisSeeder seed.RedisDB
 }
 
 func TestRegistertion(t *testing.T) {
 
 	a := &registrationTest{}
 	a.TestInstance = test.Initiate("../../../")
+	a.redisSeeder = seed.RedisDB{DB: a.Redis}
 
 	a.apiTest.InitializeTest(t, "Login test", "features/registration.feature", a.InitializeScenario)
 }
 
 func (r *registrationTest) iFillTheFormWithTheFollowingDetails(userForm *godog.Table) error {
+
+	// set otp to redis
+	phone, err := r.apiTest.ReadCellString(userForm, "phone")
+	if err != nil {
+		return err
+	}
+	otp, err := r.apiTest.ReadCellString(userForm, "otp")
+	if err != nil {
+		return err
+	}
+	err = r.redisSeeder.Feed(seed.RedisModel{
+		Key:   phone,
+		Value: otp,
+	})
+	if err != nil {
+		return err
+	}
+
 	body, err := r.apiTest.ReadRow(userForm, nil, false)
 	if err != nil {
 		return err
@@ -57,7 +77,7 @@ func (r *registrationTest) theRegistrationShouldFailWith(msg string) error {
 		return err
 	}
 
-	if err := r.apiTest.AssertPathValue(fmt.Sprintf(`{"message":"%s"}`, msg), "message", string(r.apiTest.ResponseBody), "error.field_error.0.description"); err != nil {
+	if err := r.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", msg); err != nil {
 		return err
 	}
 
