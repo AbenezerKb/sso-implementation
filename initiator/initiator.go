@@ -68,6 +68,10 @@ func Initiate() {
 	server.Use(middleware.ErrorHandler())
 	log.Info(context.Background(), "server initialized")
 
+	log.Info(context.Background(), "initializing metrics route")
+	InitMetricsRoute(server, log)
+	log.Info(context.Background(), "metrics route initialized")
+
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
 	InitRouter(server, v1, handler, module, log)
