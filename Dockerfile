@@ -9,6 +9,7 @@ WORKDIR /
 COPY --from=builder /bin/sso .
 COPY --from=builder /config/example_config.yaml /config/config.yaml
 COPY --from=builder /internal/constant/query/schemas /internal/constant/query/schemas
+COPY --from=builder /privatekey.example.pem /privatekey.example.pem
 
 EXPOSE 8000
 ENTRYPOINT [ "./sso" ]
