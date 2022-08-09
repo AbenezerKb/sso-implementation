@@ -5,6 +5,7 @@ import (
 	"fmt"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis/v8"
 	"github.com/spf13/viper"
 	"os"
 	"sso/initiator"
@@ -14,13 +15,13 @@ import (
 )
 
 type TestInstance struct {
-	server *gin.Engine
-	db     *db.Queries
+	Server *gin.Engine
+	DB     *db.Queries
+	Redis  *redis.Client
+	Module initiator.Module
 }
 
-var Instance TestInstance = TestInstance{}
-
-func Initiate(path string) {
+func Initiate(path string) TestInstance {
 	log := logger.New(initiator.InitLogger())
 	log.Info(context.Background(), "logger initialized")
 
@@ -52,8 +53,12 @@ func Initiate(path string) {
 	persistence := initiator.InitPersistence(db, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
+	log.Info(context.Background(), "initializing cache layer")
+	cacheLayer := initiator.InitMockCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), "123455", log)
+	log.Info(context.Background(), "cache layer initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitModule(persistence, cache, log)
+	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
@@ -72,26 +77,10 @@ func Initiate(path string) {
 	initiator.InitRouter(server, v1, handler, module, log)
 	log.Info(context.Background(), "router initialized")
 
-	Instance = TestInstance{server, db}
-
-}
-
-func GetServer(path string) (*gin.Engine, *db.Queries) {
-	if Instance.server == nil {
-		Initiate(path)
+	return TestInstance{
+		Server: server,
+		DB:     db,
+		Redis:  cache,
+		Module: module,
 	}
-
-	return Instance.server, Instance.db
-}
-
-type SqlcDB struct {
-	DB *db.Queries
-}
-
-func (sq *SqlcDB) Feed(interface{}) error {
-	return nil
-}
-
-func (sq *SqlcDB) Starve(interface{}) error {
-	return nil
 }

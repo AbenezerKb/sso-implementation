@@ -2,11 +2,12 @@ package dto
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/dongri/phonenumber"
-	validation "github.com/go-ozzo/ozzo-validation"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 )
 
@@ -23,6 +24,7 @@ type User struct {
 	Status         string    `json:"status,omitempty"`
 	ProfilePicture string    `json:"profile_picture,omitempty"`
 	CreatedAt      time.Time `json:"created_at,omitempty"`
+	OTP            string    `json:"otp"`
 }
 
 func (u User) ValidateUser() error {
@@ -35,7 +37,22 @@ func (u User) ValidateUser() error {
 		validation.Field(&u.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
 	)
 }
-
+func (u User) ValidateLoginCredentials() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Phone, validation.When(u.OTP != "" && u.Email == "",
+			validation.Required.Error("phone is required"),
+			validation.By(validatePhone))),
+		validation.Field(&u.OTP, validation.When(u.Phone != "",
+			validation.Required.Error("otp is required"),
+			validation.Length(6, 6).Error("otp must be 6 characters"))),
+		validation.Field(&u.Email, validation.When(u.Phone == "" && u.Password != "",
+			validation.Required.Error("email is required"),
+			is.EmailFormat.Error("email is not valid"))),
+		validation.Field(&u.Password, validation.When(u.Email != "",
+			validation.Required.Error("password is required"),
+			validation.Length(6, 32).Error("password must be between 6 and 32 characters"))),
+	)
+}
 func validatePhone(phone interface{}) error {
 	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")
 	if str == "" {

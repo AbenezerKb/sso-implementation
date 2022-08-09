@@ -49,8 +49,12 @@ func Initiate() {
 	persistence := InitPersistence(db, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
+	log.Info(context.Background(), "initializing cache layer")
+	cacheLayer := InitCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), log)
+	log.Info(context.Background(), "cache layer initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cache, log)
+	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

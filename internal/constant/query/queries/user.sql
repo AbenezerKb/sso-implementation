@@ -4,6 +4,9 @@ SELECT * FROM users;
 -- name: GetUserByPhone :one
 SELECT * FROM users WHERE phone = $1;
 
+-- name: GetUserByPhoneOrEmail :one
+SELECT * FROM users WHERE phone = $1 OR email = $1;
+
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = $1;
 
@@ -22,3 +25,6 @@ INSERT INTO users (
     $1, $2, $3, $4, $5, $6, $7, $8, $9
 )
 RETURNING *;
+
+-- name: DeleteUser :one
+DELETE FROM users WHERE id = $1 RETURNING *;

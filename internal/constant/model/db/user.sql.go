@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -51,6 +53,30 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Gender,
 		arg.ProfilePicture,
 	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const deleteUser = `-- name: DeleteUser :one
+DELETE FROM users WHERE id = $1 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, deleteUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -136,6 +162,30 @@ SELECT id, first_name, middle_name, last_name, email, phone, password, user_name
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
 	row := q.db.QueryRow(ctx, getUserByPhone, phone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getUserByPhoneOrEmail = `-- name: GetUserByPhoneOrEmail :one
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE phone = $1 OR email = $1
+`
+
+func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserByPhoneOrEmail, phone)
 	var i User
 	err := row.Scan(
 		&i.ID,

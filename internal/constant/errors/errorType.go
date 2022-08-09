@@ -32,18 +32,41 @@ var Error = []ErrorType{
 		ErrorCode: http.StatusBadRequest,
 		ErrorType: ErrDataExists,
 	},
+	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrCacheSetError,
+	},
+	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrCacheGetError,
+	},
+	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrInternalServerError,
+	},
+	{
+		ErrorCode: http.StatusUnauthorized,
+		ErrorType: ErrInvalidToken,
+	},
 }
 
 var (
 	invalidInput = errorx.NewNamespace("validation error").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
+	unauthorized = errorx.NewNamespace("unauthorized").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	dbError      = errorx.NewNamespace("db error")
 	duplicate    = errorx.NewNamespace("duplicate").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
+	cacheError   = errorx.NewNamespace("cache error")
+	serverError  = errorx.NewNamespace("server error")
 )
 
 var (
-	ErrInvalidUserInput = errorx.NewType(invalidInput, "invalid user input")
-	ErrNoRecordFound    = errorx.NewType(dbError, "no record found")
-	ErrWriteError       = errorx.NewType(dbError, "could not write to db")
-	ErrReadError        = errorx.NewType(dbError, "could not read from db")
-	ErrDataExists       = errorx.NewType(duplicate, "data already exists")
+	ErrInvalidUserInput    = errorx.NewType(invalidInput, "invalid user input")
+	ErrNoRecordFound       = errorx.NewType(dbError, "no record found")
+	ErrWriteError          = errorx.NewType(dbError, "could not write to db")
+	ErrReadError           = errorx.NewType(dbError, "could not read from db")
+	ErrDataExists          = errorx.NewType(duplicate, "data already exists")
+	ErrCacheSetError       = errorx.NewType(cacheError, "could not set cache")
+	ErrCacheGetError       = errorx.NewType(cacheError, "could not get cache")
+	ErrInternalServerError = errorx.NewType(serverError, "internal server error")
+	ErrInvalidToken        = errorx.NewType(unauthorized, "invalid token")
 )
