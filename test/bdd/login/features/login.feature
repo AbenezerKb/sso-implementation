@@ -1,24 +1,33 @@
 Feature: Login
 
-    @success
-    Scenario: Successful Login
-        Given I fill the following details
-            | phone   | password   | otp   |
-            | <phone> | <password> | <otp> |
-        When I submit the registration form
-        Then I will be logged in securely to my account
-        Examples:
-            | phone        | password | otp  |
-            | 251911121314 | password | 1234 |
+  Background:
+    Given I am a registered user with details
+      | phone         | email             | password |
+      | 251911121314 | example@email.com | 1234abcd |
 
-    @invalid
-    Scenario: Failed Login
-        Given I fill the following details
-            | email   | password   |
-            | <email> | <password> |
-        When I submit the registration form
-        Then the login should fail with "<message>"
-        Examples:
-            | email             | password  | message            |
-            | notexample.2f.com | 123456    | invalid credential |
-            | example.2f.com    | not123456 | invalid credential |
+  @success
+  Scenario Outline: Successful Login
+    Given I fill the following details
+      | phone   | email   | password   | otp   |
+      | <phone> | <email> | <password> | <otp> |
+    When I submit the registration form
+    Then I will be logged in securely to my account
+    Examples:
+      | phone        | email             | password | otp  |
+      | 251911121314 |                   |          | 123456 |
+      |              | example@email.com | 1234abcd |      |
+      | 251911121314 | example@email.com | 1234abcd | 123456 |
+
+  @invalid
+  Scenario Outline: Failed Login
+    Given I fill the following details
+      | phone   | email   | password   | otp   |
+      | <phone> | <email> | <password> | <otp> |
+    When I submit the registration form
+    Then the login should fail with "<message>"
+    Examples:
+      | phone         | email             | password | otp    | message             |
+      | +251911121314 |                   |          | 654321 | invalid credentials |
+      |               | example@gmail.com | abcd1234 |        | invalid credentials |
+      | +251914131211 |                   |          | 123456 | invalid credentials |
+      |               | not@email.com     | 1234abcd |        | invalid credentials |

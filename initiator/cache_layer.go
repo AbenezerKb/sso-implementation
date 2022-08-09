@@ -1,0 +1,29 @@
+package initiator
+
+import (
+	"github.com/go-redis/redis/v8"
+	"sso/internal/storage"
+	"sso/internal/storage/cache/otp"
+	"sso/internal/storage/cache/session"
+	"sso/platform/logger"
+	"time"
+)
+
+type CacheLayer struct {
+	OTPCacheLayer     storage.OTPCache
+	SessionCacheLayer storage.SessionCache
+}
+
+func InitCacheLayer(client *redis.Client, expireOn time.Duration, log logger.Logger) CacheLayer {
+	return CacheLayer{
+		OTPCacheLayer:     otp.InitOTPCache(client, log, expireOn),
+		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
+	}
+}
+
+func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger) CacheLayer {
+	return CacheLayer{
+		OTPCacheLayer:     otp.InitMockOTPCache(client, log, expireOn, mockOTP),
+		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
+	}
+}

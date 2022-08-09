@@ -9,6 +9,6 @@ CREATE TABLE users (
     "user_name" varchar NOT NULL,
     "gender" varchar NOT NULL,
     "profile_picture" varchar,
-    "status" varchar DEFAULT 'inactive',
+    "status" varchar DEFAULT 'ACTIVE',
     "created_at" timestamptz NOT NULL default now()
 );

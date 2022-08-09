@@ -7,7 +7,6 @@ import (
 	"sso/internal/module/oauth"
 	"sso/platform/logger"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
 )
@@ -17,7 +16,7 @@ type Module struct {
 	OAuthModule module.OAuthModule
 }
 
-func InitModule(persistence Persistence, cache *redis.Client, privateKeyPath string, log logger.Logger) Module {
+func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, log logger.Logger) Module {
 	keyFile, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {
 		log.Fatal(context.Background(), "failed to read private key", zap.Error(err))
@@ -29,6 +28,6 @@ func InitModule(persistence Persistence, cache *redis.Client, privateKeyPath str
 	}
 
 	return Module{
-		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache, privateKey),
+		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey),
 	}
 }

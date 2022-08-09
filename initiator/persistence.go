@@ -3,7 +3,7 @@ package initiator
 import (
 	"sso/internal/constant/model/db"
 	"sso/internal/storage"
-	"sso/internal/storage/oauth"
+	"sso/internal/storage/persistence/oauth"
 	"sso/platform/logger"
 )
 

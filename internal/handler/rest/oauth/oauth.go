@@ -67,10 +67,10 @@ func (o *oauth) Login(ctx *gin.Context) {
 	ctx.SetCookie("id_token", loginRsp.RefreshToken, 12000, "/", "", false, true)
 	o.logger.Info(ctx, "user logged in")
 
-	redirectUrl := ctx.Query("redirect_url")
-	if redirectUrl == "" {
-		redirectUrl = "/"
-	}
-	ctx.Redirect(http.StatusFound, redirectUrl)
-	// constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
+	//redirectUrl := ctx.Query("redirect_url")
+	//if redirectUrl == "" {
+	//	redirectUrl = "/"
+	//}
+	//ctx.Redirect(http.StatusFound, redirectUrl)
+	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }

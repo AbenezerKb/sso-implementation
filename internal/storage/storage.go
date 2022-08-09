@@ -11,5 +11,15 @@ type OAuthPersistence interface {
 	GetUserByEmail(ctx context.Context, email string) (*dto.User, error)
 	UserByPhoneExists(ctx context.Context, phone string) (bool, error)
 	UserByEmailExists(ctx context.Context, email string) (bool, error)
-	GetUserByPhoneOrUserNameOrEmail(ctx context.Context, query string) (*dto.User, error)
+	GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error)
+}
+
+type OTPCache interface {
+	SetOTP(ctx context.Context, phone string, otp string) error
+	GetOTP(ctx context.Context, phone string) (string, error)
+}
+
+type SessionCache interface {
+	SaveSession(ctx context.Context, session dto.Session) error
+	GetSession(ctx context.Context, sessionID string) (dto.Session, error)
 }

@@ -2,6 +2,8 @@ package oauth
 
 import (
 	"context"
+	"go.uber.org/zap"
+	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"time"
 
@@ -20,22 +22,24 @@ func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(o.privateKey)
 	if err != nil {
-		return "", err
+		o.logger.Error(ctx, "could not generate access token", zap.Error(err))
+		return "", errors.ErrInternalServerError.Wrap(err, "could not generate access token")
 	}
 	return token, nil
 }
 
 func (o *oauth) GenerateRefreshToken(ctx context.Context, user *dto.User) (string, error) {
-	cliams := jwt.RegisteredClaims{
+	claims := jwt.RegisteredClaims{
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
 		Issuer:    "test",
 		NotBefore: jwt.NewNumericDate(time.Now()),
 		Subject:   user.ID.String(),
 	}
 
-	rfToken, err := jwt.NewWithClaims(jwt.SigningMethodPS512, cliams).SignedString(o.privateKey)
+	rfToken, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(o.privateKey)
 	if err != nil {
-		return "", err
+		o.logger.Error(ctx, "could not generate refresh token", zap.Error(err))
+		return "", errors.ErrInternalServerError.Wrap(err, "could not generate refresh token")
 	}
 
 	return rfToken, nil
@@ -56,7 +60,8 @@ func (o *oauth) GenerateIdToken(ctx context.Context, user *dto.User) (string, er
 
 	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(o.privateKey)
 	if err != nil {
-		return "", err
+		o.logger.Error(ctx, "could not generate id token", zap.Error(err))
+		return "", errors.ErrInternalServerError.Wrap(err, "could not generate id token")
 	}
 	return token, nil
 }

@@ -122,8 +122,29 @@ func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, erro
 	return true, nil
 }
 
-func (o *oauth) GetUserByPhoneOrUserNameOrEmail(ctx context.Context, query string) (*dto.User, error) {
-	return nil, nil
+func (o *oauth) GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error) {
+	user, err := o.db.GetUserByPhoneOrEmail(ctx, query)
+	if err != nil {
+		if reflect.ValueOf(user).IsZero() {
+			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+		} else {
+			err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+			o.logger.Error(ctx, zap.Error(err).String)
+			return &dto.User{}, err
+		}
+	}
+
+	return &dto.User{
+		ID:         user.ID,
+		Status:     user.Status.String,
+		UserName:   user.UserName,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName,
+		LastName:   user.LastName,
+		Email:      user.Email.String,
+		Phone:      user.Phone,
+		Password:   user.Password,
+	}, nil
 }
 
 func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {

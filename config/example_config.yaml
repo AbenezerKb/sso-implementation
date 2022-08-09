@@ -5,6 +5,7 @@ migration:
   path: internal/constant/query/schemas
 redis:
   url: redis://redis:6379/0
+  otp_expire_time: 5000
 server:
   port: 8000
   timeout: 30

@@ -2,27 +2,30 @@ package registration
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"sso/internal/constant/model/db"
+	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/gin-gonic/gin"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
 type registrationTest struct {
+	test.TestInstance
 	apiTest src.ApiTest
-	server  *gin.Engine
-	db      *db.Queries
+	user    struct {
+		OK   bool     `json:"ok"`
+		Data dto.User `json:"data"`
+	}
 }
 
 func TestRegistertion(t *testing.T) {
 
 	a := &registrationTest{}
-	a.server, a.db = test.GetServer("../../../")
+	a.TestInstance = test.Initiate("../../../")
 
 	a.apiTest.InitializeTest(t, "Login test", "features/registration.feature", a.InitializeScenario)
 }
@@ -45,8 +48,8 @@ func (r *registrationTest) iWillHaveANewAccount() error {
 	if err := r.apiTest.AssertStatusCode(http.StatusCreated); err != nil {
 		return err
 	}
-
-	return nil
+	err := json.Unmarshal(r.apiTest.ResponseBody, &r.user)
+	return err
 }
 
 func (r *registrationTest) theRegistrationShouldFailWith(msg string) error {
@@ -67,13 +70,13 @@ func (r *registrationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 		r.apiTest.URL = "/v1/register"
 		r.apiTest.Method = http.MethodPost
-		r.apiTest.Headers = map[string]string{}
-		r.apiTest.Headers["Content-Type"] = "application/json"
-		r.apiTest.InitializeServer(r.server)
+		r.apiTest.SetHeader("Content-Type", "application/json")
+		r.apiTest.InitializeServer(r.Server)
 		return ctx, nil
 	})
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		_, _ = r.DB.DeleteUser(ctx, r.user.Data.ID)
 		return ctx, nil
 	})
 
