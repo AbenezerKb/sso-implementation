@@ -21,6 +21,12 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth) {
 			Handler:     handler.Login,
 			Middlewares: []gin.HandlerFunc{},
 		},
+		{
+			Method:      "GET",
+			Path:        "/otp/:phone/:type",
+			Handler:     handler.RequestOTP,
+			Middlewares: []gin.HandlerFunc{},
+		},
 	}
 	routing.RegisterRoutes(router, oauthRoutes)
 
