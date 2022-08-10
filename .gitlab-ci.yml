@@ -1,7 +1,7 @@
 image: golang:1.18
 
 variables:
-  TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_JOB_ID
+  TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_PIPELINE_ID
 
 .go-cache:
   variables:
