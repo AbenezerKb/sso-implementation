@@ -3,6 +3,7 @@ package registration
 import (
 	"context"
 	"encoding/json"
+	"github.com/dongri/phonenumber"
 	"net/http"
 	"sso/internal/constant/model/dto"
 	"sso/test"
@@ -44,7 +45,7 @@ func (r *registrationTest) iFillTheFormWithTheFollowingDetails(userForm *godog.T
 		return err
 	}
 	err = r.redisSeeder.Feed(seed.RedisModel{
-		Key:   phone,
+		Key:   phonenumber.Parse(phone, "ET"),
 		Value: otp,
 	})
 	if err != nil {

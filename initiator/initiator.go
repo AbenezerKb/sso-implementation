@@ -3,6 +3,10 @@ package initiator
 import (
 	"context"
 	"fmt"
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,12 +14,6 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"syscall"
-	"time"
-
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 )
 
 func Initiate() {
@@ -58,8 +56,12 @@ func Initiate() {
 	cacheLayer := InitCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), log)
 	log.Info(context.Background(), "cache layer initialized")
 
+	log.Info(context.Background(), "initializing platform layer")
+	platformLayer := InitPlatformLayer(log)
+	log.Info(context.Background(), "platform layer initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), log)
+	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
@@ -101,7 +103,7 @@ func Initiate() {
 	}()
 	sig := <-quit
 	log.Info(context.Background(), fmt.Sprintf("server shutting down with signal %v", sig))
-	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("server.timeout")*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), viper.GetDuration("server.timeout"))
 	defer cancel()
 
 	log.Info(ctx, "shutting down server")

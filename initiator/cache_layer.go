@@ -5,6 +5,7 @@ import (
 	"sso/internal/storage"
 	"sso/internal/storage/cache/otp"
 	"sso/internal/storage/cache/session"
+	mock_otp "sso/mocks/storage/cache/otp"
 	"sso/platform/logger"
 	"time"
 )
@@ -23,7 +24,7 @@ func InitCacheLayer(client *redis.Client, expireOn time.Duration, log logger.Log
 
 func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:     otp.InitMockOTPCache(client, log, expireOn, mockOTP),
+		OTPCacheLayer:     mock_otp.InitMockOTPCache(client, log, expireOn, mockOTP),
 		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
 	}
 }

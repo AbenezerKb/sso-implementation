@@ -1,14 +1,22 @@
 debug: false
+dev: true
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
 migration:
   path: internal/constant/query/schemas
-redis:
-  url: redis://redis:6379/0
-  otp_expire_time: 5000
-server:
-  port: 8000
-  timeout: 30
-private_key: privatekey.example.pem
 casbin:
   path: config/casbin.conf
+redis:
+  url: redis://redis:6379/0
+  otp_expire_time: 120s
+server:
+  port: 8000
+  timeout: 30s
+private_key: privatekey.example.pem
+sms:
+  username: user1
+  password: test@pass
+  server: "https://sms.rideplus.co"
+  templates:
+    otp: "%v is your Ride Auth authentication code."
+    password: "%v is your Ride password. Please login and reset it."

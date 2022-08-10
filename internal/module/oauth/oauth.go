@@ -7,6 +7,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
+	"sso/platform"
 	"sso/platform/logger"
 
 	"github.com/dongri/phonenumber"
@@ -20,15 +21,17 @@ type oauth struct {
 	otpCache         storage.OTPCache
 	sessionCache     storage.SessionCache
 	privateKey       *rsa.PrivateKey
+	smsClient        platform.SMSClient
 }
 
-func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, privateKey *rsa.PrivateKey) module.OAuthModule {
+func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, privateKey *rsa.PrivateKey, smsClient platform.SMSClient) module.OAuthModule {
 	return &oauth{
 		logger,
 		oauthPersistence,
 		otpCache,
 		sessionCache,
 		privateKey,
+		smsClient,
 	}
 }
 
@@ -38,6 +41,7 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return nil, err
 	}
+	userParam.Phone = phonenumber.Parse(userParam.Phone, "ET")
 
 	err := o.VerifyOTP(ctx, userParam.Phone, userParam.OTP)
 	if err != nil {

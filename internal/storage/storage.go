@@ -17,6 +17,8 @@ type OAuthPersistence interface {
 type OTPCache interface {
 	SetOTP(ctx context.Context, phone string, otp string) error
 	GetOTP(ctx context.Context, phone string) (string, error)
+	GetDelOTP(ctx context.Context, phone string) (string, error)
+	DeleteOTP(ctx context.Context, phone ...string) error
 }
 
 type SessionCache interface {

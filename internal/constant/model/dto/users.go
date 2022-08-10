@@ -34,7 +34,7 @@ func (u User) ValidateUser() error {
 		validation.Field(&u.LastName, validation.Required.Error("last name is required")),
 		validation.Field(&u.Email, is.EmailFormat.Error("email is not valid")),
 		validation.Field(&u.Phone, validation.Required.Error("phone is required"), validation.By(validatePhone)),
-		validation.Field(&u.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
+		validation.Field(&u.Password, validation.When(u.Email != "", validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters"))),
 		validation.Field(&u.OTP, validation.Required.Error("otp is required"), validation.Length(6, 6).Error("otp must be 6 characters")),
 	)
 }

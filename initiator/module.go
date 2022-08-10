@@ -16,7 +16,7 @@ type Module struct {
 	OAuthModule module.OAuthModule
 }
 
-func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, log logger.Logger) Module {
+func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger) Module {
 	keyFile, err := ioutil.ReadFile(privateKeyPath)
 	if err != nil {
 		log.Fatal(context.Background(), "failed to read private key", zap.Error(err))
@@ -28,6 +28,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	}
 
 	return Module{
-		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey),
+		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
 	}
 }
