@@ -1,7 +1,7 @@
 image: golang:1.18
 
 variables:
-  TAG_LATEST: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:latest
+  TAG: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_JOB_ID
 
 .go-cache:
   variables:
@@ -52,9 +52,9 @@ publish:
   services:
     - docker:dind
   script:
-    - docker build -t $TAG_LATEST .
+    - docker build -t $TAG .
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-    - docker push $TAG_LATEST
+    - docker push $TAG
     - docker rmi -f $(docker images --filter "dangling=true" -q --no-trunc) || clean_up_status=$?
   only:
     refs:
@@ -79,7 +79,7 @@ deploy-for-main:
 
   script:
     - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
-    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker pull $TAG"
     - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker service update --force sso_sso"
 
   only:
@@ -102,7 +102,7 @@ deploy-for-staging:
 
   script:
     - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
-    - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker pull $TAG"
     - ssh $SERVERUSER_STAGING@$SERVERIP_STAGING "docker service update --force sso_sso"
 
   only:
@@ -124,7 +124,7 @@ deploy-for-pre-production:
 
   script:
     - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
-    - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker pull $TAG"
     - ssh $SERVERUSER_PRE_PRODUCTION@$SERVERIP_PRE_PRODUCTION "docker service update --force sso_sso"
 
   only:
@@ -146,7 +146,7 @@ deploy-for-production:
 
   script:
     - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
-    - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker pull $TAG_LATEST"
+    - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker pull $TAG"
     - ssh $SERVERUSER_PRODUCTION@$SERVERIP_PRODUCTION "docker service update --force sso_sso"
 
   only:
