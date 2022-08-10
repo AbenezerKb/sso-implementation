@@ -37,7 +37,8 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "config initialized")
 
 	log.Info(context.Background(), "initializing database")
-	db := initiator.InitDB(viper.GetString("database.url"), log)
+	pgxConn := initiator.InitDB(viper.GetString("database.url"), log)
+	sqlConn := db.New(pgxConn)
 	log.Info(context.Background(), "database initialized")
 
 	log.Info(context.Background(), "initializing migration")
@@ -45,12 +46,16 @@ func Initiate(path string) TestInstance {
 	initiator.UpMigration(m, log)
 	log.Info(context.Background(), "migration initialized")
 
+	log.Info(context.Background(), "initializing casbin enforcer")
+	enforcer := initiator.InitEnforcer(path+viper.GetString("casbin.path"), pgxConn, log)
+	log.Info(context.Background(), "casbin enforcer initialized")
+
 	log.Info(context.Background(), "initializing cache")
 	cache := initiator.InitCache(viper.GetString("redis.url"), log)
 	log.Info(context.Background(), "cache initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := initiator.InitPersistence(db, log)
+	persistence := initiator.InitPersistence(sqlConn, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
@@ -78,12 +83,12 @@ func Initiate(path string) TestInstance {
 
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
-	initiator.InitRouter(server, v1, handler, module, log)
+	initiator.InitRouter(server, v1, handler, module, log, enforcer)
 	log.Info(context.Background(), "router initialized")
 
 	return TestInstance{
 		Server: server,
-		DB:     db,
+		DB:     sqlConn,
 		Redis:  cache,
 		Module: module,
 	}
