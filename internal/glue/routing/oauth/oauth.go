@@ -23,7 +23,7 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth) {
 		},
 		{
 			Method:      "GET",
-			Path:        "/otp/:phone/:type",
+			Path:        "/otp",
 			Handler:     handler.RequestOTP,
 			Middlewares: []gin.HandlerFunc{},
 		},

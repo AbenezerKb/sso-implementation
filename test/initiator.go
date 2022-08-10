@@ -62,8 +62,12 @@ func Initiate(path string) TestInstance {
 	cacheLayer := initiator.InitMockCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), "123455", log)
 	log.Info(context.Background(), "cache layer initialized")
 
+	log.Info(context.Background(), "initializing platform layer")
+	platformLayer := initiator.InitMockPlatformLayer(log)
+	log.Info(context.Background(), "platform layer initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), log)
+	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

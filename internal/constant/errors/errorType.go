@@ -42,11 +42,23 @@ var Error = []ErrorType{
 	},
 	{
 		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrCacheDel,
+	},
+	{
+		ErrorCode: http.StatusInternalServerError,
 		ErrorType: ErrInternalServerError,
 	},
 	{
 		ErrorCode: http.StatusUnauthorized,
 		ErrorType: ErrInvalidToken,
+	},
+	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrOTPGenerate,
+	},
+	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrSMSSend,
 	},
 }
 
@@ -67,6 +79,9 @@ var (
 	ErrDataExists          = errorx.NewType(duplicate, "data already exists")
 	ErrCacheSetError       = errorx.NewType(cacheError, "could not set cache")
 	ErrCacheGetError       = errorx.NewType(cacheError, "could not get cache")
+	ErrCacheDel            = errorx.NewType(cacheError, "could not delete cache")
 	ErrInternalServerError = errorx.NewType(serverError, "internal server error")
 	ErrInvalidToken        = errorx.NewType(unauthorized, "invalid token")
+	ErrOTPGenerate         = errorx.NewType(serverError, "couldn't generate otp")
+	ErrSMSSend             = errorx.NewType(serverError, "couldn't send sms")
 )

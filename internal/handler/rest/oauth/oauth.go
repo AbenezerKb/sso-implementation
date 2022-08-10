@@ -76,8 +76,8 @@ func (o *oauth) Login(ctx *gin.Context) {
 }
 
 func (o *oauth) RequestOTP(ctx *gin.Context) {
-	phone := ctx.Param("phone")
-	Rqtype := ctx.Param("type")
+	phone := ctx.Query("phone")
+	Rqtype := ctx.Query("type")
 	if phone == "" || Rqtype == "" {
 		o.logger.Error(ctx, "invalid input", zap.String("phone", phone))
 		ctx.Error(errors.ErrInvalidUserInput.New("invalid phone"))
