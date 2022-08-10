@@ -66,6 +66,9 @@ func Initiate() {
 	server.Use(middleware.GinLogger(log))
 	server.Use(ginzap.RecoveryWithZap(log.GetZapLogger().Named("gin.recovery"), true))
 	server.Use(middleware.ErrorHandler())
+	if viper.GetBool("dev") {
+		server.Use(InitCORS())
+	}
 	log.Info(context.Background(), "server initialized")
 
 	log.Info(context.Background(), "initializing metrics route")
