@@ -10,3 +10,5 @@ server:
   port: 8000
   timeout: 30
 private_key: privatekey.example.pem
+casbin:
+  path: config/casbin.conf

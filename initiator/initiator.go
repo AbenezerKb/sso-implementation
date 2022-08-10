@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sso/internal/constant/model/db"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"syscall"
@@ -33,7 +34,7 @@ func Initiate() {
 	log.Info(context.Background(), "config initialized")
 
 	log.Info(context.Background(), "initializing database")
-	db := InitDB(viper.GetString("database.url"), log)
+	pgxConn := InitDB(viper.GetString("database.url"), log)
 	log.Info(context.Background(), "database initialized")
 
 	log.Info(context.Background(), "initializing migration")
@@ -45,8 +46,12 @@ func Initiate() {
 	cache := InitCache(viper.GetString("redis.url"), log)
 	log.Info(context.Background(), "cache initialized")
 
+	log.Info(context.Background(), "initializing casbin enforcer")
+	enforcer := InitEnforcer(viper.GetString("casbin.path"), pgxConn, log)
+	log.Info(context.Background(), "casbin enforcer initialized")
+
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := InitPersistence(db, log)
+	persistence := InitPersistence(db.New(pgxConn), log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
@@ -77,7 +82,7 @@ func Initiate() {
 
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
-	InitRouter(server, v1, handler, module, log)
+	InitRouter(server, v1, handler, module, log, enforcer)
 	log.Info(context.Background(), "router initialized")
 
 	srv := &http.Server{
