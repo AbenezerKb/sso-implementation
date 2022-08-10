@@ -80,7 +80,7 @@ deploy-for-main:
   script:
     - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
     - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker pull $TAG"
-    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker service update --force sso_sso"
+    - ssh $SERVERUSER_MAIN@$SERVERIP_MAIN "docker service update --image $TAG --force sso_sso"
 
   only:
     refs:
