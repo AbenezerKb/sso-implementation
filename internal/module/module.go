@@ -15,4 +15,5 @@ type OAuthModule interface {
 	HashAndSalt(ctx context.Context, pwd []byte) (string, error)
 	RequestOTP(ctx context.Context, phone string, rqtype string) error
 	VerifyToken(signingMethod jwt.SigningMethod, token string, pk *rsa.PublicKey) (bool, *jwt.RegisteredClaims)
+	GetUserStatus(ctx context.Context, Id string) (string, error)
 }
