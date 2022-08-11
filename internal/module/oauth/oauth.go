@@ -36,7 +36,7 @@ func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, 
 	}
 }
 
-func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, error) {
+func (o *oauth) Register(ctx context.Context, userParam dto.RegisterUser) (*dto.User, error) {
 	if err := userParam.ValidateUser(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
@@ -73,7 +73,7 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 		return nil, err
 	}
 
-	user, err := o.oauthPersistence.Register(ctx, userParam)
+	user, err := o.oauthPersistence.Register(ctx, userParam.User)
 	if err != nil {
 		return nil, err
 	}

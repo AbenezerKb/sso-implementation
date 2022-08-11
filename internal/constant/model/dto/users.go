@@ -42,11 +42,15 @@ type User struct {
 	// CreatedAt is the time when the user is created.
 	// It is automatically set when the user is created.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+}
+
+type RegisterUser struct {
+	User
 	// OTP is the one time password of the user.
 	OTP string `json:"otp,omitempty"`
 }
 
-func (u User) ValidateUser() error {
+func (u RegisterUser) ValidateUser() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.FirstName, validation.Required.Error("first name is required")),
 		validation.Field(&u.MiddleName, validation.Required.Error("middle name is required")),

@@ -36,7 +36,7 @@ func InitOAuth(logger logger.Logger, oauthModule module.OAuthModule) rest.OAuth 
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /register [post]
 func (o *oauth) Register(ctx *gin.Context) {
-	userParam := dto.User{}
+	userParam := dto.RegisterUser{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)
