@@ -16,6 +16,17 @@ import (
 	"syscall"
 )
 
+// Initiate
+// @title           RidePLUS SSO API
+// @version         0.1
+// @description     This is the RidePLUS sso api.
+//
+// @contact.name   2F Capital Support Email
+// @contact.url    http://www.2fcapital.com
+// @contact.email  info@1f-capital.com
+//
+// @host 206.189.54.235:8000
+// @BasePath  /v1
 func Initiate() {
 	log := logger.New(InitLogger())
 	log.Info(context.Background(), "logger initialized")
