@@ -25,7 +25,16 @@ func InitOAuth(logger logger.Logger, oauthModule module.OAuthModule) rest.OAuth 
 	}
 }
 
-// implement Oauth
+// Register creates a new user.
+// @Summary      Register a new user.
+// @Description  Register a new user.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param user body dto.User true "user"
+// @Success      200  {object}  dto.User
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /register [post]
 func (o *oauth) Register(ctx *gin.Context) {
 	userParam := dto.User{}
 	err := ctx.ShouldBind(&userParam)
@@ -43,20 +52,31 @@ func (o *oauth) Register(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusCreated, registeredUser, nil)
 }
 
+// Login logs in a user.
+// @Summary      Login a user.
+// @Description  Login a user.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param login_credential body dto.LoginCredential true "login_credential"
+// @Success      200  {object}  dto.TokenResponse
+// @Failure      401  {object}  model.ErrorResponse "invalid credentials"
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /login [post]
 func (o *oauth) Login(ctx *gin.Context) {
-	userParam := dto.User{}
+	userParam := dto.LoginCredential{}
 	err := ctx.ShouldBind(&userParam)
 
 	if err != nil {
 		o.logger.Error(ctx, "invalid input", zap.Error(err))
-		ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
 
 	loginRsp, err := o.oauthModule.Login(ctx.Request.Context(), userParam)
 
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -75,17 +95,28 @@ func (o *oauth) Login(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }
 
+// RequestOTP is used to request otp.
+// @Summary      Request otp.
+// @Description  is used to request otp for login and signup
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param phone query string true "phone"
+// @param type query string true "type can be login or signup" Enums(login, signup)
+// @Success      200  {boolean}  true
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /otp [get]
 func (o *oauth) RequestOTP(ctx *gin.Context) {
 	phone := ctx.Query("phone")
-	Rqtype := ctx.Query("type")
-	if phone == "" || Rqtype == "" {
+	RqType := ctx.Query("type")
+	if phone == "" || RqType == "" {
 		o.logger.Error(ctx, "invalid input", zap.String("phone", phone))
-		ctx.Error(errors.ErrInvalidUserInput.New("invalid phone"))
+		_ = ctx.Error(errors.ErrInvalidUserInput.New("invalid phone"))
 		return
 	}
-	err := o.oauthModule.RequestOTP(ctx.Request.Context(), phone, Rqtype)
+	err := o.oauthModule.RequestOTP(ctx.Request.Context(), phone, RqType)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 	o.logger.Info(ctx, "OTP sent", zap.String("phone", phone))
