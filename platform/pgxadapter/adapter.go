@@ -385,7 +385,7 @@ func (a *Adapter) createTable() error {
 	defer cancel()
 	_, err := a.db.Exec(ctx, fmt.Sprintf(`
 		CREATE TABLE IF NOT EXISTS %s (
-			id text PRIMARY KEY,
+			id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 			p_type text,
 			v0 text,
 			v1 text,
