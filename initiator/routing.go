@@ -25,5 +25,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	}
 	authMiddleware := middleware.InitAuthMiddleware(enforcer, module.OAuthModule, ssoPublicKey)
 
-	oauth.InitRoute(group, handler.oauth, authMiddleware)
+	oauth.InitRoute(group, handler.oauth, authMiddleware, enforcer)
 }
