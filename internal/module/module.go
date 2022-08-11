@@ -10,10 +10,10 @@ import (
 
 type OAuthModule interface {
 	Register(ctx context.Context, user dto.User) (*dto.User, error)
-	Login(ctx context.Context, user dto.User) (*dto.TokenResponse, error)
+	Login(ctx context.Context, login dto.LoginCredential) (*dto.TokenResponse, error)
 	ComparePassword(hashedPwd, plainPassword string) bool
 	HashAndSalt(ctx context.Context, pwd []byte) (string, error)
-	RequestOTP(ctx context.Context, phone string, rqtype string) error
+	RequestOTP(ctx context.Context, phone string, rqType string) error
 	VerifyToken(signingMethod jwt.SigningMethod, token string, pk *rsa.PublicKey) (bool, *jwt.RegisteredClaims)
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 }

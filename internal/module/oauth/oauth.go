@@ -80,8 +80,8 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	return user, nil
 }
 
-func (o *oauth) Login(ctx context.Context, userParam dto.User) (*dto.TokenResponse, error) {
-	if err := userParam.ValidateLoginCredentials(); err != nil {
+func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.TokenResponse, error) {
+	if err := userParam.ValidateLoginCredential(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return nil, err
