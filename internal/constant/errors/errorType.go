@@ -60,6 +60,10 @@ var Error = []ErrorType{
 		ErrorCode: http.StatusInternalServerError,
 		ErrorType: ErrSMSSend,
 	},
+	{
+		ErrorCode: http.StatusUnauthorized,
+		ErrorType: ErrAuthError,
+	},
 }
 
 var (
@@ -84,4 +88,5 @@ var (
 	ErrInvalidToken        = errorx.NewType(unauthorized, "invalid token")
 	ErrOTPGenerate         = errorx.NewType(serverError, "couldn't generate otp")
 	ErrSMSSend             = errorx.NewType(serverError, "couldn't send sms")
+	ErrAuthError           = errorx.NewType(unauthorized, "you are not authorized.")
 )
