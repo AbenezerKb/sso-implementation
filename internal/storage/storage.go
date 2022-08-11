@@ -3,11 +3,14 @@ package storage
 import (
 	"context"
 	"sso/internal/constant/model/dto"
+
+	"github.com/google/uuid"
 )
 
 type OAuthPersistence interface {
 	Register(ctx context.Context, user dto.User) (*dto.User, error)
 	GetUserByPhone(ctx context.Context, phone string) (*dto.User, error)
+	GetUserStatus(ctx context.Context, Id uuid.UUID) (string, error)
 	GetUserByEmail(ctx context.Context, email string) (*dto.User, error)
 	UserByPhoneExists(ctx context.Context, phone string) (bool, error)
 	UserByEmailExists(ctx context.Context, email string) (bool, error)

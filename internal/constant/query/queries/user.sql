@@ -4,6 +4,9 @@ SELECT * FROM users;
 -- name: GetUserByPhone :one
 SELECT * FROM users WHERE phone = $1;
 
+-- name: GetUserStatus :one
+SELECT status FROM users WHERE id = $1;
+
 -- name: GetUserByPhoneOrEmail :one
 SELECT * FROM users WHERE phone = $1 OR email = $1;
 

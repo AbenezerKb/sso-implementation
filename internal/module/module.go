@@ -2,7 +2,10 @@ package module
 
 import (
 	"context"
+	"crypto/rsa"
 	"sso/internal/constant/model/dto"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type OAuthModule interface {
@@ -11,4 +14,6 @@ type OAuthModule interface {
 	ComparePassword(hashedPwd, plainPassword string) bool
 	HashAndSalt(ctx context.Context, pwd []byte) (string, error)
 	RequestOTP(ctx context.Context, phone string, rqType string) error
+	VerifyToken(signingMethod jwt.SigningMethod, token string, pk *rsa.PublicKey) (bool, *jwt.RegisteredClaims)
+	GetUserStatus(ctx context.Context, Id string) (string, error)
 }

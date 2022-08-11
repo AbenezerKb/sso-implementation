@@ -10,6 +10,7 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -107,6 +108,18 @@ func (o *oauth) GetUserByEmail(ctx context.Context, email string) (*dto.User, er
 		Gender:         user.Gender,
 		ProfilePicture: user.ProfilePicture.String,
 	}, nil
+}
+
+func (o *oauth) GetUserStatus(ctx context.Context, Id uuid.UUID) (string, error) {
+
+	status, err := o.db.GetUserStatus(ctx, Id)
+	if err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Error(ctx, zap.Error(err).String)
+		return "", err
+	}
+
+	return status.String, nil
 }
 func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, error) {
 	user, err := o.db.GetUserByPhone(ctx, phone)

@@ -2,12 +2,14 @@ package oauth
 
 import (
 	"sso/internal/glue/routing"
+	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
 
+	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 )
 
-func InitRoute(router *gin.RouterGroup, handler rest.OAuth) {
+func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
 	oauthRoutes := []routing.Router{
 		{
 			Method:      "POST",
@@ -28,6 +30,6 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth) {
 			Middlewares: []gin.HandlerFunc{},
 		},
 	}
-	routing.RegisterRoutes(router, oauthRoutes)
+	routing.RegisterRoutes(router, oauthRoutes, enforcer)
 
 }

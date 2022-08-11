@@ -11,6 +11,7 @@ import (
 	"sso/platform/logger"
 
 	"github.com/dongri/phonenumber"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -174,4 +175,18 @@ func (o *oauth) VerifyUserStatus(ctx context.Context, phone string) error {
 		return err
 	}
 	return nil
+}
+func (o *oauth) GetUserStatus(ctx context.Context, Id string) (string, error) {
+	userId, err := uuid.Parse(Id)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "could not parse user id")
+		o.logger.Error(ctx, "parse error", zap.Error(err))
+		return "", err
+	}
+	status, err := o.oauthPersistence.GetUserStatus(ctx, userId)
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
 }
