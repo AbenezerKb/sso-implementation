@@ -2,12 +2,13 @@ package oauth
 
 import (
 	"sso/internal/glue/routing"
+	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
 
 	"github.com/gin-gonic/gin"
 )
 
-func InitRoute(router *gin.RouterGroup, handler rest.OAuth) {
+func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middleware.AuthMiddleware) {
 	oauthRoutes := []routing.Router{
 		{
 			Method:      "POST",

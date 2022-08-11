@@ -84,7 +84,7 @@ func Initiate() {
 
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
-	InitRouter(server, v1, handler, module, log, enforcer)
+	InitRouter(server, v1, handler, module, log, enforcer, viper.GetString("public_key"))
 	log.Info(context.Background(), "router initialized")
 
 	srv := &http.Server{
