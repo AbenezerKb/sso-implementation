@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/permissions"
 	"sso/internal/module"
 
 	"github.com/casbin/casbin/v2"
@@ -15,6 +16,7 @@ import (
 
 type AuthMiddleware interface {
 	Authentication() gin.HandlerFunc
+	AccessControl() gin.HandlerFunc
 }
 
 type authMiddleware struct {
@@ -66,6 +68,29 @@ func (a *authMiddleware) Authentication() gin.HandlerFunc {
 			return
 		}
 		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), constant.Context("x-user-id"), claims.Subject))
+		ctx.Next()
+	}
+}
+func (a *authMiddleware) AccessControl() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		context := ctx.Request.Context()
+		userId := context.Value(constant.Context("x-user-id")).(string)
+
+		a.enforcer.LoadPolicy()
+		ok, err := a.enforcer.Enforce(userId, permissions.Notneeded, permissions.Notneeded, ctx.Request.URL.Path, ctx.Request.Method)
+		if err != nil {
+			Err := errors.ErrAcessError.Wrap(err, "unable to perform operation")
+			ctx.Error(Err)
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+		if !ok {
+			Err := errors.ErrAcessError.Wrap(err, "Access denied")
+			ctx.Error(Err)
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+
 		ctx.Next()
 	}
 }
