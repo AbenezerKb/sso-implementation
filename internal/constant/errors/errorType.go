@@ -64,6 +64,10 @@ var Error = []ErrorType{
 		ErrorCode: http.StatusUnauthorized,
 		ErrorType: ErrAuthError,
 	},
+	{
+		ErrorCode: http.StatusForbidden,
+		ErrorType: ErrAcessError,
+	},
 }
 
 var (
@@ -73,6 +77,7 @@ var (
 	duplicate    = errorx.NewNamespace("duplicate").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	cacheError   = errorx.NewNamespace("cache error")
 	serverError  = errorx.NewNamespace("server error")
+	AccessDenied = errorx.RegisterTrait("You are not authorized to perform the action")
 )
 
 var (
@@ -89,4 +94,5 @@ var (
 	ErrOTPGenerate         = errorx.NewType(serverError, "couldn't generate otp")
 	ErrSMSSend             = errorx.NewType(serverError, "couldn't send sms")
 	ErrAuthError           = errorx.NewType(unauthorized, "you are not authorized.")
+	ErrAcessError          = errorx.NewType(errorx.CommonErrors, "Unauthorized", AccessDenied)
 )
