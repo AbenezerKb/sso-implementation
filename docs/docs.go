@@ -135,7 +135,47 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "$ref": "#/definitions/dto.RegisterUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "create a new user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "create a new user.",
+                "parameters": [
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUser"
                         }
                     }
                 ],
@@ -157,6 +197,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.CreateUser": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the time when the user is created.\nIt is automatically set when the user is created.",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email is the email of the user.",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName is the first name of the user.",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "Gender is the gender of the user.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier of the user.\nIt is automatically generated when the user is created.",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName is the last name of the user.",
+                    "type": "string"
+                },
+                "middle_name": {
+                    "description": "MiddleName is the middle name of the user.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password is the password of the user.\nIt is only used for logging in with email",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Phone is the phone of the user.",
+                    "type": "string"
+                },
+                "profile_picture": {
+                    "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Role is the role given to the user being created.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
+                    "type": "string"
+                },
+                "user_name": {
+                    "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
         "dto.LoginCredential": {
             "type": "object",
             "properties": {
@@ -174,6 +271,63 @@ const docTemplate = `{
                 },
                 "phone": {
                     "description": "Phone number of the user if for login with otp",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RegisterUser": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the time when the user is created.\nIt is automatically set when the user is created.",
+                    "type": "string"
+                },
+                "email": {
+                    "description": "Email is the email of the user.",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName is the first name of the user.",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "Gender is the gender of the user.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier of the user.\nIt is automatically generated when the user is created.",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName is the last name of the user.",
+                    "type": "string"
+                },
+                "middle_name": {
+                    "description": "MiddleName is the middle name of the user.",
+                    "type": "string"
+                },
+                "otp": {
+                    "description": "OTP is the one time password of the user.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Password is the password of the user.\nIt is only used for logging in with email",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Phone is the phone of the user.",
+                    "type": "string"
+                },
+                "profile_picture": {
+                    "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
+                    "type": "string"
+                },
+                "user_name": {
+                    "description": "UserName is the username of the user.\nIt is currently of no use",
                     "type": "string"
                 }
             }
@@ -228,10 +382,6 @@ const docTemplate = `{
                 },
                 "middle_name": {
                     "description": "MiddleName is the middle name of the user.",
-                    "type": "string"
-                },
-                "otp": {
-                    "description": "OTP is the one time password of the user.",
                     "type": "string"
                 },
                 "password": {
