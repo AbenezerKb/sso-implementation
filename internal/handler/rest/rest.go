@@ -7,3 +7,7 @@ type OAuth interface {
 	Login(ctx *gin.Context)
 	RequestOTP(ctx *gin.Context)
 }
+
+type User interface {
+	CreateUser(ctx *gin.Context)
+}
