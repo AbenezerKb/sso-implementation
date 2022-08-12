@@ -2,6 +2,7 @@ package initiator
 
 import (
 	"context"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"sso/internal/module"
 	"sso/internal/module/oauth"
@@ -28,6 +29,17 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	}
 
 	return Module{
-		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
+		OAuthModule: oauth.InitOAuth(
+			log,
+			persistence.OAuthPersistence,
+			cache.OTPCacheLayer,
+			cache.SessionCacheLayer,
+			privateKey,
+			platformLayer.sms,
+			oauth.SetOptions(oauth.Options{
+				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
+				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
+			}),
+		),
 	}
 }
