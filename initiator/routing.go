@@ -14,6 +14,7 @@ import (
 	"go.uber.org/zap"
 
 	"sso/internal/glue/routing/oauth"
+	"sso/internal/glue/routing/user"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 )
@@ -33,4 +34,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	group.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	oauth.InitRoute(group, handler.oauth, authMiddleware, enforcer)
+	user.InitRoute(group, handler.user, authMiddleware, enforcer)
 }

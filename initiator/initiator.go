@@ -3,10 +3,6 @@ package initiator
 import (
 	"context"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +10,11 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"syscall"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 // Initiate
@@ -72,7 +73,7 @@ func Initiate() {
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log)
+	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log, enforcer)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
