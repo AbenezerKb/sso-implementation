@@ -35,6 +35,7 @@ func Init(logger logger.Logger, userModule module.UserModule) rest.User {
 // @Success      200  {object}  dto.User
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /users [post]
+// @Security	BearerAuth
 func (u *user) CreateUser(ctx *gin.Context) {
 	userParam := dto.CreateUser{}
 	err := ctx.ShouldBind(&userParam)

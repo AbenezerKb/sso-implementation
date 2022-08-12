@@ -28,6 +28,9 @@ import (
 //
 // @host 206.189.54.235:8000
 // @BasePath  /v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func Initiate() {
 	log := logger.New(InitLogger())
 	log.Info(context.Background(), "logger initialized")
