@@ -1,5 +1,59 @@
 basePath: /v1
 definitions:
+  dto.CreateUser:
+    properties:
+      created_at:
+        description: |-
+          CreatedAt is the time when the user is created.
+          It is automatically set when the user is created.
+        type: string
+      email:
+        description: Email is the email of the user.
+        type: string
+      first_name:
+        description: FirstName is the first name of the user.
+        type: string
+      gender:
+        description: Gender is the gender of the user.
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier of the user.
+          It is automatically generated when the user is created.
+        type: string
+      last_name:
+        description: LastName is the last name of the user.
+        type: string
+      middle_name:
+        description: MiddleName is the middle name of the user.
+        type: string
+      password:
+        description: |-
+          Password is the password of the user.
+          It is only used for logging in with email
+        type: string
+      phone:
+        description: Phone is the phone of the user.
+        type: string
+      profile_picture:
+        description: |-
+          ProfilePicture is the profile picture of the user.
+          It is set on a separate setProfilePicture endpoint.
+        type: string
+      role:
+        description: Role is the role given to the user being created.
+        type: string
+      status:
+        description: |-
+          Status is the status of the user.
+          It is set to active by default after successful registration.
+        type: string
+      user_name:
+        description: |-
+          UserName is the username of the user.
+          It is currently of no use
+        type: string
+    type: object
   dto.LoginCredential:
     properties:
       email:
@@ -13,6 +67,60 @@ definitions:
         type: string
       phone:
         description: Phone number of the user if for login with otp
+        type: string
+    type: object
+  dto.RegisterUser:
+    properties:
+      created_at:
+        description: |-
+          CreatedAt is the time when the user is created.
+          It is automatically set when the user is created.
+        type: string
+      email:
+        description: Email is the email of the user.
+        type: string
+      first_name:
+        description: FirstName is the first name of the user.
+        type: string
+      gender:
+        description: Gender is the gender of the user.
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier of the user.
+          It is automatically generated when the user is created.
+        type: string
+      last_name:
+        description: LastName is the last name of the user.
+        type: string
+      middle_name:
+        description: MiddleName is the middle name of the user.
+        type: string
+      otp:
+        description: OTP is the one time password of the user.
+        type: string
+      password:
+        description: |-
+          Password is the password of the user.
+          It is only used for logging in with email
+        type: string
+      phone:
+        description: Phone is the phone of the user.
+        type: string
+      profile_picture:
+        description: |-
+          ProfilePicture is the profile picture of the user.
+          It is set on a separate setProfilePicture endpoint.
+        type: string
+      status:
+        description: |-
+          Status is the status of the user.
+          It is set to active by default after successful registration.
+        type: string
+      user_name:
+        description: |-
+          UserName is the username of the user.
+          It is currently of no use
         type: string
     type: object
   dto.TokenResponse:
@@ -56,9 +164,6 @@ definitions:
         type: string
       middle_name:
         description: MiddleName is the middle name of the user.
-        type: string
-      otp:
-        description: OTP is the one time password of the user.
         type: string
       password:
         description: |-
@@ -200,7 +305,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/dto.User'
+          $ref: '#/definitions/dto.RegisterUser'
       produces:
       - application/json
       responses:
@@ -215,4 +320,30 @@ paths:
       summary: Register a new user.
       tags:
       - auth
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: create a new user.
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: create a new user.
+      tags:
+      - user
 swagger: "2.0"

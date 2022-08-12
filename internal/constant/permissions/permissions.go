@@ -3,6 +3,10 @@ package permissions
 const Notneeded = "Not Needed"
 
 // permissions list
-const ()
+const (
+	CreateSystemUser = "create a user"
+)
 
-var PermissionCategory = map[string]string{}
+var PermissionCategory = map[string]string{
+	CreateSystemUser: "user",
+}
