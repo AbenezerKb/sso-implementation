@@ -17,7 +17,7 @@ import (
 func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string, error) {
 	claims := dto.AccessToken{
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Minute * 15)),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(o.options.AccessTokenExpireTime)),
 			Issuer:    "test",
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Subject:   user.ID.String(),
@@ -34,7 +34,7 @@ func (o *oauth) GenerateAccessToken(ctx context.Context, user *dto.User) (string
 
 func (o *oauth) GenerateRefreshToken(ctx context.Context, user *dto.User) (string, error) {
 	claims := jwt.RegisteredClaims{
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * 7)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(o.options.RefreshTokenExpireTime)),
 		Issuer:    "test",
 		NotBefore: jwt.NewNumericDate(time.Now()),
 		Subject:   user.ID.String(),
@@ -81,7 +81,7 @@ func (o *oauth) VerifyToken(signingMethod jwt.SigningMethod, token string, pk *r
 	if err != nil {
 		return false, claims
 	}
-	
+
 	if _, err = jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSAPSS); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])

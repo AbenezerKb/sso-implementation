@@ -9,6 +9,7 @@ import (
 	"sso/internal/storage"
 	"sso/platform"
 	"sso/platform/logger"
+	"time"
 
 	"github.com/dongri/phonenumber"
 	"github.com/google/uuid"
@@ -23,9 +24,24 @@ type oauth struct {
 	sessionCache     storage.SessionCache
 	privateKey       *rsa.PrivateKey
 	smsClient        platform.SMSClient
+	options          Options
 }
 
-func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, privateKey *rsa.PrivateKey, smsClient platform.SMSClient) module.OAuthModule {
+type Options struct {
+	AccessTokenExpireTime  time.Duration
+	RefreshTokenExpireTime time.Duration
+}
+
+func SetOptions(options Options) Options {
+	if options.AccessTokenExpireTime == 0 {
+		options.AccessTokenExpireTime = time.Minute * 10
+	}
+	if options.RefreshTokenExpireTime == 0 {
+		options.RefreshTokenExpireTime = time.Hour * 24 * 30
+	}
+	return options
+}
+func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, privateKey *rsa.PrivateKey, smsClient platform.SMSClient, options Options) module.OAuthModule {
 	return &oauth{
 		logger,
 		oauthPersistence,
@@ -33,6 +49,7 @@ func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, 
 		sessionCache,
 		privateKey,
 		smsClient,
+		options,
 	}
 }
 
