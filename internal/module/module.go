@@ -17,3 +17,7 @@ type OAuthModule interface {
 	VerifyToken(signingMethod jwt.SigningMethod, token string, pk *rsa.PublicKey) (bool, *jwt.RegisteredClaims)
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 }
+
+type UserModule interface {
+	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
+}
