@@ -62,6 +62,23 @@ func (u RegisterUser) ValidateUser() error {
 	)
 }
 
+type CreateUser struct {
+	User
+	// Role is the role given to the user being created.
+	Role string `json:"role,omitempty"`
+}
+
+func (u CreateUser) ValidateUser() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.FirstName, validation.Required.Error("first name is required")),
+		validation.Field(&u.MiddleName, validation.Required.Error("middle name is required")),
+		validation.Field(&u.LastName, validation.Required.Error("last name is required")),
+		validation.Field(&u.Email, validation.Required.Error("email is required"), is.EmailFormat.Error("email is not valid")),
+		validation.Field(&u.Phone, validation.Required.Error("phone is required"), validation.By(validatePhone)),
+		validation.Field(&u.Role, validation.Required.Error("role is required")),
+	)
+}
+
 type LoginCredential struct {
 	// Phone number of the user if for login with otp
 	Phone string `json:"phone,omitempty"`
