@@ -8,6 +8,8 @@ import (
 	"sso/internal/module/user"
 	"sso/platform/logger"
 
+	"github.com/spf13/viper"
+
 	"github.com/casbin/casbin/v2"
 	"github.com/golang-jwt/jwt"
 	"go.uber.org/zap"
@@ -31,7 +33,19 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	}
 
 	return Module{
-		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
-		userModule:  user.Init(log, persistence.OAuthPersistence, platformLayer.sms, enforcer),
+		// OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
+		userModule: user.Init(log, persistence.OAuthPersistence, platformLayer.sms, enforcer),
+		OAuthModule: oauth.InitOAuth(
+			log,
+			persistence.OAuthPersistence,
+			cache.OTPCacheLayer,
+			cache.SessionCacheLayer,
+			privateKey,
+			platformLayer.sms,
+			oauth.SetOptions(oauth.Options{
+				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
+				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
+			}),
+		),
 	}
 }
