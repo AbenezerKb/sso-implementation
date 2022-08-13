@@ -2,11 +2,15 @@ package permissions
 
 const Notneeded = "Not Needed"
 
-// permissions list
-const (
-	CreateSystemUser = "create a user"
-)
+type Permission struct {
+	ID       string
+	Name     string
+	Category string
+}
 
-var PermissionCategory = map[string]string{
-	CreateSystemUser: "user",
+// permissions list
+var CreateUser = Permission{
+	ID:       "create_user",
+	Name:     "create a user",
+	Category: "user",
 }

@@ -20,7 +20,7 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
 			},
-			Permission: permissions.CreateSystemUser,
+			Permission: permissions.CreateUser,
 		},
 	}
 	routing.RegisterRoutes(router, userRoutes, enforcer)
