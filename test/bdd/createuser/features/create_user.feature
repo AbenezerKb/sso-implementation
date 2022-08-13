@@ -1,13 +1,9 @@
 Feature: Create user
-    # Background: I am logged in
-    #     Given I am logged in with the following creadentials
-    #         | email           | password | role       |
-    #         | test2@gmail.com | 1234567  | PERMISSION |
-    Scenario: Successfully create user
-        # Background: I am logged in
+    Background: I am logged in
         Given I am logged in with the following creadentials
-            | email           | password | role       |
-            | test2@gmail.com | 1234567  | PERMISSION |
+            | email           | password | role        |
+            | test2@gmail.com | 1234567  | create_user |
+    Scenario: Successfully create user
         When I fill the form with the following details
             | first_name | middle_name | last_name | phone      | email            | role   |
             | testuser1  | testuser1   | testuser1 | 0925252595 | test11@gmail.com | 123456 |
@@ -15,9 +11,6 @@ Feature: Create user
         Then The user is created
 
     Scenario Outline: Failed user creation
-        Given I am logged in with the following creadentials
-            | email           | password | role       |
-            | test2@gmail.com | 1234567  | PERMISSION |
         When I fill the form with the following details
             | first_name   | middle_name   | last_name   | phone   | email   | role   |
             | <first_name> | <middle_name> | <last_name> | <phone> | <email> | <role> |

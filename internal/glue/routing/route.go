@@ -13,7 +13,7 @@ type Router struct {
 	Path        string
 	Handler     gin.HandlerFunc
 	Middlewares []gin.HandlerFunc
-	Permission  string
+	Permission  permissions.Permission
 }
 
 func RegisterRoutes(group *gin.RouterGroup, routes []Router, enforcer *casbin.Enforcer) {
@@ -26,8 +26,8 @@ func RegisterRoutes(group *gin.RouterGroup, routes []Router, enforcer *casbin.En
 		if len(route.Middlewares) > 0 {
 			url := path.Join(group.BasePath(), route.Path)
 
-			if exists := enforcer.HasPolicy("PERMISSION", route.Permission, permissions.PermissionCategory[route.Permission], url, route.Method); !exists {
-				enforcer.AddPolicy("PERMISSION", route.Permission, permissions.PermissionCategory[route.Permission], url, route.Method)
+			if exists := enforcer.HasPolicy(route.Permission.ID); !exists {
+				enforcer.AddPolicy(route.Permission.ID, route.Permission.Name, route.Permission.Category, url, route.Method)
 			}
 		}
 	}
