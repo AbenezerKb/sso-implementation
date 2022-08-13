@@ -15,6 +15,7 @@ type OAuthPersistence interface {
 	UserByPhoneExists(ctx context.Context, phone string) (bool, error)
 	UserByEmailExists(ctx context.Context, email string) (bool, error)
 	GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error)
+	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
 }
 
 type OTPCache interface {
@@ -27,4 +28,15 @@ type OTPCache interface {
 type SessionCache interface {
 	SaveSession(ctx context.Context, session dto.Session) error
 	GetSession(ctx context.Context, sessionID string) (dto.Session, error)
+}
+
+type OAuth2Persistence interface {
+	GetClient(ctx context.Context, id string) (*dto.Client, error)
+	GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
+}
+
+type ConsentCache interface {
+	SaveConsent(ctx context.Context, consent dto.Consent) error
+	GetConsent(ctx context.Context, consentID string) (dto.Consent, error)
+	DeleteConsent(ctx context.Context, consentID string) error
 }
