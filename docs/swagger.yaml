@@ -1,5 +1,48 @@
 basePath: /v1
 definitions:
+  dto.Client:
+    properties:
+      client_type:
+        description: |-
+          ClientType is the type of the client.
+          It can be either confidential or public.
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the client.
+          It is automatically generated when the client is registered.
+        type: string
+      logo_url:
+        description: |-
+          LogoURL is the URL of the client's logo.
+          It must be a valid URL.
+        type: string
+      name:
+        description: Name is the name of the client that will be displayed to the
+          user.
+        type: string
+      redirect_uris:
+        description: |-
+          RedirectURIs is the list of redirect URIs of the client.
+          Each redirect URI must be a valid URL and must use HTTPS.
+        items:
+          type: string
+        type: array
+      scopes:
+        description: Scopes is the list of default scopes of the client if one is
+          not provided.
+        type: string
+      secret:
+        description: |-
+          Secret is the secret the client uses to authenticate itself.
+          It is automatically generated when the client is registered.
+        type: string
+      status:
+        description: |-
+          Status is the current status of the client.
+          It is set to active by default.
+        type: string
+    type: object
   dto.CreateUser:
     properties:
       created_at:
@@ -231,6 +274,34 @@ info:
   title: RidePLUS SSO API
   version: "0.1"
 paths:
+  /clients:
+    post:
+      consumes:
+      - application/json
+      description: Create a new client
+      parameters:
+      - description: client
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Client'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Client'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a client
+      tags:
+      - client
   /login:
     post:
       consumes:
