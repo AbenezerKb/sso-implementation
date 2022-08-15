@@ -17,3 +17,10 @@ type OAuthModule interface {
 	VerifyToken(signingMethod jwt.SigningMethod, token string, pk *rsa.PublicKey) (bool, *jwt.RegisteredClaims)
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 }
+
+type OAuth2Module interface {
+	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam) (string, error)
+	GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentData, error)
+	Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error)
+	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
+}

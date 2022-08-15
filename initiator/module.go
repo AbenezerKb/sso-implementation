@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"sso/internal/module"
 	"sso/internal/module/oauth"
+	"sso/internal/module/oauth2"
 	"sso/platform/logger"
 
 	"github.com/golang-jwt/jwt"
@@ -13,7 +14,8 @@ import (
 
 type Module struct {
 	// TODO implement
-	OAuthModule module.OAuthModule
+	OAuthModule  module.OAuthModule
+	OAuth2Module module.OAuth2Module
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger) Module {
@@ -28,6 +30,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	}
 
 	return Module{
-		OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
+		OAuthModule:  oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
+		OAuth2Module: oauth2.InitOAuth2(log, persistence.OAuth2Persistence, persistence.OAuthPersistence, cache.ConsentCacheLayer),
 	}
 }
