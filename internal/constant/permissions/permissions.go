@@ -9,8 +9,16 @@ type Permission struct {
 }
 
 // permissions list
-var CreateUser = Permission{
-	ID:       "create_user",
-	Name:     "create a user",
-	Category: "user",
-}
+
+var (
+	CreateUser = Permission{
+		ID:       "create_user",
+		Name:     "create a user",
+		Category: "user",
+	}
+	CreateClient = Permission{
+		ID:       "create_client",
+		Name:     "create a client",
+		Category: "client",
+	}
+)

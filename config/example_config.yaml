@@ -12,6 +12,11 @@ redis:
 server:
   port: 8000
   timeout: 30s
+  login:
+    access_token:
+      expire_time: 1h
+    refresh_token:
+      expire_time: 265d
 private_key: privatekey.example.pem
 public_key: publickey.example.pem
 sms:

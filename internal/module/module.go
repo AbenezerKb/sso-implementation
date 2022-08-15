@@ -21,3 +21,7 @@ type OAuthModule interface {
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
 }
+
+type ClientModule interface {
+	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
+}

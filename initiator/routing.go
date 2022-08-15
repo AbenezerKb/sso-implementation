@@ -3,6 +3,7 @@ package initiator
 import (
 	"context"
 	"io/ioutil"
+	"sso/internal/glue/routing/client"
 
 	"sso/docs"
 
@@ -35,4 +36,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 
 	oauth.InitRoute(group, handler.oauth, authMiddleware, enforcer)
 	user.InitRoute(group, handler.user, authMiddleware, enforcer)
+	client.InitRoute(group, handler.client, authMiddleware, enforcer)
 }

@@ -3,17 +3,19 @@ package initiator
 import (
 	"sso/internal/constant/model/db"
 	"sso/internal/storage"
+	"sso/internal/storage/persistence/client"
 	"sso/internal/storage/persistence/oauth"
 	"sso/platform/logger"
 )
 
 type Persistence struct {
-	// TODO implement
-	OAuthPersistence storage.OAuthPersistence
+	OAuthPersistence  storage.OAuthPersistence
+	ClientPersistence storage.ClientPersistence
 }
 
 func InitPersistence(db *db.Queries, log logger.Logger) Persistence {
 	return Persistence{
-		OAuthPersistence: oauth.InitOAuth(log, db),
+		OAuthPersistence:  oauth.InitOAuth(log, db),
+		ClientPersistence: client.InitClient(log, db),
 	}
 }
