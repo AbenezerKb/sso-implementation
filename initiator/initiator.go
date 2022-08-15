@@ -3,10 +3,6 @@ package initiator
 import (
 	"context"
 	"fmt"
-	ginzap "github.com/gin-contrib/zap"
-	"github.com/gin-gonic/gin"
-	"github.com/spf13/viper"
-	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +10,11 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"syscall"
+
+	ginzap "github.com/gin-contrib/zap"
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 // Initiate
@@ -64,7 +65,11 @@ func Initiate() {
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
-	cacheLayer := InitCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), log)
+	cacheLayer := InitCacheLayer(cache, CacheOptions{
+		OTPExpireTime:     viper.GetDuration("redis.otp_expire_time"),
+		SessionExpireTime: viper.GetDuration("redis.session_expire_time"),
+		ConsentExpireTime: viper.GetDuration("redis.consent_expire_time"),
+	}, log)
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")

@@ -18,11 +18,17 @@ type CacheLayer struct {
 	ConsentCacheLayer storage.ConsentCache
 }
 
-func InitCacheLayer(client *redis.Client, expireOn time.Duration, log logger.Logger) CacheLayer {
+type CacheOptions struct {
+	OTPExpireTime     time.Duration
+	SessionExpireTime time.Duration
+	ConsentExpireTime time.Duration
+}
+
+func InitCacheLayer(client *redis.Client, options CacheOptions, log logger.Logger) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:     otp.InitOTPCache(client, log, expireOn),
-		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
-		ConsentCacheLayer: consent.InitConsentCache(client, log, expireOn),
+		OTPCacheLayer:     otp.InitOTPCache(client, log, options.OTPExpireTime),
+		SessionCacheLayer: session.InitSessionCache(client, log, options.SessionExpireTime),
+		ConsentCacheLayer: consent.InitConsentCache(client, log, options.ConsentExpireTime),
 	}
 }
 
