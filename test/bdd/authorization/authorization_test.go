@@ -1,0 +1,74 @@
+package authorization
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"sso/internal/constant/model/dto"
+	"sso/test"
+	"testing"
+
+	"github.com/cucumber/godog"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
+)
+
+type authorizationTest struct {
+	test.TestInstance
+	apiTest      src.ApiTest
+	requestParam *dto.AuthorizationRequestParam
+}
+
+func TestAuthorization(t *testing.T) {
+	a := &authorizationTest{}
+	a.TestInstance = test.Initiate("../../../")
+	a.apiTest.InitializeTest(t, "Authorization test", "features/authorization.feature", a.InitializeScenario)
+
+}
+
+func (a *authorizationTest) iAmIHaveTheFollowingParameters(params *godog.Table) error {
+	param, err := a.apiTest.ReadRow(params, nil, false)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal([]byte(param), &a.requestParam)
+	if err != nil {
+		return err
+	}
+
+	a.apiTest.SetQueryParam("client_id", a.requestParam.ClientID)
+	a.apiTest.SetQueryParam("response_type", a.requestParam.ResponseType)
+	a.apiTest.SetQueryParam("state", a.requestParam.State)
+	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
+	a.apiTest.SetQueryParam("redirect_uri", a.requestParam.RedirectURI)
+
+	return nil
+}
+
+func (a *authorizationTest) iSendAPOSTRequest() error {
+	a.apiTest.SendRequest()
+	return nil
+}
+
+func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingParameters(arg1 string, arg2 *godog.Table) error {
+	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		a.apiTest.URL = "/v1/oauth/authorize"
+		a.apiTest.Method = "GET"
+		a.apiTest.SetHeader("Content-Type", "application/json")
+		a.apiTest.InitializeServer(a.Server)
+		return ctx, nil
+	})
+
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		return ctx, nil
+	})
+	ctx.Step(`^I am I have the following parameters:$`, a.iAmIHaveTheFollowingParameters)
+	ctx.Step(`^I send a POST request$`, a.iSendAPOSTRequest)
+	ctx.Step(`^I should be redirected to "([^"]*)" with the following parameters:$`, a.iShouldBeRedirectedToWithTheFollowingParameters)
+}
