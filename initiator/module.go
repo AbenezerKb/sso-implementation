@@ -4,6 +4,7 @@ import (
 	"context"
 	"io/ioutil"
 	"sso/internal/module"
+	"sso/internal/module/client"
 	"sso/internal/module/oauth"
 	"sso/internal/module/user"
 	"sso/platform/logger"
@@ -17,8 +18,9 @@ import (
 
 type Module struct {
 	// TODO implement
-	OAuthModule module.OAuthModule
-	userModule  module.UserModule
+	OAuthModule  module.OAuthModule
+	userModule   module.UserModule
+	clientModule module.ClientModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer) Module {
@@ -47,5 +49,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
 			}),
 		),
+		clientModule: client.InitClient(log, persistence.ClientPersistence),
 	}
 }

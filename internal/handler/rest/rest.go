@@ -11,3 +11,7 @@ type OAuth interface {
 type User interface {
 	CreateUser(ctx *gin.Context)
 }
+
+type Client interface {
+	CreateClient(ctx *gin.Context)
+}

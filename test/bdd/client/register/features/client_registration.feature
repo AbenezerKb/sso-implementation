@@ -8,7 +8,7 @@ Feature: Client Registration
   @success
   Scenario: Client Registers Successfully
     Given I fill the following client form
-      | name      | client_type  | redirect_urls      | scopes        | logo_url                                       |
+      | name      | client_type  | redirect_uris      | scopes        | logo_url                                       |
       | newClient | confidential | https://google.com | profile email | https://www.google.com/images/errors/robot.png |
     When I submit the form
     Then The registration should be successful
@@ -16,12 +16,12 @@ Feature: Client Registration
   @failure
   Scenario Outline: Client Registration Failure
     Given I fill the following client form
-      | name   | client_type   | redirect_urls   | scopes   | logo_url   |
-      | <name> | <client_type> | <redirect_urls> | <scopes> | <logo_url> |
+      | name   | client_type   | redirect_uris   | scopes   | logo_url   |
+      | <name> | <client_type> | <redirect_uris> | <scopes> | <logo_url> |
     When I submit the form
     Then The registration should fail with "<message>"
     Examples:
-      | name      | client_type  | redirect_urls           | scopes        | logo_url                                       | message                   |
+      | name      | client_type  | redirect_uris           | scopes        | logo_url                                       | message                   |
       |           | confidential | https://google.com      | profile email | https://www.google.com/images/errors/robot.png | name is required          |
       | newClient |              | https://google.com      | profile email | https://www.google.com/images/errors/robot.png | client_type is required   |
       | newClient | confidential |                         | profile email | https://www.google.com/images/errors/robot.png | redirect_urls is required |

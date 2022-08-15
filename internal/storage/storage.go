@@ -28,3 +28,7 @@ type SessionCache interface {
 	SaveSession(ctx context.Context, session dto.Session) error
 	GetSession(ctx context.Context, sessionID string) (dto.Session, error)
 }
+
+type ClientPersistence interface {
+	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
+}

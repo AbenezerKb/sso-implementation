@@ -11,10 +11,11 @@ import (
 )
 
 func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
+	users := router.Group("/users")
 	userRoutes := []routing.Router{
 		{
 			Method:  "POST",
-			Path:    "/users",
+			Path:    "",
 			Handler: handler.CreateUser,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
@@ -23,6 +24,5 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 			Permission: permissions.CreateUser,
 		},
 	}
-	routing.RegisterRoutes(router, userRoutes, enforcer)
-
+	routing.RegisterRoutes(users, userRoutes, enforcer)
 }
