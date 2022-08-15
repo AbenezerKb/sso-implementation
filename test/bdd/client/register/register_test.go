@@ -26,7 +26,12 @@ func (c *clientRegistrationTest) iAmLoggedInAsAdminUser(adminCredentials *godog.
 }
 
 func (c *clientRegistrationTest) iFillTheFollowingClientForm(clientForm *godog.Table) error {
-	body, err := c.apiTest.ReadRow(clientForm, nil, false)
+	body, err := c.apiTest.ReadRow(clientForm, []src.Type{
+		{
+			Column: "redirect_uris",
+			Kind:   src.Array,
+		},
+	}, false)
 	if err != nil {
 		return err
 	}
