@@ -173,3 +173,27 @@ func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, erro
 	}
 	return true, nil
 }
+
+func (o *oauth) GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error) {
+	user, err := o.db.GetUserById(ctx, Id)
+	if err != nil {
+		if reflect.ValueOf(user).IsZero() {
+			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, zap.Error(err).String)
+			return &dto.User{}, err
+		}
+	}
+
+	return &dto.User{
+		ID:         user.ID,
+		Status:     user.Status.String,
+		UserName:   user.UserName,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName,
+		LastName:   user.LastName,
+		Email:      user.Email.String,
+		Phone:      user.Phone,
+	}, nil
+}
