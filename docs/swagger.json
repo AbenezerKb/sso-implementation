@@ -13,6 +13,51 @@
     "host": "206.189.54.235:8000",
     "basePath": "/v1",
     "paths": {
+        "/clients": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new client",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client"
+                ],
+                "summary": "Create a client",
+                "parameters": [
+                    {
+                        "description": "client",
+                        "name": "client",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Client"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Client"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login a user.",
@@ -195,6 +240,46 @@
         }
     },
     "definitions": {
+        "dto.Client": {
+            "type": "object",
+            "properties": {
+                "client_type": {
+                    "description": "ClientType is the type of the client.\nIt can be either confidential or public.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the client.\nIt is automatically generated when the client is registered.",
+                    "type": "string"
+                },
+                "logo_url": {
+                    "description": "LogoURL is the URL of the client's logo.\nIt must be a valid URL.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of the client that will be displayed to the user.",
+                    "type": "string"
+                },
+                "redirect_uris": {
+                    "description": "RedirectURIs is the list of redirect URIs of the client.\nEach redirect URI must be a valid URL and must use HTTPS.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "scopes": {
+                    "description": "Scopes is the list of default scopes of the client if one is not provided.",
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "Secret is the secret the client uses to authenticate itself.\nIt is automatically generated when the client is registered.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the current status of the client.\nIt is set to active by default.",
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateUser": {
             "type": "object",
             "properties": {
