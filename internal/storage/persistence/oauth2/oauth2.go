@@ -24,10 +24,10 @@ func InitOAuth2(logger logger.Logger, db *db.Queries) storage.OAuth2Persistence 
 	}
 }
 
-func (o *oauth2) GetClient(ctx context.Context, id string) (*dto.Client, error) {
+func (o *oauth2) GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
 	return &dto.Client{
-		RedirectURIs: []string{"http://localhost:9000/callback"},
-		Scopes:        "openid profile email",
+		RedirectURIs: []string{"https://www.google.com/"},
+		Scopes:       "openid profile email",
 		Name:         "test",
 		Secret:       "test",
 		// ID:           "test",
@@ -43,23 +43,10 @@ func (o *oauth2) GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Sc
 }
 
 func (o *oauth2) SaveAuthCode(ctx context.Context, authCode dto.AuthCode) error {
-	client_id, err := uuid.Parse(authCode.ClientID)
-	if err != nil {
-		err = errors.ErrWriteError.Wrap(err, "could not parse client id")
-		o.logger.Error(ctx, zap.Error(err).String)
-		return err
-	}
-	user_id, err := uuid.Parse(authCode.UserID)
-	if err != nil {
-		err = errors.ErrWriteError.Wrap(err, "could not parse user id")
-		o.logger.Error(ctx, zap.Error(err).String)
-		return err
-	}
-
 	o.db.CreateAuthCode(ctx, db.CreateAuthCodeParams{
 		Code:        authCode.Code,
-		ClientID:    client_id,
-		UserID:      user_id,
+		ClientID:    authCode.ClientID,
+		UserID:      authCode.UserID,
 		RedirectUri: authCode.RedirectURI,
 		Scope:       authCode.Scope,
 	})
@@ -75,8 +62,8 @@ func (o *oauth2) GetAuthCode(ctx context.Context, code string) (dto.AuthCode, er
 	}
 	return dto.AuthCode{
 		Code:        authCode.Code,
-		ClientID:    authCode.ClientID.String(),
-		UserID:      authCode.UserID.String(),
+		ClientID:    authCode.ClientID,
+		UserID:      authCode.UserID,
 		RedirectURI: authCode.RedirectUri,
 		Scope:       authCode.Scope,
 	}, nil

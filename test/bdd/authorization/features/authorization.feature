@@ -16,8 +16,8 @@ Feature: obtaining authorization
             | consentId   | state   |
             | <consentId> | <state> |
         Examples:
-            | response_type | client_id     | redirect_uri                   | scope  | state | consentId | state | consent_uri                   |
-            | code          | 3749027981234 | http://localhost:9000/callback | openid | 1234  | 1234      | 1234  | http://localhost:9000/recipes |
+            | response_type | client_id     | redirect_uri           | scope  | state | consentId | state | consent_uri            |
+            | code          | 3749027981234 | https://www.google.com/ | openid | 1234  | 1234      | 1234  | https://www.google.com/ |
 
     Scenario Outline: Unable to Obtain Authorization
         Given I have the following parameters:
@@ -29,11 +29,11 @@ Feature: obtaining authorization
             | error   | error_description   | state   |
             | <error> | <error_description> | <state> |
         Examples:
-            | response_type      | client_id | redirect_uri                   | scope    | state | error                | error_description         |
-            | code               |           | http://localhost:9000/callback | openid   | 1234  | invalid_request      | client_id is required.    |
-            | code               | 234555    |                                | openid   | 1234  | invalid_request      | redirect_uri is required. |
-            | authorization_code | 234555    | http://localhost:9000/callback | openid   | 1234  | invalid_request      | must be a valid value.    |
-            | code               | 234555    | http://localhost:9000/callback | closedid | 1234  | invalid_request      | must be a valid value.    |
-            | code               | 234555    | localhostts:9000/callback      | openid   | 1234  | invalid_redirect_uri | invalid redirect uri     |
+            | response_type      | client_id | redirect_uri              | scope    | state | error                | error_description         |
+            | code               |           | https://www.google.com/   | openid   | 1234  | invalid_request      | client_id is required.    |
+            | code               | 234555    |                           | openid   | 1234  | invalid_request      | redirect_uri is required. |
+            | authorization_code | 234555    | https://www.google.com/   | openid   | 1234  | invalid_request      | must be a valid value.    |
+            | code               | 234555    | https://www.google.com/   | closedid | 1234  | invalid_request      | must be a valid value.    |
+            | code               | 234555    | localhostts:9000/callback | openid   | 1234  | invalid_redirect_uri | invalid redirect uri      |
 
 
