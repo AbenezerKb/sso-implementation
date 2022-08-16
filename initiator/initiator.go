@@ -28,6 +28,9 @@ import (
 //
 // @host 206.189.54.235:8000
 // @BasePath  /v1
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func Initiate() {
 	log := logger.New(InitLogger())
 	log.Info(context.Background(), "logger initialized")
@@ -77,7 +80,7 @@ func Initiate() {
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log)
+	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log, enforcer)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

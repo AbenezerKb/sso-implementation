@@ -9,7 +9,7 @@ import (
 )
 
 type OAuthModule interface {
-	Register(ctx context.Context, user dto.User) (*dto.User, error)
+	Register(ctx context.Context, user dto.RegisterUser) (*dto.User, error)
 	Login(ctx context.Context, login dto.LoginCredential) (*dto.TokenResponse, error)
 	ComparePassword(hashedPwd, plainPassword string) bool
 	HashAndSalt(ctx context.Context, pwd []byte) (string, error)
@@ -23,4 +23,11 @@ type OAuth2Module interface {
 	GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentData, error)
 	Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error)
 	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
+}
+type UserModule interface {
+	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
+}
+
+type ClientModule interface {
+	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 }

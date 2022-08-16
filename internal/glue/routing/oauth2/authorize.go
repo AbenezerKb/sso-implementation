@@ -9,8 +9,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func InitRoute(router *gin.RouterGroup, handler rest.OAuth2, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
-
+func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
+	oauth2Group := group.Group("/oauth")
 	oauth2Routes := []routing.Router{
 		{
 			Method:      "GET",
@@ -32,6 +32,6 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth2, authMiddleware midd
 			Middlewares: []gin.HandlerFunc{},
 		},
 	}
-	routing.RegisterRoutes(router, oauth2Routes, enforcer)
+	routing.RegisterRoutes(oauth2Group, oauth2Routes, enforcer)
 
 }

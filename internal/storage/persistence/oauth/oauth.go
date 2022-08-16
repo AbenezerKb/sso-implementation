@@ -115,7 +115,7 @@ func (o *oauth) GetUserStatus(ctx context.Context, Id uuid.UUID) (string, error)
 	status, err := o.db.GetUserStatus(ctx, Id)
 	if err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, zap.Error(err).String)
+		o.logger.Error(ctx,"unable to get user status", zap.Error(err))
 		return "", err
 	}
 

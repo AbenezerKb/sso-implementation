@@ -31,12 +31,12 @@ func InitOAuth(logger logger.Logger, oauthModule module.OAuthModule) rest.OAuth 
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @param user body dto.User true "user"
+// @param user body dto.RegisterUser true "user"
 // @Success      200  {object}  dto.User
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /register [post]
 func (o *oauth) Register(ctx *gin.Context) {
-	userParam := dto.User{}
+	userParam := dto.RegisterUser{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)

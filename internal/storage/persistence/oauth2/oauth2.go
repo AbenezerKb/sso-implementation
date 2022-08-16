@@ -27,10 +27,10 @@ func InitOAuth2(logger logger.Logger, db *db.Queries) storage.OAuth2Persistence 
 func (o *oauth2) GetClient(ctx context.Context, id string) (*dto.Client, error) {
 	return &dto.Client{
 		RedirectURIs: []string{"http://localhost:9000/callback"},
-		Scope:        "openid profile email",
+		Scopes:        "openid profile email",
 		Name:         "test",
 		Secret:       "test",
-		ID:           "test",
+		// ID:           "test",
 	}, nil
 }
 
