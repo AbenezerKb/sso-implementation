@@ -44,7 +44,7 @@ type ConsentData struct {
 
 type AuthorizationRequestParam struct {
 	// The client identifier.
-	ClientID uuid.UUID `form:"client_id" query:"client_id" json:"client_id,omitempty"`
+	ClientID uuid.UUID `form:"-" query:"-" json:"client_id,omitempty"`
 	// The redirection URI used in the initial authorization request.
 	ResponseType string `form:"response_type" json:"response_type" query:"response_type"`
 	// the state parameter passed in the initial authorization request.

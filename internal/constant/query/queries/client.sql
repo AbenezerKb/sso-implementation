@@ -9,3 +9,6 @@ INSERT INTO clients (
 ) VALUES (
     $1, $2, $3, $4, $5, $6
 ) RETURNING *;
+
+-- name: DeleteClient :one
+DELETE FROM clients WHERE id = $1 RETURNING *;
