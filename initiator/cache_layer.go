@@ -32,9 +32,10 @@ func InitCacheLayer(client *redis.Client, options CacheOptions, log logger.Logge
 	}
 }
 
-func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger) CacheLayer {
+func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger, options CacheOptions,) CacheLayer {
 	return CacheLayer{
 		OTPCacheLayer:     mock_otp.InitMockOTPCache(client, log, expireOn, mockOTP),
 		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
+		ConsentCacheLayer: consent.InitConsentCache(client, log, options.ConsentExpireTime),
 	}
 }
