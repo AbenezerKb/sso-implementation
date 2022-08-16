@@ -29,39 +29,55 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 	}
 }
 
-func (o *oauth2) Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam) (string, error) {
-	if err := authRequestParma.Validate(); err != nil {
+func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam) (string, errors.AuhtErrResponse, error) {
+	if err := authRequestParm.Validate(); err != nil {
+		errRsp := errors.AuhtErrResponse{
+			Error:            "invalid_request",
+			ErrorDescription: strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
+		}
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		return "", err
+		return "", errRsp, err
 	}
-	client, err := o.oauth2Persistence.GetClient(ctx, authRequestParma.ClientID)
+	client, err := o.oauth2Persistence.GetClient(ctx, authRequestParm.ClientID)
 	if err != nil {
-		return "", err
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid_client",
+			ErrorDescription: "client not found",
+		}, err
 	}
 
-	if !o.ContainsRedirectURL(client.RedirectURIs, authRequestParma.RedirectURI) {
+	if !o.ContainsRedirectURL(client.RedirectURIs, authRequestParm.RedirectURI) {
 		err := errors.ErrInvalidUserInput.New("invalid redirect uri")
 		o.logger.Info(ctx, "invalid redirect uri", zap.Error(err))
-		return "", err
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid_redirect_uri",
+			ErrorDescription: "invalid redirect uri",
+		}, err
 	}
 
-	scopes, err := o.oauth2Persistence.GetNamedScopes(ctx, strings.Split(authRequestParma.Scope, " ")...)
+	scopes, err := o.oauth2Persistence.GetNamedScopes(ctx, strings.Split(authRequestParm.Scope, " ")...)
 	if err != nil || len(scopes) == 0 {
 		err := errors.ErrInvalidUserInput.New("invalid scope")
 		o.logger.Info(ctx, "invalid scope", zap.Error(err))
-		return "", err
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid_scope",
+			ErrorDescription: "invalid scope",
+		}, err
 	}
 
 	consent := dto.Consent{
 		ID:                        uuid.New().String(),
-		AuthorizationRequestParam: authRequestParma,
+		AuthorizationRequestParam: authRequestParm,
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
-		return "", err
+		return "", errors.AuhtErrResponse{
+			Error:            "server_error",
+			ErrorDescription: "failed to save consent",
+		}, err
 	}
 
-	return consent.ID, nil
+	return consent.ID, errors.AuhtErrResponse{}, nil
 }
 
 // ContainsRedirectURL

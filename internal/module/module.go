@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"crypto/rsa"
+	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -19,7 +20,7 @@ type OAuthModule interface {
 }
 
 type OAuth2Module interface {
-	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam) (string, error)
+	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam) (string, errors.AuhtErrResponse, error)
 	GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentData, error)
 	Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error)
 	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
