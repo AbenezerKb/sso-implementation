@@ -17,14 +17,16 @@ type oauth2 struct {
 	logger            logger.Logger
 	oauth2Persistence storage.OAuth2Persistence
 	oauthPersistence  storage.OAuthPersistence
+	clientPersistence storage.ClientPersistence
 	consentCache      storage.ConsentCache
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, consentCache storage.ConsentCache) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
 		oauthPersistence:  oauthPersistence,
+		clientPersistence: clientPersistence,
 		consentCache:      consentCache,
 	}
 }

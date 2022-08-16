@@ -38,9 +38,9 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 
 	return Module{
 		// OAuthModule:  oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
-		OAuth2Module: oauth2.InitOAuth2(log, persistence.OAuth2Persistence, persistence.OAuthPersistence, cache.ConsentCacheLayer),
+		OAuth2Module: oauth2.InitOAuth2(log, persistence.OAuth2Persistence, persistence.OAuthPersistence, persistence.ClientPersistence, cache.ConsentCacheLayer),
 		// OAuthModule:  oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
-		userModule:   user.Init(log, persistence.OAuthPersistence, platformLayer.sms, enforcer),
+		userModule: user.Init(log, persistence.OAuthPersistence, platformLayer.sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log,
 			persistence.OAuthPersistence,

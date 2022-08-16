@@ -2,15 +2,16 @@ package authorization
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
 
 	"github.com/cucumber/godog"
+	"github.com/google/uuid"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
@@ -18,10 +19,11 @@ type authorizationTest struct {
 	test.TestInstance
 	apiTest      src.ApiTest
 	requestParam *dto.AuthorizationRequestParam
+	clientID     uuid.UUID
 }
 
 type authRspQueryParams struct {
-	consentId        string `json:"consentId"`
+	ConsentId        string `json:"consentId"`
 	State            string `json:"state"`
 	Error            string `json:"error"`
 	ErrorDescription string `json:"error_description"`
@@ -39,12 +41,20 @@ func (a *authorizationTest) iHaveTheFollowingParameters(params *godog.Table) err
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal([]byte(param), &a.requestParam)
+	if a.apiTest.UnmarshalJSONAt([]byte(param), "", &a.requestParam) != nil {
+		return err
+	}
+
+	client, err := a.DB.CreateClient(context.Background(), db.CreateClientParams{
+		RedirectUris: "https://www.google.com/",
+		Scopes:       "openid profile email",
+	})
 	if err != nil {
 		return err
 	}
 
-	a.apiTest.SetQueryParam("client_id", a.requestParam.ClientID.String())
+	a.clientID = client.ID
+	a.apiTest.SetQueryParam("client_id", client.ID.String())
 	a.apiTest.SetQueryParam("response_type", a.requestParam.ResponseType)
 	a.apiTest.SetQueryParam("state", a.requestParam.State)
 	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
@@ -132,6 +142,7 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		_, _ = a.DB.DeleteClient(context.Background(), a.clientID)
 		return ctx, nil
 	})
 

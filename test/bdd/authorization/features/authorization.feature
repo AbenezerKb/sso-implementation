@@ -16,8 +16,8 @@ Feature: obtaining authorization
             | consentId   | state   |
             | <consentId> | <state> |
         Examples:
-            | response_type | client_id     | redirect_uri           | scope  | state | consentId | state | consent_uri            |
-            | code          | 3749027981234 | https://www.google.com/ | openid | 1234  | 1234      | 1234  | https://www.google.com/ |
+            | response_type | client_id                            | redirect_uri            | scope  | state | consentId | state | consent_uri             |
+            | code          | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/ | openid | 1234  | 1234      | 1234  | https://www.google.com/ |
 
     Scenario Outline: Unable to Obtain Authorization
         Given I have the following parameters:
@@ -29,11 +29,10 @@ Feature: obtaining authorization
             | error   | error_description   | state   |
             | <error> | <error_description> | <state> |
         Examples:
-            | response_type      | client_id | redirect_uri              | scope    | state | error                | error_description         |
-            | code               |           | https://www.google.com/   | openid   | 1234  | invalid_request      | client_id is required.    |
-            | code               | 234555    |                           | openid   | 1234  | invalid_request      | redirect_uri is required. |
-            | authorization_code | 234555    | https://www.google.com/   | openid   | 1234  | invalid_request      | must be a valid value.    |
-            | code               | 234555    | https://www.google.com/   | closedid | 1234  | invalid_request      | must be a valid value.    |
-            | code               | 234555    | localhostts:9000/callback | openid   | 1234  | invalid_redirect_uri | invalid redirect uri      |
+            | response_type      | client_id                            | redirect_uri              | scope    | state | error                | error_description         |
+            | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 |                           | openid   | 1234  | invalid_request      | redirect_uri is required. |
+            | authorization_code | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | openid   | 1234  | invalid_request      | must be a valid value.    |
+            | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | closedid | 1234  | invalid_request      | must be a valid value.    |
+            | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | localhostts:9000/callback | openid   | 1234  | invalid_redirect_uri | invalid redirect uri      |
 
 

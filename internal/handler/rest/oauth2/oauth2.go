@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -42,6 +43,13 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 func (o *oauth2) Authorize(ctx *gin.Context) {
 	authRequestParam := dto.AuthorizationRequestParam{}
 	err := ctx.ShouldBindQuery(&authRequestParam)
+	if err != nil {
+		o.logger.Info(ctx, zap.Error(err).String)
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
+	authRequestParam.ClientID, err = uuid.Parse(ctx.Query("client_id"))
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
