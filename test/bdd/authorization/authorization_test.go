@@ -63,6 +63,24 @@ func (a *authorizationTest) iHaveTheFollowingParameters(params *godog.Table) err
 	return nil
 }
 
+func (a *authorizationTest) iHaveTheFollowingParametersWithInvalidClient(params *godog.Table) error {
+	param, err := a.apiTest.ReadRow(params, nil, false)
+	if err != nil {
+		return err
+	}
+	if a.apiTest.UnmarshalJSONAt([]byte(param), "", &a.requestParam) != nil {
+		return err
+	}
+
+	a.apiTest.SetQueryParam("client_id", a.requestParam.ClientID.String())
+	a.apiTest.SetQueryParam("response_type", a.requestParam.ResponseType)
+	a.apiTest.SetQueryParam("state", a.requestParam.State)
+	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
+	a.apiTest.SetQueryParam("redirect_uri", a.requestParam.RedirectURI)
+
+	return nil
+}
+
 func (a *authorizationTest) iSendAPOSTRequest() error {
 	a.apiTest.SendRequest()
 	return nil
@@ -143,6 +161,7 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = a.DB.DeleteClient(context.Background(), a.clientID)
+		a.apiTest.QueryParams = nil
 		return ctx, nil
 	})
 
@@ -150,5 +169,5 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I send a POST request$`, a.iSendAPOSTRequest)
 	ctx.Step(`^I should be redirected to "([^"]*)" with the following error parameters:$`, a.iShouldBeRedirectedToWithTheFollowingErrorParameters)
 	ctx.Step(`^I should be redirected to "([^"]*)" with the following success parameters:$`, a.iShouldBeRedirectedToWithTheFollowingSuccessParameters)
-
+	ctx.Step(`^I have the following parameters with invalid client:$`, a.iHaveTheFollowingParametersWithInvalidClient)
 }

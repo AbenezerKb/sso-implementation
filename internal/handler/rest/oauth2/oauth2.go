@@ -49,23 +49,30 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		return
 	}
 
+	errRedirectURI, err := url.Parse(authRequestParam.RedirectURI)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	errQuery := errRedirectURI.Query()
 	authRequestParam.ClientID, err = uuid.Parse(ctx.Query("client_id"))
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
-		return
-	}
 
-	errRedirectURI, err := url.Parse(authRequestParam.RedirectURI)
-	if err != nil {
-		_ = ctx.Error(err)
+		errQuery.Set("error", "invalid_client_id")
+		errQuery.Set("error_description", "invalid client id.")
+		errQuery.Set("state", authRequestParam.State)
+
+		errRedirectURI.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusFound, errRedirectURI.String())
 		return
 	}
 
 	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam)
 	if err != nil {
 		_ = ctx.Error(err)
-		errQuery := errRedirectURI.Query()
+
 		errQuery.Set("error", authErrRsp.Error)
 		errQuery.Set("error_description", authErrRsp.ErrorDescription)
 		errQuery.Set("state", authRequestParam.State)
