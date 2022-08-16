@@ -40,31 +40,31 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /authorize [get]
 func (o *oauth2) Authorize(ctx *gin.Context) {
-	authRequestParma := dto.AuthorizationRequestParam{}
-	err := ctx.ShouldBindQuery(&authRequestParma)
+	authRequestParam := dto.AuthorizationRequestParam{}
+	err := ctx.ShouldBindQuery(&authRequestParam)
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
 
-	errRedirectURI, err := url.Parse(authRequestParma.RedirectURI)
+	errRedirectURI, err := url.Parse(authRequestParam.RedirectURI)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	consentId, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParma)
+	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam)
 	if err != nil {
 		_ = ctx.Error(err)
 		errQuery := errRedirectURI.Query()
-		errQuery.Set("error", err.Error())
-		errQuery.Set("error_description", err.Error())
-		errQuery.Set("state", authRequestParma.State)
+		errQuery.Set("error", authErrRsp.Error)
+		errQuery.Set("error_description", authErrRsp.ErrorDescription)
+		errQuery.Set("state", authRequestParam.State)
 
 		errRedirectURI.RawQuery = errQuery.Encode()
 
-		ctx.Redirect(http.StatusTemporaryRedirect, errRedirectURI.String())
+		ctx.Redirect(http.StatusFound, errRedirectURI.String())
 		return
 	}
 
@@ -159,7 +159,8 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 		}
 
 	} else {
-		query.Set("error", errors.ErrAcessError.Wrap(err, "access deined").Error())
+		query.Set("error", "access_denied")
+		query.Set("error_description", "The user denied your request")
 	}
 
 	redirectURI.RawQuery = query.Encode()
