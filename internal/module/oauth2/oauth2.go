@@ -19,15 +19,17 @@ type oauth2 struct {
 	oauthPersistence  storage.OAuthPersistence
 	clientPersistence storage.ClientPersistence
 	consentCache      storage.ConsentCache
+	authCodeCache     storage.AuthCodeCache
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
 		oauthPersistence:  oauthPersistence,
 		clientPersistence: clientPersistence,
 		consentCache:      consentCache,
+		authCodeCache:     authCodeCache,
 	}
 }
 
@@ -158,7 +160,7 @@ func (o *oauth2) IssueAuthCode(ctx context.Context, consent dto.Consent) (string
 		ClientID:    consent.ClientID,
 		UserID:      consent.UserID,
 	}
-	if err := o.oauth2Persistence.SaveAuthCode(ctx, authCode); err != nil {
+	if err := o.authCodeCache.SaveAuthCode(ctx, authCode); err != nil {
 		return "", consent.State, err
 	}
 	return authCode.Code, consent.State, nil

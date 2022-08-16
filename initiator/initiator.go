@@ -69,9 +69,10 @@ func Initiate() {
 
 	log.Info(context.Background(), "initializing cache layer")
 	cacheLayer := InitCacheLayer(cache, CacheOptions{
-		OTPExpireTime:     viper.GetDuration("redis.otp_expire_time"),
-		SessionExpireTime: viper.GetDuration("redis.session_expire_time"),
-		ConsentExpireTime: viper.GetDuration("redis.consent_expire_time"),
+		OTPExpireTime:      viper.GetDuration("redis.otp_expire_time"),
+		SessionExpireTime:  viper.GetDuration("redis.session_expire_time"),
+		ConsentExpireTime:  viper.GetDuration("redis.consent_expire_time"),
+		AuthCodeExpireTime: viper.GetDuration("redis.authcode_expire_time"),
 	}, log)
 	log.Info(context.Background(), "cache layer initialized")
 
