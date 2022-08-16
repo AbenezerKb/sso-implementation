@@ -67,7 +67,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 	}
 
 	consent := dto.Consent{
-		ID:                        uuid.New().String(),
+		ID:                        uuid.New(),
 		AuthorizationRequestParam: authRequestParm,
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
@@ -77,7 +77,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		}, err
 	}
 
-	return consent.ID, errors.AuhtErrResponse{}, nil
+	return consent.ID.String(), errors.AuhtErrResponse{}, nil
 }
 
 // ContainsRedirectURL

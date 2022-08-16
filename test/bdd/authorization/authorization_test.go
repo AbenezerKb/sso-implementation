@@ -44,7 +44,7 @@ func (a *authorizationTest) iHaveTheFollowingParameters(params *godog.Table) err
 		return err
 	}
 
-	a.apiTest.SetQueryParam("client_id", a.requestParam.ClientID)
+	a.apiTest.SetQueryParam("client_id", a.requestParam.ClientID.String())
 	a.apiTest.SetQueryParam("response_type", a.requestParam.ResponseType)
 	a.apiTest.SetQueryParam("state", a.requestParam.State)
 	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
@@ -85,7 +85,7 @@ func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingSuccessParamete
 
 	query := parsedLocation.Query()
 	if query.Has("consentId") != true {
-		return fmt.Errorf("expected code in consentId")
+		return fmt.Errorf("expected consentId in consentId")
 	}
 
 	return nil

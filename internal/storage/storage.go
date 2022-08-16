@@ -31,7 +31,7 @@ type SessionCache interface {
 }
 
 type OAuth2Persistence interface {
-	GetClient(ctx context.Context, id string) (*dto.Client, error)
+	GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	SaveAuthCode(ctx context.Context, authCode dto.AuthCode) error
 	GetAuthCode(ctx context.Context, code string) (dto.AuthCode, error)
