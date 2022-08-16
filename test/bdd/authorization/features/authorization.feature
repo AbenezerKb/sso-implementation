@@ -7,36 +7,33 @@ Feature: obtaining authorization
     So that I can request to get an access token or refresh token.
 
     Scenario Outline: Succesfull Obtaining Authorization
-        Given I am I have the following parameters:
+        Given I have the following parameters:
             | response_type   | client_id   | redirect_uri   | scope   | state   |
             | <response_type> | <client_id> | <redirect_uri> | <scope> | <state> |
 
         When I send a POST request
-        Then I should be redirected to "<redirect_uri>" with the following parameters:
-            | code   | state   |
-            | <code> | <state> |
+        Then I should be redirected to "<consent_uri>" with the following success parameters:
+            | consentId   | state   |
+            | <consentId> | <state> |
         Examples:
-            | response_type | client_id | redirect_uri     | scope           | state | code | state |
-            | code          | 234555    | http://localhost | openid userinfo | 1234  | 1234 | 1234  |
+            | response_type | client_id     | redirect_uri                   | scope  | state | consentId | state | consent_uri                   |
+            | code          | 3749027981234 | http://localhost:9000/callback | openid | 1234  | 1234      | 1234  | http://localhost:9000/recipes |
 
     Scenario Outline: Unable to Obtain Authorization
-        Given I am I have the following parameters:
+        Given I have the following parameters:
             | response_type   | client_id   | redirect_uri   | scope   | state   |
             | <response_type> | <client_id> | <redirect_uri> | <scope> | <state> |
 
         When I send a POST request
-        Then I should be redirected to "<redirect_uri>" with the following parameters:
+        Then I should be redirected to "<redirect_uri>" with the following error parameters:
             | error   | error_description   | state   |
             | <error> | <error_description> | <state> |
         Examples:
-            | response_type      | client_id | redirect_uri     | scope  | state | error                     | error_description         |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | access_denied             | access_denied             |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | invalid_request           | invalid_request           |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | server_error              | server_error              |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | unauthorized_client       | unauthorized_client       |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | unsupported_response_type | unsupported_response_type |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | unsupported_grant_type    | unsupported_grant_type    |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | invalid_scope             | invalid_scope             |
-            | authorization_code | 234555    | http://localhost | openid | 1234  | invalid_client            | invalid_client            |
+            | response_type      | client_id | redirect_uri                   | scope    | state | error                | error_description         |
+            | code               |           | http://localhost:9000/callback | openid   | 1234  | invalid_request      | client_id is required.    |
+            | code               | 234555    |                                | openid   | 1234  | invalid_request      | redirect_uri is required. |
+            | authorization_code | 234555    | http://localhost:9000/callback | openid   | 1234  | invalid_request      | must be a valid value.    |
+            | code               | 234555    | http://localhost:9000/callback | closedid | 1234  | invalid_request      | must be a valid value.    |
+            | code               | 234555    | localhostts:9000/callback      | openid   | 1234  | invalid_redirect_uri | invalid redirect uri     |
 
 

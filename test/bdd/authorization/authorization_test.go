@@ -3,7 +3,9 @@ package authorization
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
@@ -18,6 +20,13 @@ type authorizationTest struct {
 	requestParam *dto.AuthorizationRequestParam
 }
 
+type authRspQueryParams struct {
+	consentId        string `json:"consentId"`
+	State            string `json:"state"`
+	Error            string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+}
+
 func TestAuthorization(t *testing.T) {
 	a := &authorizationTest{}
 	a.TestInstance = test.Initiate("../../../")
@@ -25,7 +34,7 @@ func TestAuthorization(t *testing.T) {
 
 }
 
-func (a *authorizationTest) iAmIHaveTheFollowingParameters(params *godog.Table) error {
+func (a *authorizationTest) iHaveTheFollowingParameters(params *godog.Table) error {
 	param, err := a.apiTest.ReadRow(params, nil, false)
 	if err != nil {
 		return err
@@ -49,10 +58,67 @@ func (a *authorizationTest) iSendAPOSTRequest() error {
 	return nil
 }
 
-func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingParameters(arg1 string, arg2 *godog.Table) error {
+func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingSuccessParameters(redirect_uri string, rspParams *godog.Table) error {
 	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
 		return err
 	}
+	param, err := a.apiTest.ReadRow(rspParams, nil, false)
+	if err != nil {
+		return err
+	}
+	var rspParamsQuery authRspQueryParams
+	err = a.apiTest.UnmarshalJSONAt([]byte(param), "", &rspParamsQuery)
+	if err != nil {
+		return err
+	}
+
+	location := a.apiTest.Response.Header().Get("Location")
+	parsedLocation, err := url.Parse(location)
+	if err != nil {
+		return err
+	}
+
+	rawPath := fmt.Sprintf("%s://%s%s", parsedLocation.Scheme, parsedLocation.Host, parsedLocation.Path)
+	if err := a.apiTest.AssertEqual(rawPath, redirect_uri); err != nil {
+		return err
+	}
+
+	query := parsedLocation.Query()
+	if query.Has("consentId") != true {
+		return fmt.Errorf("expected code in consentId")
+	}
+
+	return nil
+}
+
+func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingErrorParameters(redirect_uri string, rspParams *godog.Table) error {
+	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
+		return err
+	}
+	param, err := a.apiTest.ReadRow(rspParams, nil, false)
+	if err != nil {
+		return err
+	}
+	var rspParamsQuery authRspQueryParams
+	err = a.apiTest.UnmarshalJSONAt([]byte(param), "", &rspParamsQuery)
+	if err != nil {
+		return err
+	}
+
+	location := a.apiTest.Response.Header().Get("Location")
+	parsedLocation, err := url.Parse(location)
+	if err != nil {
+		return err
+	}
+
+	query := parsedLocation.Query()
+	if err := a.apiTest.AssertEqual(query.Get("error"), rspParamsQuery.Error); err != nil {
+		return err
+	}
+	if err := a.apiTest.AssertEqual(query.Get("error_description"), rspParamsQuery.ErrorDescription); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -68,7 +134,10 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		return ctx, nil
 	})
-	ctx.Step(`^I am I have the following parameters:$`, a.iAmIHaveTheFollowingParameters)
+
+	ctx.Step(`^I have the following parameters:$`, a.iHaveTheFollowingParameters)
 	ctx.Step(`^I send a POST request$`, a.iSendAPOSTRequest)
-	ctx.Step(`^I should be redirected to "([^"]*)" with the following parameters:$`, a.iShouldBeRedirectedToWithTheFollowingParameters)
+	ctx.Step(`^I should be redirected to "([^"]*)" with the following error parameters:$`, a.iShouldBeRedirectedToWithTheFollowingErrorParameters)
+	ctx.Step(`^I should be redirected to "([^"]*)" with the following success parameters:$`, a.iShouldBeRedirectedToWithTheFollowingSuccessParameters)
+
 }
