@@ -10,7 +10,6 @@ import (
 )
 
 func InitConfig(name, path string, log logger.Logger) {
-	// TODO: implement
 	viper.SetConfigName(name)
 	viper.AddConfigPath(path)
 	viper.SetConfigType("yaml")

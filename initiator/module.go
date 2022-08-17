@@ -36,9 +36,9 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 
 	return Module{
 		// OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
-		userModule: user.Init(log, persistence.OAuthPersistence, platformLayer.sms, enforcer),
+		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
-			log,
+			log.Named("oauth-module"),
 			persistence.OAuthPersistence,
 			cache.OTPCacheLayer,
 			cache.SessionCacheLayer,
@@ -49,6 +49,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
 			}),
 		),
-		clientModule: client.InitClient(log, persistence.ClientPersistence),
+		clientModule: client.InitClient(log.Named("client-module"), persistence.ClientPersistence),
 	}
 }

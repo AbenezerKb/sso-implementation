@@ -3,15 +3,14 @@ package oauth
 import (
 	"context"
 	"database/sql"
-	"reflect"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/storage"
 	"sso/platform/logger"
-
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 type oauth struct {
@@ -39,7 +38,7 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	})
 	if err != nil {
 		err = errors.ErrWriteError.Wrap(err, "could not create user")
-		o.logger.Error(ctx, zap.Error(err).String)
+		o.logger.Error(ctx, "unable to create user", zap.Error(err), zap.Any("user", userParam))
 		return nil, err
 	}
 	return &dto.User{
@@ -60,13 +59,14 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (*dto.User, error) {
 	user, err := o.db.GetUserByPhone(ctx, phone)
 	if err != nil {
-
-		if reflect.ValueOf(user).IsZero() {
-			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found", zap.Error(err), zap.String("phone", phone))
+			return nil, err
 		} else {
 			err = errors.ErrReadError.Wrap(err, "could not read user data")
-			o.logger.Error(ctx, zap.Error(err).String)
-			return &dto.User{}, err
+			o.logger.Error(ctx, "unable to get user by phone", zap.Error(err), zap.String("phone", phone))
+			return nil, err
 		}
 	}
 	return &dto.User{
@@ -87,12 +87,14 @@ func (o *oauth) GetUserByEmail(ctx context.Context, email string) (*dto.User, er
 	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
 	if err != nil {
 
-		if reflect.ValueOf(user).IsZero() {
-			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found by email", zap.Error(err), zap.String("email", email))
+			return nil, err
 		} else {
-			err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-			o.logger.Error(ctx, zap.Error(err).String)
-			return &dto.User{}, err
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, "unable to get user by email", zap.Error(err), zap.String("email", email))
+			return nil, err
 		}
 	}
 
@@ -114,21 +116,27 @@ func (o *oauth) GetUserStatus(ctx context.Context, Id uuid.UUID) (string, error)
 
 	status, err := o.db.GetUserStatus(ctx, Id)
 	if err != nil {
-		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx,"unable to get user status", zap.Error(err))
-		return "", err
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found to fetch user status", zap.Error(err), zap.String("id", Id.String()))
+			return "", err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, "unable to get user by id", zap.Error(err), zap.String("id", Id.String()))
+			return "", err
+		}
 	}
 
 	return status.String, nil
 }
 func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, error) {
-	user, err := o.db.GetUserByPhone(ctx, phone)
+	_, err := o.db.GetUserByPhone(ctx, phone)
 	if err != nil {
-		if reflect.ValueOf(user).IsZero() {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			return false, nil
 		} else {
 			err = errors.ErrReadError.Wrap(err, "could not read user data")
-			o.logger.Error(ctx, zap.Error(err).String)
+			o.logger.Error(ctx, "unable to get user by phone", zap.Error(err), zap.String("phone", phone))
 			return false, err
 		}
 	}
@@ -138,12 +146,14 @@ func (o *oauth) UserByPhoneExists(ctx context.Context, phone string) (bool, erro
 func (o *oauth) GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error) {
 	user, err := o.db.GetUserByPhoneOrEmail(ctx, query)
 	if err != nil {
-		if reflect.ValueOf(user).IsZero() {
-			return &dto.User{}, errors.ErrNoRecordFound.Wrap(err, "no user found")
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found", zap.Error(err), zap.String("query", query))
+			return nil, err
 		} else {
-			err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-			o.logger.Error(ctx, zap.Error(err).String)
-			return &dto.User{}, err
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, "unable to get user by phone or email", zap.Error(err), zap.String("email-or-phone", query))
+			return nil, err
 		}
 	}
 
@@ -161,13 +171,13 @@ func (o *oauth) GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.U
 }
 
 func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {
-	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
+	_, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
 	if err != nil {
-		if reflect.ValueOf(user).IsZero() {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			return false, nil
 		} else {
 			err = errors.ErrReadError.Wrap(err, "could not read user data")
-			o.logger.Error(ctx, zap.Error(err).String)
+			o.logger.Error(ctx, "unable to get user by email", zap.Error(err), zap.String("email", email))
 			return false, err
 		}
 	}

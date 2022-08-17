@@ -17,14 +17,14 @@ type CacheLayer struct {
 
 func InitCacheLayer(client *redis.Client, expireOn time.Duration, log logger.Logger) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:     otp.InitOTPCache(client, log, expireOn),
-		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
+		OTPCacheLayer:     otp.InitOTPCache(client, log.Named("otp-cache"), expireOn),
+		SessionCacheLayer: session.InitSessionCache(client, log.Named("session-cache"), expireOn),
 	}
 }
 
 func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:     mock_otp.InitMockOTPCache(client, log, expireOn, mockOTP),
-		SessionCacheLayer: session.InitSessionCache(client, log, expireOn),
+		OTPCacheLayer:     mock_otp.InitMockOTPCache(client, log.Named("otp-cache"), expireOn, mockOTP),
+		SessionCacheLayer: session.InitSessionCache(client, log.Named("session-cache"), expireOn),
 	}
 }

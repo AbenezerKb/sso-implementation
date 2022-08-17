@@ -27,7 +27,7 @@ func InitPlatformLayer(logger logger.Logger) PlatformLayer {
 				Templates: viper.GetStringMapString("sms.templates"),
 				APIKey:    viper.GetString("sms.api_key"),
 			},
-			logger),
+			logger.Named("sms-platform")),
 	}
 }
 
@@ -35,6 +35,6 @@ func InitMockPlatformLayer(logger logger.Logger) PlatformLayer {
 	return PlatformLayer{
 		sms: sms2.InitMockSMS(
 			platform.SMSConfig{},
-			logger),
+			logger.Named("sms-platform")),
 	}
 }

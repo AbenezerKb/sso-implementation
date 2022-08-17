@@ -16,8 +16,8 @@ type Handler struct {
 
 func InitHandler(module Module, log logger.Logger) Handler {
 	return Handler{
-		oauth:  oauth.InitOAuth(log, module.OAuthModule),
-		user:   user.Init(log, module.userModule),
-		client: client.Init(log, module.clientModule),
+		oauth:  oauth.InitOAuth(log.Named("oauth-handler"), module.OAuthModule),
+		user:   user.Init(log.Named("user-handler"), module.userModule),
+		client: client.Init(log.Named("client-handler"), module.clientModule),
 	}
 }
