@@ -308,7 +308,65 @@ info:
   title: RidePLUS SSO API
   version: "0.1"
 paths:
-  /approval:
+  /clients:
+    post:
+      consumes:
+      - application/json
+      description: Create a new client
+      parameters:
+      - description: client
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Client'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Client'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a client
+      tags:
+      - client
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user.
+      parameters:
+      - description: login_credential
+        in: body
+        name: login_credential
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginCredential'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "401":
+          description: invalid credentials
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Login a user.
+      tags:
+      - auth
+  /oauth/approval:
     get:
       consumes:
       - application/json
@@ -344,15 +402,35 @@ paths:
       summary: Approval.
       tags:
       - OAuth2
-  /authorize:
+  /oauth/authorize:
     get:
       consumes:
       - application/json
       description: is used to obtain authorization code.
       parameters:
-      - description: code
+      - description: response_type
         in: query
-        name: code
+        name: response_type
+        required: true
+        type: string
+      - description: client_id
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: state
+        in: query
+        name: state
+        required: true
+        type: string
+      - description: scope
+        in: query
+        name: scope
+        required: true
+        type: string
+      - description: redirect_uri
+        in: query
+        name: redirect_uri
         required: true
         type: string
       produces:
@@ -375,35 +453,7 @@ paths:
       summary: Authorize.
       tags:
       - OAuth2
-  /clients:
-    post:
-      consumes:
-      - application/json
-      description: Create a new client
-      parameters:
-      - description: client
-        in: body
-        name: client
-        required: true
-        schema:
-          $ref: '#/definitions/dto.Client'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.Client'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a client
-      tags:
-      - client
-  /consent/{id}:
+  /oauth/consent/{id}:
     get:
       consumes:
       - application/json
@@ -428,36 +478,6 @@ paths:
       summary: GetConsentByID.
       tags:
       - OAuth2
-  /login:
-    post:
-      consumes:
-      - application/json
-      description: Login a user.
-      parameters:
-      - description: login_credential
-        in: body
-        name: login_credential
-        required: true
-        schema:
-          $ref: '#/definitions/dto.LoginCredential'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.TokenResponse'
-        "400":
-          description: invalid input
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-        "401":
-          description: invalid credentials
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-      summary: Login a user.
-      tags:
-      - auth
   /otp:
     get:
       consumes:
