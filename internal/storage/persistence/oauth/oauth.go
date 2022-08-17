@@ -3,14 +3,15 @@ package oauth
 import (
 	"context"
 	"database/sql"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/storage"
 	"sso/platform/logger"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type oauth struct {
@@ -182,4 +183,30 @@ func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, erro
 		}
 	}
 	return true, nil
+}
+
+func (o *oauth) GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error) {
+	user, err := o.db.GetUserById(ctx, Id)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found", zap.Error(err), zap.String("id", Id.String()))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, "unable to get user by id", zap.Error(err), zap.String("id", Id.String()))
+			return nil, err
+		}
+	}
+
+	return &dto.User{
+		ID:         user.ID,
+		Status:     user.Status.String,
+		UserName:   user.UserName,
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName,
+		LastName:   user.LastName,
+		Email:      user.Email.String,
+		Phone:      user.Phone,
+	}, nil
 }

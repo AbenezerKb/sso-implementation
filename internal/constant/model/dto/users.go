@@ -14,7 +14,7 @@ import (
 type User struct {
 	// ID is the unique identifier of the user.
 	// It is automatically generated when the user is created.
-	ID uuid.UUID `json:"id,omitempty"`
+	ID uuid.UUID `json:"id"`
 	// FirstName is the first name of the user.
 	FirstName string `json:"first_name,omitempty"`
 	// MiddleName is the middle name of the user.
@@ -35,7 +35,7 @@ type User struct {
 	Gender string `json:"gender,omitempty"`
 	// Status is the status of the user.
 	// It is set to active by default after successful registration.
-	Status string `json:"status,omitempty"`
+	Status string `json:"-"`
 	// ProfilePicture is the profile picture of the user.
 	// It is set on a separate setProfilePicture endpoint.
 	ProfilePicture string `json:"profile_picture,omitempty"`

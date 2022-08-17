@@ -2,11 +2,12 @@ package dto
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/google/uuid"
-	"net/http"
-	"strings"
 )
 
 type Client struct {

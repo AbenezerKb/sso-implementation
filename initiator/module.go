@@ -6,6 +6,7 @@ import (
 	"sso/internal/module"
 	"sso/internal/module/client"
 	"sso/internal/module/oauth"
+	"sso/internal/module/oauth2"
 	"sso/internal/module/user"
 	"sso/platform/logger"
 
@@ -19,6 +20,7 @@ import (
 type Module struct {
 	// TODO implement
 	OAuthModule  module.OAuthModule
+	OAuth2Module module.OAuth2Module
 	userModule   module.UserModule
 	clientModule module.ClientModule
 }
@@ -35,7 +37,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	}
 
 	return Module{
-		// OAuthModule: oauth.InitOAuth(log, persistence.OAuthPersistence, cache.OTPCacheLayer, cache.SessionCacheLayer, privateKey, platformLayer.sms),
 		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
@@ -50,5 +51,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			}),
 		),
 		clientModule: client.InitClient(log.Named("client-module"), persistence.ClientPersistence),
+		OAuth2Module: oauth2.InitOAuth2(log.Named("oauth2-module"), persistence.OAuth2Persistence, persistence.OAuthPersistence, persistence.ClientPersistence, cache.ConsentCacheLayer, cache.AuthCodeCacheLayer),
 	}
 }

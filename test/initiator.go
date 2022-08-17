@@ -74,7 +74,12 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
-	cacheLayer := initiator.InitMockCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), "123455", log)
+	cacheLayer := initiator.InitMockCacheLayer(cache, viper.GetDuration("redis.otp_expire_time"), "123455", log, initiator.CacheOptions{
+		OTPExpireTime:      viper.GetDuration("redis.otp_expire_time"),
+		SessionExpireTime:  viper.GetDuration("redis.session_expire_time"),
+		ConsentExpireTime:  viper.GetDuration("redis.consent_expire_time"),
+		AuthCodeExpireTime: viper.GetDuration("redis.authcode_expire_time"),
+	})
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")

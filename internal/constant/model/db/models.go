@@ -11,6 +11,17 @@ import (
 	"github.com/google/uuid"
 )
 
+type Authcode struct {
+	ID          uuid.UUID `json:"id"`
+	Code        string    `json:"code"`
+	UserID      uuid.UUID `json:"user_id"`
+	Status      string    `json:"status"`
+	Scope       string    `json:"scope"`
+	RedirectUri string    `json:"redirect_uri"`
+	ClientID    uuid.UUID `json:"client_id"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
 type Client struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
