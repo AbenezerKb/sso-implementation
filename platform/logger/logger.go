@@ -80,6 +80,7 @@ func (l *logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 
 func (l *logger) extract(ctx context.Context) []zap.Field {
 	var fields []zap.Field
+	fields = append(fields, zap.String("time", time.Now().Format(time.RFC3339)))
 
 	if reqID, ok := ctx.Value("x-request-id").(string); ok {
 		fields = append(fields, zap.String("x-request-id", reqID))
@@ -95,6 +96,9 @@ func (l *logger) extract(ctx context.Context) []zap.Field {
 }
 func (l *logger) Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{}) {
 	var fields []zap.Field
+	// since the logger already has a `time` field, we have to remap the pgx time
+	data["pgx_time"] = data["time"]
+	delete(data, "time")
 	for k, v := range data {
 		fields = append(fields, zap.Any(k, v))
 	}
