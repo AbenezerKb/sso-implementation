@@ -32,11 +32,11 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 // Authorize is used to to obtain authorization code.
 // @Summary      Authorize.
 // @Description  is used to obtain authorization code.
-// @Tags         auth
+// @Tags         OAuth2
 // @Accept       json
 // @Produce      json
 // @param code query string true "code"
-// @Success      200  {object}
+// @Success      200
 // @Failure      400  {object}  model.ErrorResponse
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /authorize [get]
@@ -99,7 +99,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // GetConsentByID is used to get consent by id.
 // @Summary      GetConsentByID.
 // @Description  is used to get consent by id.
-// @Tags         auth
+// @Tags         OAuth2
 // @Accept       json
 // @Produce      json
 // @param id path string true "id"
@@ -121,7 +121,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // Approval is used to approve consent.
 // @Summary      Approval.
 // @Description  is used to approve consent.
-// @Tags         auth
+// @Tags         OAuth2
 // @Accept       json
 // @Produce      json
 // @param consentId query string true "consentId"

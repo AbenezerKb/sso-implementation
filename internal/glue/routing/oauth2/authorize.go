@@ -27,7 +27,7 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 
 		{
 			Method:      "GET",
-			Path:        "/consent",
+			Path:        "/approval",
 			Handler:     handler.Approval,
 			Middlewares: []gin.HandlerFunc{},
 		},

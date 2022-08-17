@@ -43,6 +43,46 @@ definitions:
           It is set to active by default.
         type: string
     type: object
+  dto.ConsentData:
+    properties:
+      approved:
+        description: The consent status.
+        type: boolean
+      client:
+        $ref: '#/definitions/dto.Client'
+        description: The client data
+      client_id:
+        description: The client identifier.
+        type: string
+      id:
+        type: string
+      redirect_uri:
+        description: The redirection URI used in the initial authorization request.
+        type: string
+      response_type:
+        description: The redirection URI used in the initial authorization request.
+        type: string
+      roles:
+        description: Roles of the user.
+        type: string
+      scope:
+        description: The scope of the access request expressed as a list of space-delimited,
+        type: string
+      scopes:
+        description: The scope data
+        items:
+          $ref: '#/definitions/dto.Scope'
+        type: array
+      state:
+        description: the state parameter passed in the initial authorization request.
+        type: string
+      user:
+        $ref: '#/definitions/dto.User'
+        description: The user data
+      userID:
+        description: Users Id
+        type: string
+    type: object
   dto.CreateUser:
     properties:
       created_at:
@@ -85,11 +125,6 @@ definitions:
         type: string
       role:
         description: Role is the role given to the user being created.
-        type: string
-      status:
-        description: |-
-          Status is the status of the user.
-          It is set to active by default after successful registration.
         type: string
       user_name:
         description: |-
@@ -155,15 +190,19 @@ definitions:
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
         type: string
-      status:
-        description: |-
-          Status is the status of the user.
-          It is set to active by default after successful registration.
-        type: string
       user_name:
         description: |-
           UserName is the username of the user.
           It is currently of no use
+        type: string
+    type: object
+  dto.Scope:
+    properties:
+      description:
+        description: The scope description.
+        type: string
+      name:
+        description: The scope name.
         type: string
     type: object
   dto.TokenResponse:
@@ -221,11 +260,6 @@ definitions:
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
         type: string
-      status:
-        description: |-
-          Status is the status of the user.
-          It is set to active by default after successful registration.
-        type: string
       user_name:
         description: |-
           UserName is the username of the user.
@@ -274,6 +308,73 @@ info:
   title: RidePLUS SSO API
   version: "0.1"
 paths:
+  /approval:
+    get:
+      consumes:
+      - application/json
+      description: is used to approve consent.
+      parameters:
+      - description: consentId
+        in: query
+        name: consentId
+        required: true
+        type: string
+      - description: access
+        in: query
+        name: access
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+        "400":
+          description: invalid input
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Approval.
+      tags:
+      - auth
+  /authorize:
+    get:
+      consumes:
+      - application/json
+      description: is used to obtain authorization code.
+      parameters:
+      - description: code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+        "400":
+          description: Bad Request
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Authorize.
+      tags:
+      - auth
   /clients:
     post:
       consumes:
@@ -302,6 +403,31 @@ paths:
       summary: Create a client
       tags:
       - client
+  /consent/{id}:
+    get:
+      consumes:
+      - application/json
+      description: is used to get consent by id.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ConsentData'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: GetConsentByID.
+      tags:
+      - auth
   /login:
     post:
       consumes:

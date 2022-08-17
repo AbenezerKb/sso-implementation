@@ -20,6 +20,107 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/approval": {
+            "get": {
+                "description": "is used to approve consent.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Approval.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "consentId",
+                        "name": "consentId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "access",
+                        "name": "access",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        },
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/authorize": {
+            "get": {
+                "description": "is used to obtain authorization code.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Authorize.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "code",
+                        "name": "code",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        },
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/clients": {
             "post": {
                 "security": [
@@ -58,6 +159,44 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/consent/{id}": {
+            "get": {
+                "description": "is used to get consent by id.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "GetConsentByID.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ConsentData"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
                         }
@@ -287,6 +426,61 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ConsentData": {
+            "type": "object",
+            "properties": {
+                "approved": {
+                    "description": "The consent status.",
+                    "type": "boolean"
+                },
+                "client": {
+                    "description": "The client data",
+                    "$ref": "#/definitions/dto.Client"
+                },
+                "client_id": {
+                    "description": "The client identifier.",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "redirect_uri": {
+                    "description": "The redirection URI used in the initial authorization request.",
+                    "type": "string"
+                },
+                "response_type": {
+                    "description": "The redirection URI used in the initial authorization request.",
+                    "type": "string"
+                },
+                "roles": {
+                    "description": "Roles of the user.",
+                    "type": "string"
+                },
+                "scope": {
+                    "description": "The scope of the access request expressed as a list of space-delimited,",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "The scope data",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Scope"
+                    }
+                },
+                "state": {
+                    "description": "the state parameter passed in the initial authorization request.",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "The user data",
+                    "$ref": "#/definitions/dto.User"
+                },
+                "userID": {
+                    "description": "Users Id",
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateUser": {
             "type": "object",
             "properties": {
@@ -332,10 +526,6 @@ const docTemplate = `{
                 },
                 "role": {
                     "description": "Role is the role given to the user being created.",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
                     "type": "string"
                 },
                 "user_name": {
@@ -412,12 +602,21 @@ const docTemplate = `{
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
                     "type": "string"
                 },
-                "status": {
-                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
-                    "type": "string"
-                },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.Scope": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "The scope description.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The scope name.",
                     "type": "string"
                 }
             }
@@ -484,10 +683,6 @@ const docTemplate = `{
                 },
                 "profile_picture": {
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
-                    "type": "string"
-                },
-                "status": {
-                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
                     "type": "string"
                 },
                 "user_name": {
