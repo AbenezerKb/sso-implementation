@@ -8,7 +8,6 @@ import (
 )
 
 func InitCache(url string, log logger.Logger) *redis.Client {
-	// TODO implement
 	opts, err := redis.ParseURL(url)
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to parse redis url: %v", err))

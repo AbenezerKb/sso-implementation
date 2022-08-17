@@ -32,7 +32,6 @@ func GinLogger(log logger.Logger) gin.HandlerFunc {
 			zap.String("user-agent", ctx.Request.UserAgent()),
 			zap.Int64("request-latency", latency.Milliseconds()),
 		}
-		fields = append(fields, zap.String("time", end.Format(time.RFC3339)))
 		log.Info(ctx.Request.Context(), "GIN", fields...)
 	}
 }

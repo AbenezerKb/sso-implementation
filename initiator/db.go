@@ -13,7 +13,7 @@ func InitDB(url string, log logger.Logger) *pgx.Conn {
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))
 	}
-	config.Logger = log
+	config.Logger = log.Named("pgx")
 	conn, err := pgx.ConnectConfig(context.Background(), config)
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))

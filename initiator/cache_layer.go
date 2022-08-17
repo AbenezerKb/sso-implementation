@@ -29,18 +29,18 @@ type CacheOptions struct {
 
 func InitCacheLayer(client *redis.Client, options CacheOptions, log logger.Logger) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:      otp.InitOTPCache(client, log, options.OTPExpireTime),
-		SessionCacheLayer:  session.InitSessionCache(client, log, options.SessionExpireTime),
-		ConsentCacheLayer:  consent.InitConsentCache(client, log, options.ConsentExpireTime),
-		AuthCodeCacheLayer: authcode.InitAuthCodeCache(client, log, options.AuthCodeExpireTime),
+		OTPCacheLayer:      otp.InitOTPCache(client, log.Named("otp-cache"), options.OTPExpireTime),
+		SessionCacheLayer:  session.InitSessionCache(client, log.Named("session-cache"), options.SessionExpireTime),
+		ConsentCacheLayer:  consent.InitConsentCache(client, log.Named("consent-cache"), options.ConsentExpireTime),
+		AuthCodeCacheLayer: authcode.InitAuthCodeCache(client, log.Named("authcode-cache"), options.AuthCodeExpireTime),
 	}
 }
 
 func InitMockCacheLayer(client *redis.Client, expireOn time.Duration, mockOTP string, log logger.Logger, options CacheOptions) CacheLayer {
 	return CacheLayer{
-		OTPCacheLayer:      mock_otp.InitMockOTPCache(client, log, expireOn, mockOTP),
-		SessionCacheLayer:  session.InitSessionCache(client, log, expireOn),
-		ConsentCacheLayer:  consent.InitConsentCache(client, log, options.ConsentExpireTime),
-		AuthCodeCacheLayer: authcode.InitAuthCodeCache(client, log, options.AuthCodeExpireTime),
+		OTPCacheLayer:      mock_otp.InitMockOTPCache(client, log.Named("otp-cache"), options.OTPExpireTime, mockOTP),
+		SessionCacheLayer:  session.InitSessionCache(client, log.Named("session-cache"), options.SessionExpireTime),
+		ConsentCacheLayer:  consent.InitConsentCache(client, log.Named("consent-cache"), options.ConsentExpireTime),
+		AuthCodeCacheLayer: authcode.InitAuthCodeCache(client, log.Named("authcode-cache"), options.AuthCodeExpireTime),
 	}
 }

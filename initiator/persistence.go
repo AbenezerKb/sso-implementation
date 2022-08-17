@@ -18,8 +18,8 @@ type Persistence struct {
 
 func InitPersistence(db *db.Queries, log logger.Logger) Persistence {
 	return Persistence{
-		OAuthPersistence:  oauth.InitOAuth(log, db),
-		OAuth2Persistence: oauth2.InitOAuth2(log, db),
-		ClientPersistence: client.InitClient(log, db),
+		OAuthPersistence:  oauth.InitOAuth(log.Named("oauth-persistence"), db),
+		ClientPersistence: client.InitClient(log.Named("client-persistence"), db),
+		OAuth2Persistence: oauth2.InitOAuth2(log.Named("oauth2-persistence"), db),
 	}
 }

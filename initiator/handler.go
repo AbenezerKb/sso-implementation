@@ -20,9 +20,9 @@ type Handler struct {
 func InitHandler(module Module, log logger.Logger) Handler {
 	return Handler{
 		// TODO implement
-		oauth:  oauth.InitOAuth(log, module.OAuthModule),
-		oauth2: oauth2.InitOAuth2(log, module.OAuth2Module),
-		user:   user.Init(log, module.userModule),
-		client: client.Init(log, module.clientModule),
+		oauth:  oauth.InitOAuth(log.Named("oauth-handler"), module.OAuthModule),
+		user:   user.Init(log.Named("user-handler"), module.userModule),
+		client: client.Init(log.Named("client-handler"), module.clientModule),
+		oauth2: oauth2.InitOAuth2(log.Named("oauth2-handler"), module.OAuth2Module),
 	}
 }

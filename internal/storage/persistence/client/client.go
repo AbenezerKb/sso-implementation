@@ -34,7 +34,7 @@ func (c *clientPersistence) Create(ctx context.Context, clientParam dto.Client) 
 	})
 	if err != nil {
 		err := errors.ErrWriteError.Wrap(err, "couldn't create client")
-		c.logger.Error(ctx, "couldn't create client", zap.Error(err))
+		c.logger.Error(ctx, "couldn't create client", zap.Error(err), zap.Any("client", clientParam))
 		return nil, err
 	}
 	return &dto.Client{
