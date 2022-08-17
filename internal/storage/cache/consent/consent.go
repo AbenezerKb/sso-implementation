@@ -30,11 +30,12 @@ func (c *consentCache) GetConsent(ctx context.Context, consentID string) (dto.Co
 	consentResult, err := c.client.Get(ctx, consentKey).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return dto.Consent{}, nil
+			return dto.Consent{}, err
 		}
 
 		err := errors.ErrCacheGetError.Wrap(err, "could not get from consent cache")
 		c.logger.Error(ctx, "could not read from consent cache", zap.Error(err))
+		return dto.Consent{}, err
 	}
 
 	var consent dto.Consent
@@ -76,15 +77,9 @@ func (c *consentCache) DeleteConsent(ctx context.Context, consentID string) erro
 	return nil
 }
 
-func (c *consentCache) ChangeStatus(ctx context.Context, status bool, consentID string) (dto.Consent, error) {
-	consent, err := c.GetConsent(ctx, consentID)
-	consentKey := fmt.Sprintf(state.ConsentKey, consentID)
-
-	if err != nil {
-		return dto.Consent{}, err
-	}
+func (c *consentCache) ChangeStatus(ctx context.Context, status bool, consent dto.Consent) (dto.Consent, error) {
+	consentKey := fmt.Sprintf(state.ConsentKey, consent.ID)
 	consent.Approved = status
-
 	consentValue, err := json.Marshal(consent)
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not marshal consent")

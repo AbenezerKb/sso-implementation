@@ -42,7 +42,7 @@ type ConsentCache interface {
 	SaveConsent(ctx context.Context, consent dto.Consent) error
 	GetConsent(ctx context.Context, consentID string) (dto.Consent, error)
 	DeleteConsent(ctx context.Context, consentID string) error
-	ChangeStatus(ctx context.Context, status bool, consentID string) (dto.Consent, error)
+	ChangeStatus(ctx context.Context, status bool, consent dto.Consent) (dto.Consent, error)
 }
 type ClientPersistence interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)

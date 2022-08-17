@@ -136,15 +136,23 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string
 func (o *oauth2) Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error) {
 	consent := dto.Consent{}
 
+	// check if consent is valid
+	consent, err := o.consentCache.GetConsent(ctx, consentId)
+	if err != nil || consent.ID.String() != consentId {
+		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
+		o.logger.Info(ctx, "consent not found", zap.Error(err))
+		return consent, err
+	}
+
 	if accessRqResult == "true" {
 		var err error
-		consent, err = o.consentCache.ChangeStatus(ctx, true, consentId)
+		consent, err = o.consentCache.ChangeStatus(ctx, true, consent)
 		if err != nil {
 			return dto.Consent{}, err
 		}
 	} else {
 		var err error
-		consent, err = o.consentCache.ChangeStatus(ctx, false, consentId)
+		consent, err = o.consentCache.ChangeStatus(ctx, false, consent)
 		if err != nil {
 			return dto.Consent{}, err
 		}
