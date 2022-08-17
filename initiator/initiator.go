@@ -85,7 +85,7 @@ func Initiate() {
 
 	log.Info(context.Background(), "initializing server")
 	server := gin.New()
-	server.Use(middleware.GinLogger(log))
+	server.Use(middleware.GinLogger(log.Named("gin")))
 	server.Use(ginzap.RecoveryWithZap(log.GetZapLogger().Named("gin.recovery"), true))
 	server.Use(middleware.ErrorHandler())
 	if viper.GetBool("dev") {
