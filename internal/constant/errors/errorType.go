@@ -72,6 +72,7 @@ var Error = []ErrorType{
 
 var (
 	invalidInput = errorx.NewNamespace("validation error").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
+	dataNotFound = errorx.NewNamespace("data not found").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	unauthorized = errorx.NewNamespace("unauthorized").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
 	dbError      = errorx.NewNamespace("db error")
 	duplicate    = errorx.NewNamespace("duplicate").ApplyModifiers(errorx.TypeModifierOmitStackTrace)
@@ -82,7 +83,7 @@ var (
 
 var (
 	ErrInvalidUserInput    = errorx.NewType(invalidInput, "invalid user input")
-	ErrNoRecordFound       = errorx.NewType(dbError, "no record found")
+	ErrNoRecordFound       = errorx.NewType(dataNotFound, "no record found")
 	ErrWriteError          = errorx.NewType(dbError, "could not write to db")
 	ErrReadError           = errorx.NewType(dbError, "could not read from db")
 	ErrDataExists          = errorx.NewType(duplicate, "data already exists")
