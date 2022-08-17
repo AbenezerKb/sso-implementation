@@ -343,7 +343,7 @@ paths:
             $ref: '#/definitions/model.ErrorResponse'
       summary: Approval.
       tags:
-      - auth
+      - OAuth2
   /authorize:
     get:
       consumes:
@@ -374,7 +374,7 @@ paths:
             $ref: '#/definitions/model.ErrorResponse'
       summary: Authorize.
       tags:
-      - auth
+      - OAuth2
   /clients:
     post:
       consumes:
@@ -427,7 +427,7 @@ paths:
             $ref: '#/definitions/model.ErrorResponse'
       summary: GetConsentByID.
       tags:
-      - auth
+      - OAuth2
   /login:
     post:
       consumes:

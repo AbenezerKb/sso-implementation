@@ -23,7 +23,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "OAuth2"
                 ],
                 "summary": "Approval.",
                 "parameters": [
@@ -77,7 +77,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "OAuth2"
                 ],
                 "summary": "Authorize.",
                 "parameters": [
@@ -169,7 +169,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "auth"
+                    "OAuth2"
                 ],
                 "summary": "GetConsentByID.",
                 "parameters": [
