@@ -35,11 +35,15 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @param code query string true "code"
+// @param response_type query string true "response_type"
+// @param client_id query string true "client_id"
+// @param  state query string true "state"
+// @param scope query string true "scope"
+// @param redirect_uri query string true "redirect_uri"
 // @Success      200
 // @Failure      400  {object}  model.ErrorResponse
 // @Header       200,400            {string}  Location  "redirect_uri"
-// @Router       /authorize [get]
+// @Router       /oauth/authorize [get]
 func (o *oauth2) Authorize(ctx *gin.Context) {
 	authRequestParam := dto.AuthorizationRequestParam{}
 	err := ctx.ShouldBindQuery(&authRequestParam)
@@ -105,7 +109,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // @param id path string true "id"
 // @Success      200  {object}  dto.ConsentData
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
-// @Router       /consent/{id} [get]
+// @Router       /oauth/consent/{id} [get]
 func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 	consentID := ctx.Param("id")
 	userID := ctx.GetString("user_id")
@@ -129,7 +133,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
-// @Router       /approval [get]
+// @Router       /oauth/approval [get]
 func (o *oauth2) Approval(ctx *gin.Context) {
 	consentId := ctx.Query("consentId")
 	accessRqResult := ctx.Query("access")
