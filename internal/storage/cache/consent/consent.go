@@ -34,7 +34,7 @@ func (c *consentCache) GetConsent(ctx context.Context, consentID string) (dto.Co
 		}
 
 		err := errors.ErrCacheGetError.Wrap(err, "could not get from consent cache")
-		c.logger.Error(ctx, "could not read from consent cache", zap.Error(err))
+		c.logger.Error(ctx, "could not read from consent cache", zap.Error(err), zap.String("consentID", consentID))
 		return dto.Consent{}, err
 	}
 
@@ -42,7 +42,7 @@ func (c *consentCache) GetConsent(ctx context.Context, consentID string) (dto.Co
 	err = json.Unmarshal([]byte(consentResult), &consent)
 	if err != nil {
 		err := errors.ErrCacheGetError.Wrap(err, "could not unmarshal consent")
-		c.logger.Error(ctx, "could not unmarshal consent", zap.Error(err))
+		c.logger.Error(ctx, "could not unmarshal consent", zap.Error(err), zap.String("consentID", consentID))
 		return dto.Consent{}, err
 	}
 
@@ -53,14 +53,14 @@ func (c *consentCache) SaveConsent(ctx context.Context, consent dto.Consent) err
 	consentValue, err := json.Marshal(consent)
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not marshal consent")
-		c.logger.Error(ctx, "could not marshal consent", zap.Error(err))
+		c.logger.Error(ctx, "could not marshal consent", zap.Error(err), zap.Any("consent", consent))
 		return err
 	}
 	consentKey := fmt.Sprintf(state.ConsentKey, consent.ID)
 	err = c.client.Set(ctx, consentKey, consentValue, c.expireOn).Err()
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not set to consent cache")
-		c.logger.Error(ctx, "could not write to consent cache", zap.Error(err))
+		c.logger.Error(ctx, "could not write to consent cache", zap.Error(err), zap.Any("consent", consent))
 	}
 	return err
 }
@@ -70,7 +70,7 @@ func (c *consentCache) DeleteConsent(ctx context.Context, consentID string) erro
 	err := c.client.Del(ctx, consentKey).Err()
 	if err != nil {
 		err := errors.ErrCacheDel.Wrap(err, "could not delete from consent cache")
-		c.logger.Error(ctx, "could not delete from consent cache", zap.Error(err))
+		c.logger.Error(ctx, "could not delete from consent cache", zap.Error(err), zap.String("consentID", consentID))
 		return err
 	}
 
@@ -83,14 +83,14 @@ func (c *consentCache) ChangeStatus(ctx context.Context, status bool, consent dt
 	consentValue, err := json.Marshal(consent)
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not marshal consent")
-		c.logger.Error(ctx, "could not marshal consent", zap.Error(err))
+		c.logger.Error(ctx, "could not marshal consent", zap.Error(err), zap.Any("consent", consent))
 		return dto.Consent{}, err
 	}
 
 	err = c.client.Set(ctx, consentKey, consentValue, redis.KeepTTL).Err()
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not set to consent cache")
-		c.logger.Error(ctx, "could not write to consent cache", zap.Error(err))
+		c.logger.Error(ctx, "could not write to consent cache", zap.Error(err), zap.Any("consent", consent))
 		return dto.Consent{}, err
 	}
 
