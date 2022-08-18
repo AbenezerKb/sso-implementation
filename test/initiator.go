@@ -34,6 +34,7 @@ type TestInstance struct {
 	}
 	AccessToken string
 	enforcer    *casbin.Enforcer
+	Logger      logger.Logger
 }
 
 func Initiate(path string) TestInstance {
@@ -116,6 +117,7 @@ func Initiate(path string) TestInstance {
 		Redis:    cache,
 		Module:   module,
 		enforcer: enforcer,
+		Logger:   log,
 	}
 }
 func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
