@@ -18,7 +18,6 @@ import (
 )
 
 type Module struct {
-	// TODO implement
 	OAuthModule  module.OAuthModule
 	OAuth2Module module.OAuth2Module
 	userModule   module.UserModule

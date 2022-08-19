@@ -34,8 +34,8 @@ func (c *AuthCode) GetAuthCode(ctx context.Context, code string) (dto.AuthCode, 
 	authCodeResult, err := c.client.Get(ctx, authCodeKey).Result()
 	if err != nil {
 		if err == redis.Nil {
-			err := errors.ErrCacheGetError.Wrap(err, "no record of code found")
-			c.logger.Info(ctx, "record not found", zap.Error(err), zap.String("code", code))
+			err := errors.ErrNoRecordFound.Wrap(err, "no record of code found")
+			c.logger.Info(ctx, "code not found", zap.Error(err), zap.String("code", code))
 			return dto.AuthCode{}, err
 		}
 
