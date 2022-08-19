@@ -51,6 +51,18 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			}),
 		),
 		clientModule: client.InitClient(log.Named("client-module"), persistence.ClientPersistence),
-		OAuth2Module: oauth2.InitOAuth2(log.Named("oauth2-module"), persistence.OAuth2Persistence, persistence.OAuthPersistence, persistence.ClientPersistence, cache.ConsentCacheLayer, cache.AuthCodeCacheLayer),
-	}
+		OAuth2Module: oauth2.InitOAuth2(
+			log.Named("oauth2-module"),
+			persistence.OAuth2Persistence,
+			persistence.OAuthPersistence,
+			persistence.ClientPersistence,
+			cache.ConsentCacheLayer,
+			cache.AuthCodeCacheLayer,
+			platformLayer.token,
+			oauth2.SetOptions(
+				oauth2.Options{
+					AccessTokenExpireTime:  viper.GetDuration("server.client.access_token.expire_time"),
+					RefreshTokenExpireTime: viper.GetDuration("server.client.refresh_token.expire_time"),
+				},
+			))}
 }
