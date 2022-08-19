@@ -8,29 +8,37 @@ import (
 	"sso/internal/constant/errors"
 	"sso/internal/constant/permissions"
 	"sso/internal/module"
+	"sso/platform/logger"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type AuthMiddleware interface {
 	Authentication() gin.HandlerFunc
 	AccessControl() gin.HandlerFunc
+	ClientBasicAuth() gin.HandlerFunc
 }
 
 type authMiddleware struct {
 	enforcer     *casbin.Enforcer
 	auth         module.OAuthModule
 	ssoPublicKey *rsa.PublicKey
+	client       module.ClientModule
+	logger       logger.Logger
 }
 
 func InitAuthMiddleware(enforcer *casbin.Enforcer,
-	auth module.OAuthModule, ssoPublicKey *rsa.PublicKey) AuthMiddleware {
+	auth module.OAuthModule, ssoPublicKey *rsa.PublicKey, client module.ClientModule, logger logger.Logger) AuthMiddleware {
 	return &authMiddleware{
 		enforcer,
 		auth,
 		ssoPublicKey,
+		client,
+		logger,
 	}
 }
 
@@ -91,6 +99,44 @@ func (a *authMiddleware) AccessControl() gin.HandlerFunc {
 			return
 		}
 
+		ctx.Next()
+	}
+}
+
+func (a *authMiddleware) ClientBasicAuth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+
+		clientId, secret, ok := ctx.Request.BasicAuth()
+		if !ok {
+			err := errors.ErrInternalServerError.New("could not get extract client credentials")
+			a.logger.Error(ctx, "extract error", zap.Error(err))
+			ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		id, err := uuid.Parse(clientId)
+		if err != nil {
+			err := errors.ErrInternalServerError.Wrap(err, "could not parse client id")
+			a.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("client-id", clientId))
+			ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+		client, err := a.client.GetClientByID(ctx.Request.Context(), id)
+		if err != nil {
+			ctx.Error(err)
+			ctx.Abort()
+			return
+		}
+		if ok := client.Secret == secret; !ok {
+			err = errors.ErrAcessError.Wrap(err, "unauthorized_client")
+			a.logger.Info(ctx, "unauthorized_client", zap.Error(err), zap.String("client-secret", client.Secret), zap.String("provided-secret", secret))
+			ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), constant.Context("x-client"), client))
 		ctx.Next()
 	}
 }
