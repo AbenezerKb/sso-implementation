@@ -116,8 +116,8 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string
 
 	userID, err := uuid.Parse(id)
 	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "could not parse user id")
-		o.logger.Error(ctx, "parse error", zap.Error(err))
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		o.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
 		return dto.ConsentData{}, err
 	}
 	user, err := o.oauthPersistence.GetUserByID(ctx, userID)

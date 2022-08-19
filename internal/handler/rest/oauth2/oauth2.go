@@ -101,7 +101,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		o.logger.Info(ctx, "error while authorizing authorization request", zap.Error(err), zap.Any("auth-request-param", authRequestParam))
 		errQuery.Set("error", authErrRsp.Error)
 		errQuery.Set("error_description", authErrRsp.ErrorDescription)
-		errQuery.Set("state", authRequestParam.State)
+		errQuery.Set("error_code", "400")
 
 		errorURL.RawQuery = errQuery.Encode()
 		ctx.Redirect(http.StatusFound, errorURL.String())
@@ -117,6 +117,12 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 	}
 	query := consentURL.Query()
 	query.Set("consentId", consentId)
+	if authRequestParam.Prompt != "" {
+		query.Set("prompt", authRequestParam.Prompt)
+	} else {
+		query.Set("prompt", "consent")
+	}
+
 	consentURL.RawQuery = query.Encode()
 
 	o.logger.Info(ctx, "consent url", zap.String("url", consentURL.String()))
@@ -161,6 +167,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 func (o *oauth2) Approval(ctx *gin.Context) {
 	consentId := ctx.Query("consentId")
 	accessRqResult := ctx.Query("access")
+	failureReason := ctx.Query("failureReason")
 	// userID := ctx.GetString("user_id")
 	if consentId == "" || accessRqResult == "" {
 		o.logger.Error(ctx, "invalid input", zap.String("phone", consentId), zap.String("access", accessRqResult))
@@ -198,8 +205,10 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 		}
 
 	} else {
-		query.Set("error", "access_denied")
-		query.Set("error_description", "The user denied your request")
+		if failureReason == "" {
+			failureReason = "access_denied"
+		}
+		query.Set("error", failureReason)
 	}
 
 	redirectURI.RawQuery = query.Encode()

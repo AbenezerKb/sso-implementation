@@ -30,6 +30,8 @@ func (c *consentCache) GetConsent(ctx context.Context, consentID string) (dto.Co
 	consentResult, err := c.client.Get(ctx, consentKey).Result()
 	if err != nil {
 		if err == redis.Nil {
+			err := errors.ErrNoRecordFound.Wrap(err, "consent not found")
+			c.logger.Info(ctx, "consent not found", zap.Error(err), zap.String("consentID", consentID))
 			return dto.Consent{}, err
 		}
 
