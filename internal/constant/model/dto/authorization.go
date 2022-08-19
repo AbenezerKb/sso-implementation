@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/google/uuid"
@@ -63,4 +65,26 @@ func (a *AuthorizationRequestParam) Validate() error {
 		validation.Field(&a.Scope, validation.Required.Error("scope is required"), validation.In("openid", "profile", "email", "phone", "address", "offline_access")),
 		validation.Field(&a.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL),
 	)
+}
+
+type AuthHistory struct {
+	// ID is the unique identifier for the history.
+	// It is automatically generated when the history is created.
+	ID uuid.UUID `json:"id"`
+	// Code is the code the client uses to get access token.
+	Code string `json:"code"`
+	// UserID is the id of the user who granted access to the client.
+	UserID uuid.UUID `json:"user_id"`
+	// ClientID is the id of the client.
+	ClientID uuid.UUID `json:"client_id"`
+	// Scope is the scope the client is authorized to access.
+	Scope string `json:"scope"`
+	// Status is the status of the access token.
+	// It can be either revoke or grant.
+	Status string `json:"status"`
+	// RedirectUri is the list of redirect uri of the client.
+	RedirectUri string `json:"redirect_uri"`
+	// CreatedAt is the time when the refresh token is created.
+	// It is automatically set when the refresh token is created.
+	CreatedAt time.Time `json:"created_at"`
 }
