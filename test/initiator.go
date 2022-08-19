@@ -12,6 +12,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -137,7 +138,7 @@ func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
 	if err != nil {
 		return err
 	}
-	hash, err := t.Module.OAuthModule.HashAndSalt(context.Background(), []byte(password))
+	hash, err := utils.HashAndSalt(context.Background(), []byte(password), t.Logger)
 	if err != nil {
 		return err
 	}

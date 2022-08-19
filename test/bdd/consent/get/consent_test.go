@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"net/http"
+	"sso/platform/utils"
 	"sso/test"
 	"testing"
 
@@ -117,7 +118,7 @@ func (g *getConsentTest) invalidUserID(user_id string) error {
 
 func (g *getConsentTest) userWithID(user_id string) error {
 	// seed user
-	hash, err := g.Module.OAuthModule.HashAndSalt(context.Background(), []byte("password"))
+	hash, err := utils.HashAndSalt(context.Background(), []byte("password"), g.Logger)
 	if err != nil {
 		return err
 	}
