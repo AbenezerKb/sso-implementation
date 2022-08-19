@@ -58,7 +58,6 @@ func (a *AuthorizationRequestParam) Validate() error {
 	return validation.ValidateStruct(a,
 		validation.Field(&a.ClientID, validation.Required.Error("client_id is required")),
 		validation.Field(&a.ResponseType, validation.Required.Error("response_type is required"), validation.In("code", "token")),
-		validation.Field(&a.State, validation.Required.Error("state is required")),
 		validation.Field(&a.Scope, validation.Required.Error("scope is required"), validation.In("openid", "profile", "email", "phone", "address", "offline_access")),
 		validation.Field(&a.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL),
 	)

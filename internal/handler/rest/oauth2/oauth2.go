@@ -82,10 +82,9 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 
 	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam)
 	if err != nil {
-		_ = ctx.Error(err)
 		errQuery.Set("error", authErrRsp.Error)
 		errQuery.Set("error_description", authErrRsp.ErrorDescription)
-		errQuery.Set("state", authRequestParam.State)
+		errQuery.Set("error_code", "400")
 
 		errorURL.RawQuery = errQuery.Encode()
 
