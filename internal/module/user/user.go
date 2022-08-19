@@ -2,18 +2,18 @@ package user
 
 import (
 	"context"
-	"math/rand"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/dongri/phonenumber"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type user struct {
@@ -31,8 +31,6 @@ func Init(logger logger.Logger, oauthPersistence storage.OAuthPersistence, smsCl
 		enforcer,
 	}
 }
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321"
 
 func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, error) {
 	if err := param.ValidateUser(); err != nil {
@@ -60,15 +58,12 @@ func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, err
 		return nil, errors.ErrDataExists.Wrap(err, "user with this email already exists")
 	}
 
-	password := make([]byte, 6)
-	for i := range password {
-		password[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
-	}
-	param.Password, err = u.HashAndSalt(ctx, password)
+	password := utils.GenerateRandomString(6, false)
+
+	param.Password, err = utils.HashAndSalt(ctx, []byte(password), u.logger)
 	if err != nil {
 		return nil, err
 	}
-
 	err = u.smsClient.SendSMSWithTemplate(ctx, param.Phone, "password", string(password))
 	if err != nil {
 		return nil, err
@@ -77,16 +72,8 @@ func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, err
 	if err != nil {
 		return nil, err
 	}
-	if exists, _ := u.enforcer.HasRoleForUser(param.Role, user.ID.String()); !exists {
-		u.enforcer.AddRoleForUser(user.ID.String(), param.Role)
+	if exists, _ := u.enforcer.HasRoleForUser(param.Role, user.ID.String(), constant.User); !exists {
+		u.enforcer.AddRoleForUser(user.ID.String(), param.Role, constant.User)
 	}
 	return user, nil
-}
-func (u *user) HashAndSalt(ctx context.Context, pwd []byte) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
-	if err != nil {
-		u.logger.Error(ctx, "could not hash password", zap.Error(err))
-		return "", err
-	}
-	return string(hash), nil
 }

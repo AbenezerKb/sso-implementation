@@ -39,7 +39,7 @@ func (o *oauth) Register(ctx *gin.Context) {
 	userParam := dto.RegisterUser{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
-		o.logger.Info(ctx, zap.Error(err).String)
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}

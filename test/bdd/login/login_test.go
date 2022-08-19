@@ -2,15 +2,16 @@ package login
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 	"net/http"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/platform/utils"
 	"sso/test"
 	"testing"
+
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 
 	"github.com/cucumber/godog"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
@@ -42,16 +43,13 @@ func (l *loginTest) iAmARegisteredUserWithDetails(userTable *godog.Table) error 
 	if err != nil {
 		return err
 	}
-	hash, err := l.Module.OAuthModule.HashAndSalt(context.Background(), []byte(l.user.Password))
+	hash, err := utils.HashAndSalt(context.Background(), []byte(l.user.Password), l.Logger)
 	if err != nil {
 		return err
 	}
 	userData, err := l.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone: l.user.Phone,
-		Email: sql.NullString{
-			String: l.user.Email,
-			Valid:  true,
-		},
+		Phone:    l.user.Phone,
+		Email:    utils.StringOrNull(l.user.Email),
 		Password: hash,
 	})
 	if err != nil {

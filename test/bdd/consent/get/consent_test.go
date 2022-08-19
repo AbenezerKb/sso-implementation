@@ -2,9 +2,9 @@ package consent
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"net/http"
+	"sso/platform/utils"
 	"sso/test"
 	"testing"
 
@@ -117,16 +117,13 @@ func (g *getConsentTest) invalidUserID(user_id string) error {
 
 func (g *getConsentTest) userWithID(user_id string) error {
 	// seed user
-	hash, err := g.Module.OAuthModule.HashAndSalt(context.Background(), []byte("password"))
+	hash, err := utils.HashAndSalt(context.Background(), []byte("password"), g.Logger)
 	if err != nil {
 		return err
 	}
 	userData, err := g.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone: "1234567890",
-		Email: sql.NullString{
-			String: "email",
-			Valid:  true,
-		},
+		Phone:    "1234567890",
+		Email:    utils.StringOrNull("email"),
 		Password: hash,
 	})
 	if err != nil {

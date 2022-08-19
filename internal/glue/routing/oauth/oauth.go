@@ -16,18 +16,21 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middl
 			Path:        "/register",
 			Handler:     handler.Register,
 			Middlewares: []gin.HandlerFunc{},
+			UnAuthorize: true,
 		},
 		{
 			Method:      "POST",
 			Path:        "/login",
 			Handler:     handler.Login,
 			Middlewares: []gin.HandlerFunc{},
+			UnAuthorize: true,
 		},
 		{
 			Method:      "GET",
 			Path:        "/otp",
 			Handler:     handler.RequestOTP,
 			Middlewares: []gin.HandlerFunc{},
+			UnAuthorize: true,
 		},
 	}
 	routing.RegisterRoutes(router, oauthRoutes, enforcer)

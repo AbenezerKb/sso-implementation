@@ -2,11 +2,13 @@ package utils
 
 import (
 	"context"
-	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 	"math/rand"
 	"sso/platform/logger"
 	"strings"
+	"time"
+
+	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321"
@@ -26,6 +28,8 @@ func GenerateRandomString(length int, includeSpecial bool) string {
 	if includeSpecial {
 		str += specialBytes
 	}
+
+	rand.Seed(time.Now().Unix())
 	randString := make([]byte, length)
 	for i := range randString {
 		randString[i] = str[rand.Int63()%int64(len(str))]

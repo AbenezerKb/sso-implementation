@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"context"
-	"crypto/rsa"
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/permissions"
 	"sso/internal/module"
+	"sso/platform"
 	"sso/platform/logger"
 
 	"github.com/casbin/casbin/v2"
@@ -24,19 +24,19 @@ type AuthMiddleware interface {
 }
 
 type authMiddleware struct {
-	enforcer     *casbin.Enforcer
-	auth         module.OAuthModule
-	ssoPublicKey *rsa.PublicKey
-	client       module.ClientModule
-	logger       logger.Logger
+	enforcer *casbin.Enforcer
+	auth     module.OAuthModule
+	token    platform.Token
+	client   module.ClientModule
+	logger   logger.Logger
 }
 
 func InitAuthMiddleware(enforcer *casbin.Enforcer,
-	auth module.OAuthModule, ssoPublicKey *rsa.PublicKey, client module.ClientModule, logger logger.Logger) AuthMiddleware {
+	auth module.OAuthModule, token platform.Token, client module.ClientModule, logger logger.Logger) AuthMiddleware {
 	return &authMiddleware{
 		enforcer,
 		auth,
-		ssoPublicKey,
+		token,
 		client,
 		logger,
 	}
@@ -54,7 +54,7 @@ func (a *authMiddleware) Authentication() gin.HandlerFunc {
 		}
 
 		tokenString := authHeader[len(bearer):]
-		valid, claims := a.auth.VerifyToken(jwt.SigningMethodPS512, tokenString, a.ssoPublicKey)
+		valid, claims := a.token.VerifyToken(jwt.SigningMethodPS512, tokenString)
 		if !valid {
 			Err := errors.ErrAuthError.New("Unauthorized")
 			ctx.Error(Err)

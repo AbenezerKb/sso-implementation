@@ -7,6 +7,7 @@ const (
 	Inactive = "INACTIVE"
 	Revoke   = "Revoke"
 	Grant    = "Grant"
+	User     = "user"
 )
 
 const (

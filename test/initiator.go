@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -110,7 +110,7 @@ func Initiate(path string) TestInstance {
 
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
-	initiator.InitRouter(server, v1, handler, module, log, enforcer, path+viper.GetString("public_key"))
+	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
 
 	return TestInstance{
@@ -137,15 +137,12 @@ func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
 	if err != nil {
 		return err
 	}
-	hash, err := t.Module.OAuthModule.HashAndSalt(context.Background(), []byte(password))
+	hash, err := utils.HashAndSalt(context.Background(), []byte(password), t.Logger)
 	if err != nil {
 		return err
 	}
 	userData, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Email: sql.NullString{
-			String: email,
-			Valid:  true,
-		},
+		Email:    utils.StringOrNull(email),
 		Password: hash,
 	})
 	if err != nil {
