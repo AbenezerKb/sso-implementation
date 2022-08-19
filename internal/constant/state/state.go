@@ -4,4 +4,5 @@ const (
 	ConsentKey  = "consent:%v"
 	AuthCodeKey = "authcode:%v"
 	ConsentURL  = "https://www.google.com/"
+	ErrorURL    = "https://www.google.com/"
 )
