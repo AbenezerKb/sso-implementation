@@ -30,7 +30,7 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	if err != nil {
 		log.Fatal(context.Background(), "Error parsing own certificate : \n", zap.Error(err))
 	}
-	authMiddleware := middleware.InitAuthMiddleware(enforcer, module.OAuthModule, ssoPublicKey)
+	authMiddleware := middleware.InitAuthMiddleware(enforcer, module.OAuthModule, ssoPublicKey, module.clientModule, log.Named("auth-middleware"))
 
 	docs.SwaggerInfo.BasePath = "/v1"
 	group.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

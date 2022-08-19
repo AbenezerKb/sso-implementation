@@ -12,3 +12,6 @@ INSERT INTO clients (
 
 -- name: DeleteClient :one
 DELETE FROM clients WHERE id = $1 RETURNING *;
+
+-- name: GetClientByID :one
+SELECT * FROM clients WHERE id = $1;

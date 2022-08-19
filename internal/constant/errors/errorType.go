@@ -29,6 +29,10 @@ var Error = []ErrorType{
 		ErrorType: ErrReadError,
 	},
 	{
+		ErrorCode: http.StatusInternalServerError,
+		ErrorType: ErrDBDelError,
+	},
+	{
 		ErrorCode: http.StatusBadRequest,
 		ErrorType: ErrDataExists,
 	},
@@ -86,6 +90,7 @@ var (
 	ErrNoRecordFound       = errorx.NewType(dataNotFound, "no record found")
 	ErrWriteError          = errorx.NewType(dbError, "could not write to db")
 	ErrReadError           = errorx.NewType(dbError, "could not read from db")
+	ErrDBDelError          = errorx.NewType(dbError, "could not delete record")
 	ErrDataExists          = errorx.NewType(duplicate, "data already exists")
 	ErrCacheSetError       = errorx.NewType(cacheError, "could not set cache")
 	ErrCacheGetError       = errorx.NewType(cacheError, "could not get cache")

@@ -23,7 +23,7 @@ func RegisterRoutes(group *gin.RouterGroup, routes []Router, enforcer *casbin.En
 		handler = append(handler, route.Handler)
 		group.Handle(route.Method, route.Path, handler...)
 
-		if len(route.Middlewares) > 0 {
+		if len(route.Middlewares) > 1 {
 			url := path.Join(group.BasePath(), route.Path)
 
 			if exists := enforcer.HasPolicy(route.Permission.ID); !exists {

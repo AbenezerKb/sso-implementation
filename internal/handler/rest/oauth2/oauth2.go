@@ -3,6 +3,7 @@ package oauth2
 import (
 	"net/http"
 	"net/url"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/state"
@@ -213,4 +214,43 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 
 	redirectURI.RawQuery = query.Encode()
 	ctx.Redirect(http.StatusFound, redirectURI.String())
+}
+
+// Token is used to exchange the authorization code for access token.
+// @Summary      exchange token.
+// @Description  is used to exchange token.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param tokenParam body dto.AccessTokenRequest true "tokenParam"
+// @Success      200  {object}  dto.TokenResponse
+// @Failure      404  {object}  model.ErrorResponse "no record of code found"
+// @Failure      401  {object}  model.ErrorResponse "unauthorized"
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /oauth/token [post]
+// @Security	BasicAuth
+func (o *oauth2) Token(ctx *gin.Context) {
+	tokenParam := dto.AccessTokenRequest{}
+	err := ctx.ShouldBind(&tokenParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+
+	context := ctx.Request.Context()
+	client, ok := context.Value(constant.Context("x-client")).(*dto.Client)
+	if !ok {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	resp, err := o.oauth2Module.Token(context, *client, tokenParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
 }

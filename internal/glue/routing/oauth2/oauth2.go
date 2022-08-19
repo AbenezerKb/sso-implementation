@@ -1,6 +1,7 @@
 package oauth2
 
 import (
+	"net/http"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
@@ -30,6 +31,14 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			Path:        "/approval",
 			Handler:     handler.Approval,
 			Middlewares: []gin.HandlerFunc{},
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/token",
+			Handler: handler.Token,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.ClientBasicAuth(),
+			},
 		},
 	}
 	routing.RegisterRoutes(oauth2Group, oauth2Routes, enforcer)

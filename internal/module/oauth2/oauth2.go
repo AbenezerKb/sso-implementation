@@ -2,16 +2,34 @@ package oauth2
 
 import (
 	"context"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
+	"sso/platform"
 	"sso/platform/logger"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+type Options struct {
+	AccessTokenExpireTime  time.Duration
+	RefreshTokenExpireTime time.Duration
+}
+
+func SetOptions(options Options) Options {
+	if options.AccessTokenExpireTime == 0 {
+		options.AccessTokenExpireTime = time.Minute * 10
+	}
+	if options.RefreshTokenExpireTime == 0 {
+		options.RefreshTokenExpireTime = time.Hour * 24 * 30
+	}
+	return options
+}
 
 type oauth2 struct {
 	logger            logger.Logger
@@ -20,9 +38,11 @@ type oauth2 struct {
 	clientPersistence storage.ClientPersistence
 	consentCache      storage.ConsentCache
 	authCodeCache     storage.AuthCodeCache
+	token             platform.Token
+	options           Options
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
@@ -30,6 +50,8 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 		clientPersistence: clientPersistence,
 		consentCache:      consentCache,
 		authCodeCache:     authCodeCache,
+		token:             token,
+		options:           options,
 	}
 }
 
@@ -172,4 +194,124 @@ func (o *oauth2) IssueAuthCode(ctx context.Context, consent dto.Consent) (string
 		return "", consent.State, err
 	}
 	return authCode.Code, consent.State, nil
+}
+
+func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
+	if err := param.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		return nil, err
+	}
+
+	grantTypes := map[string]func(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error){
+		constant.AuthorizationCode: o.authorizationCodeGrant,
+	}
+
+	// Grant processing
+	grantHandler := grantTypes[param.GrantType]
+	resp, err := grantHandler(ctx, client, param)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
+	authcode, err := o.authCodeCache.GetAuthCode(ctx, param.Code)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := o.oauthPersistence.GetUserByID(ctx, authcode.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	exists, err := o.oauth2Persistence.AuthHistoryExists(ctx, authcode.Code)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+
+		if err := o.authCodeCache.DeleteAuthCode(ctx, param.Code); err != nil {
+			return nil, err
+		}
+
+		if err := o.oauth2Persistence.RemoveRefreshToken(ctx, authcode.Code); err != nil {
+			return nil, err
+		}
+
+		if _, err := o.oauth2Persistence.AddAuthHistory(
+			ctx,
+			dto.AuthHistory{
+				Code:        authcode.Code,
+				UserID:      authcode.UserID,
+				ClientID:    authcode.ClientID,
+				Scope:       authcode.Scope,
+				RedirectUri: authcode.RedirectURI,
+				Status:      constant.Revoke,
+			},
+		); err != nil {
+			return nil, err
+		}
+
+		err := errors.ErrAcessError.New("code already been used")
+		o.logger.Info(ctx, "re-use code", zap.Error(err), zap.String("code", authcode.Code))
+		return nil, err
+	}
+
+	if authcode.ClientID != client.ID {
+		err := errors.ErrAuthError.New("client id mismatch")
+		o.logger.Warn(ctx, "client id mismatch", zap.Error(err), zap.String("code-client-id", authcode.ClientID.String()), zap.String("given-client-id", client.ID.String()))
+		return nil, err
+	}
+
+	if param.RedirectURI != "" {
+		if authcode.RedirectURI == param.RedirectURI {
+			err := errors.ErrAuthError.New("redirect uri mismatch")
+			o.logger.Warn(ctx, "redirect uri mismatch", zap.Error(err), zap.String("code-redirect-uri", authcode.RedirectURI), zap.String("given-redirect-uri", param.RedirectURI))
+			return nil, err
+		}
+	}
+
+	accessToken, err := o.token.GenerateAccessToken(ctx, authcode.UserID.String(), o.options.AccessTokenExpireTime)
+	if err != nil {
+		return nil, err
+	}
+
+	idToken, err := o.token.GenerateIdToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
+		UserID:       authcode.UserID,
+		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		ClientID:     authcode.ClientID,
+		Scope:        authcode.Scope,
+		RedirectUri:  authcode.RedirectURI,
+		Code:         authcode.Code,
+		ExpiresAt:    time.Now().UTC().Add(o.options.RefreshTokenExpireTime),
+	})
+	if err != nil {
+		return nil, err
+	}
+	if _, err := o.oauth2Persistence.AddAuthHistory(
+		ctx,
+		dto.AuthHistory{
+			Code:        authcode.Code,
+			UserID:      authcode.UserID,
+			ClientID:    authcode.ClientID,
+			Scope:       authcode.Scope,
+			RedirectUri: authcode.RedirectURI,
+			Status:      constant.Grant,
+		},
+	); err != nil {
+		return nil, err
+	}
+	return &dto.TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken.Refreshtoken,
+		IDToken:      idToken,
+	}, nil
 }

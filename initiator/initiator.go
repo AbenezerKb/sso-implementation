@@ -31,6 +31,7 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
+// @securityDefinitions.basic BasicAuth
 func Initiate() {
 	log := logger.New(InitLogger())
 	log.Info(context.Background(), "logger initialized")
@@ -77,7 +78,7 @@ func Initiate() {
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")
-	platformLayer := InitPlatformLayer(log)
+	platformLayer := InitPlatformLayer(log, viper.GetString("private_key"), viper.GetString("public_key"))
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing module")

@@ -6,6 +6,7 @@ import (
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 
+	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -24,6 +25,7 @@ type OAuth2Module interface {
 	GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentData, error)
 	Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error)
 	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
+	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
@@ -31,4 +33,5 @@ type UserModule interface {
 
 type ClientModule interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
+	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 }

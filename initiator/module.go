@@ -57,6 +57,11 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			persistence.ClientPersistence,
 			cache.ConsentCacheLayer,
 			cache.AuthCodeCacheLayer,
-		),
-	}
+			platformLayer.token,
+			oauth2.SetOptions(
+				oauth2.Options{
+					AccessTokenExpireTime:  viper.GetDuration("server.client.access_token.expire_time"),
+					RefreshTokenExpireTime: viper.GetDuration("server.client.refresh_token.expire_time"),
+				},
+			))}
 }
