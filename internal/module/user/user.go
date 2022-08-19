@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
@@ -13,7 +14,6 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/dongri/phonenumber"
 	"go.uber.org/zap"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type user struct {
@@ -72,16 +72,8 @@ func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, err
 	if err != nil {
 		return nil, err
 	}
-	if exists, _ := u.enforcer.HasRoleForUser(param.Role, user.ID.String()); !exists {
-		u.enforcer.AddRoleForUser(user.ID.String(), param.Role)
+	if exists, _ := u.enforcer.HasRoleForUser(param.Role, user.ID.String(), constant.User); !exists {
+		u.enforcer.AddRoleForUser(user.ID.String(), param.Role, constant.User)
 	}
 	return user, nil
-}
-func (u *user) HashAndSalt(ctx context.Context, pwd []byte) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
-	if err != nil {
-		u.logger.Error(ctx, "could not hash password", zap.Error(err))
-		return "", err
-	}
-	return string(hash), nil
 }

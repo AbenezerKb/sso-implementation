@@ -2,12 +2,14 @@ package oauth
 
 import (
 	"context"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
 	"sso/platform/logger"
+	"sso/platform/utils"
 	"time"
 
 	"github.com/dongri/phonenumber"
@@ -84,7 +86,7 @@ func (o *oauth) Register(ctx context.Context, userParam dto.RegisterUser) (*dto.
 		}
 	}
 
-	userParam.Password, err = o.HashAndSalt(ctx, []byte(userParam.Password))
+	userParam.Password, err = utils.HashAndSalt(ctx, []byte(userParam.Password), o.logger)
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +145,7 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 		return nil, err
 	}
 	refreshToken := o.token.GenerateRefreshToken(ctx)
-	
+
 	// TODO: persist the refresh token
 	//err = o.cache.Set(ctx, refreshToken, user.ID.String(), time.Hour*24*7).Err()
 	//if err != nil {
@@ -163,14 +165,6 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	}
 	return &accessTokenResponse, nil
 }
-func (o *oauth) HashAndSalt(ctx context.Context, pwd []byte) (string, error) {
-	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
-	if err != nil {
-		o.logger.Error(ctx, "could not hash password", zap.Error(err))
-		return "", err
-	}
-	return string(hash), nil
-}
 
 func (o *oauth) ComparePassword(hashedPwd, plainPassword string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPassword))
@@ -183,7 +177,7 @@ func (o *oauth) VerifyUserStatus(ctx context.Context, phone string) error {
 		return err
 	}
 
-	if user.Status != "ACTIVE" {
+	if user.Status != constant.Active {
 		err := errors.ErrInvalidUserInput.New("Account is deactivated")
 		o.logger.Info(ctx, "user is not active", zap.Error(err))
 		return err
