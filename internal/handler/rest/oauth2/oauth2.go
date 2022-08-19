@@ -191,6 +191,19 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 	ctx.Redirect(http.StatusFound, redirectURI.String())
 }
 
+// Token is used to exchange the authorization code for access token.
+// @Summary      exchange token.
+// @Description  is used to exchange token.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param tokenParam body dto.AccessTokenRequest true "tokenParam"
+// @Success      200  {object}  dto.TokenResponse
+// @Failure      404  {object}  model.ErrorResponse "no record of code found"
+// @Failure      401  {object}  model.ErrorResponse "unauthorized"
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /oauth/token [post]
+// @Security	BasicAuth
 func (o *oauth2) Token(ctx *gin.Context) {
 	tokenParam := dto.AccessTokenRequest{}
 	err := ctx.ShouldBind(&tokenParam)
