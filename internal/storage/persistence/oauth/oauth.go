@@ -2,13 +2,13 @@ package oauth
 
 import (
 	"context"
-	"database/sql"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -30,10 +30,10 @@ func (o *oauth) Register(ctx context.Context, userParam dto.User) (*dto.User, er
 	registeredUser, err := o.db.CreateUser(ctx, db.CreateUserParams{
 		FirstName:      userParam.FirstName,
 		LastName:       userParam.LastName,
-		Email:          sql.NullString{String: userParam.Email, Valid: true},
+		Email:          utils.StringOrNull(userParam.Email),
 		Gender:         userParam.Gender,
 		MiddleName:     userParam.MiddleName,
-		ProfilePicture: sql.NullString{String: userParam.ProfilePicture, Valid: true},
+		ProfilePicture: utils.StringOrNull(userParam.ProfilePicture),
 		Phone:          userParam.Phone,
 		Password:       userParam.Password,
 	})
@@ -85,7 +85,7 @@ func (o *oauth) GetUserByPhone(ctx context.Context, phone string) (*dto.User, er
 	}, nil
 }
 func (o *oauth) GetUserByEmail(ctx context.Context, email string) (*dto.User, error) {
-	user, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
+	user, err := o.db.GetUserByEmail(ctx, utils.StringOrNull(email))
 	if err != nil {
 
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
@@ -172,7 +172,7 @@ func (o *oauth) GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.U
 }
 
 func (o *oauth) UserByEmailExists(ctx context.Context, email string) (bool, error) {
-	_, err := o.db.GetUserByEmail(ctx, sql.NullString{String: email, Valid: true})
+	_, err := o.db.GetUserByEmail(ctx, utils.StringOrNull(email))
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			return false, nil

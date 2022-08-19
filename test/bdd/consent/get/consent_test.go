@@ -2,7 +2,6 @@ package consent
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"sso/platform/utils"
@@ -123,11 +122,8 @@ func (g *getConsentTest) userWithID(user_id string) error {
 		return err
 	}
 	userData, err := g.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone: "1234567890",
-		Email: sql.NullString{
-			String: "email",
-			Valid:  true,
-		},
+		Phone:    "1234567890",
+		Email:    utils.StringOrNull("email"),
 		Password: hash,
 	})
 	if err != nil {

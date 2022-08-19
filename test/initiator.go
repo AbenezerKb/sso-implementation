@@ -2,7 +2,6 @@ package test
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -143,10 +142,7 @@ func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
 		return err
 	}
 	userData, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Email: sql.NullString{
-			String: email,
-			Valid:  true,
-		},
+		Email:    utils.StringOrNull(email),
 		Password: hash,
 	})
 	if err != nil {

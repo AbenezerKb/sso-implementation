@@ -2,7 +2,6 @@ package login
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -49,11 +48,8 @@ func (l *loginTest) iAmARegisteredUserWithDetails(userTable *godog.Table) error 
 		return err
 	}
 	userData, err := l.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone: l.user.Phone,
-		Email: sql.NullString{
-			String: l.user.Email,
-			Valid:  true,
-		},
+		Phone:    l.user.Phone,
+		Email:    utils.StringOrNull(l.user.Email),
 		Password: hash,
 	})
 	if err != nil {
