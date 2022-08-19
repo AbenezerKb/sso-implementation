@@ -1,8 +1,8 @@
 Feature: Code Grant Flow
 
     Background: I have an authorization code
-        Given Their is a client
-        And Their is a user
+        Given A client is registered on the system
+        And A user is registered on the system
         And The user granted access to the client:
             | code                                 |
             | 002a05af-15ae-4c21-8e4a-d7bde55f6aff |

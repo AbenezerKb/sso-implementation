@@ -71,7 +71,7 @@ func (i *issueAccessTokenCodeGrantTest) theUserGrantedAccessToTheClient(arg1 *go
 	return nil
 }
 
-func (i *issueAccessTokenCodeGrantTest) theirIsAUser() error {
+func (i *issueAccessTokenCodeGrantTest) aUserIsRegisteredOnTheSystem() error {
 	var err error
 	hash, err := utils.HashAndSalt(context.Background(), []byte("password"), i.Logger)
 	if err != nil {
@@ -117,7 +117,7 @@ func (i *issueAccessTokenCodeGrantTest) theRequestShouldFailWithFieldErrorAndMes
 	return i.apiTest.AssertBodyColumn("error.field_error.0.description", fieldMessage)
 }
 
-func (i *issueAccessTokenCodeGrantTest) theirIsAClient() error {
+func (i *issueAccessTokenCodeGrantTest) aClientIsRegisteredOnTheSystem() error {
 	var err error
 	if i.client, err = i.DB.CreateClient(context.Background(), db.CreateClientParams{
 		RedirectUris: utils.ArrayToString([]string{"https://www.google.com"}),
@@ -160,8 +160,8 @@ func (i *issueAccessTokenCodeGrantTest) InitializeScenario(ctx *godog.ScenarioCo
 
 		_, _ = i.DB.DeleteUser(context.Background(), i.user.ID)
 		_ = i.redisSeeder.Starve(i.authCode)
-		_, _ = i.Conn.Exec(ctx, "Delete * from auth_histories where true")
-		_, _ = i.Conn.Exec(ctx, "Delete * from refreshtokens where true")
+		_, _ = i.Conn.Exec(ctx, "Delete from auth_histories where true")
+		_, _ = i.Conn.Exec(ctx, "Delete from refreshtokens where true")
 		_, _ = i.DB.DeleteClient(context.Background(), i.client.ID)
 		return ctx, nil
 	})
@@ -170,7 +170,7 @@ func (i *issueAccessTokenCodeGrantTest) InitializeScenario(ctx *godog.ScenarioCo
 	ctx.Step(`^The client request for token$`, i.theClientRequestForToken)
 	ctx.Step(`^The request should fail with field error "([^"]*)" and message "([^"]*)"$`, i.theRequestShouldFailWithFieldErrorAndMessage)
 	ctx.Step(`^The user granted access to the client:$`, i.theUserGrantedAccessToTheClient)
-	ctx.Step(`^Their is a client$`, i.theirIsAClient)
-	ctx.Step(`^Their is a user$`, i.theirIsAUser)
+	ctx.Step(`^A client is registered on the system$`, i.aClientIsRegisteredOnTheSystem)
+	ctx.Step(`^A user is registered on the system$`, i.aUserIsRegisteredOnTheSystem)
 	ctx.Step(`^Token should successfully be issued$`, i.tokenShouldSuccessfullyBeIssued)
 }
