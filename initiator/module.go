@@ -1,8 +1,6 @@
 package initiator
 
 import (
-	"context"
-	"io/ioutil"
 	"sso/internal/module"
 	"sso/internal/module/client"
 	"sso/internal/module/oauth"
@@ -13,8 +11,6 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/casbin/casbin/v2"
-	"github.com/golang-jwt/jwt"
-	"go.uber.org/zap"
 )
 
 type Module struct {
@@ -25,15 +21,6 @@ type Module struct {
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer) Module {
-	keyFile, err := ioutil.ReadFile(privateKeyPath)
-	if err != nil {
-		log.Fatal(context.Background(), "failed to read private key", zap.Error(err))
-	}
-
-	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(keyFile)
-	if err != nil {
-		log.Fatal(context.Background(), "failed to parse private key", zap.Error(err))
-	}
 
 	return Module{
 		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.sms, enforcer),
@@ -42,7 +29,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			persistence.OAuthPersistence,
 			cache.OTPCacheLayer,
 			cache.SessionCacheLayer,
-			privateKey,
+			platformLayer.token,
 			platformLayer.sms,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),

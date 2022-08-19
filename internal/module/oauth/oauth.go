@@ -2,7 +2,6 @@ package oauth
 
 import (
 	"context"
-	"crypto/rsa"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
@@ -22,7 +21,7 @@ type oauth struct {
 	oauthPersistence storage.OAuthPersistence
 	otpCache         storage.OTPCache
 	sessionCache     storage.SessionCache
-	privateKey       *rsa.PrivateKey
+	token            platform.Token
 	smsClient        platform.SMSClient
 	options          Options
 }
@@ -41,13 +40,13 @@ func SetOptions(options Options) Options {
 	}
 	return options
 }
-func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, privateKey *rsa.PrivateKey, smsClient platform.SMSClient, options Options) module.OAuthModule {
+func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, token platform.Token, smsClient platform.SMSClient, options Options) module.OAuthModule {
 	return &oauth{
 		logger,
 		oauthPersistence,
 		otpCache,
 		sessionCache,
-		privateKey,
+		token,
 		smsClient,
 		options,
 	}
@@ -139,14 +138,12 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 
 	}
 
-	accessToken, err := o.GenerateAccessToken(ctx, user)
+	accessToken, err := o.token.GenerateAccessToken(ctx, user.ID.String(), o.options.AccessTokenExpireTime)
 	if err != nil {
 		return nil, err
 	}
-	refreshToken, err := o.GenerateRefreshToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
+	refreshToken := o.token.GenerateRefreshToken(ctx)
+	
 	// TODO: persist the refresh token
 	//err = o.cache.Set(ctx, refreshToken, user.ID.String(), time.Hour*24*7).Err()
 	//if err != nil {
@@ -154,7 +151,7 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	//	return nil, errors.ErrCacheSetError.Wrap(err, "could not persist refresh token")
 	//}
 
-	idToken, err := o.GenerateIdToken(ctx, user)
+	idToken, err := o.token.GenerateIdToken(ctx, user)
 	if err != nil {
 		return nil, err
 	}
