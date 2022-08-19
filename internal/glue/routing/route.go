@@ -14,6 +14,7 @@ type Router struct {
 	Handler     gin.HandlerFunc
 	Middlewares []gin.HandlerFunc
 	Permission  permissions.Permission
+	UnAuthorize bool
 }
 
 func RegisterRoutes(group *gin.RouterGroup, routes []Router, enforcer *casbin.Enforcer) {
@@ -23,7 +24,7 @@ func RegisterRoutes(group *gin.RouterGroup, routes []Router, enforcer *casbin.En
 		handler = append(handler, route.Handler)
 		group.Handle(route.Method, route.Path, handler...)
 
-		if len(route.Middlewares) > 1 {
+		if !route.UnAuthorize {
 			url := path.Join(group.BasePath(), route.Path)
 
 			if exists := enforcer.HasPolicy(route.Permission.ID); !exists {
