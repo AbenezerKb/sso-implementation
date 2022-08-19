@@ -8,7 +8,11 @@ casbin:
   path: config/casbin.conf
 redis:
   url: redis://redis:6379/0
-  otp_expire_time: 120s
+  otp_expire_time: 300s
+  session_expire_time: 3600s
+  consent_expire_time: 3600s
+  authcode_expire_time: 3600s
+
 server:
   port: 8000
   timeout: 30s
@@ -17,6 +21,9 @@ server:
       expire_time: 1h
     refresh_token:
       expire_time: 265d
+  oauth2:
+    error_uri: http://front-end/oauth2/error
+    consent_uri: http://front-end/oauth2/consent
 private_key: privatekey.example.pem
 public_key: publickey.example.pem
 sms:
