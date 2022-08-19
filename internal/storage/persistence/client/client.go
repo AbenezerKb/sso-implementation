@@ -2,13 +2,16 @@ package client
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type clientPersistence struct {
@@ -47,4 +50,29 @@ func (c *clientPersistence) Create(ctx context.Context, clientParam dto.Client) 
 		LogoURL:      client.LogoUrl,
 		Status:       client.Status,
 	}, nil
+}
+
+func (c *clientPersistence) GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
+	client, err := c.db.GetClientByID(ctx, id)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no client found")
+			c.logger.Info(ctx, "client not found", zap.Error(err), zap.Any("client-id", id))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading the client")
+			c.logger.Error(ctx, "error reading the client", zap.Error(err), zap.Any("client-id", id))
+			return nil, err
+		}
+	}
+
+	return &dto.Client{
+		ID:           client.ID,
+		Status:       client.Status,
+		Secret:       client.Secret,
+		Scopes:       client.Scopes,
+		RedirectURIs: utils.StringToArray(client.RedirectUris),
+		ClientType:   client.ClientType,
+	}, nil
+
 }
