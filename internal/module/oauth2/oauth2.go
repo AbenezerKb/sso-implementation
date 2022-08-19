@@ -140,7 +140,7 @@ func (o *oauth2) Approval(ctx context.Context, consentId string, accessRqResult 
 	consent, err := o.consentCache.GetConsent(ctx, consentId)
 	if err != nil || consent.ID.String() != consentId {
 		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
-		o.logger.Info(ctx, "consent not found", zap.Error(err))
+		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentId))
 		return consent, err
 	}
 

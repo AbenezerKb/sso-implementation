@@ -38,14 +38,14 @@ func (c *AuthCode) GetAuthCode(ctx context.Context, code string) (dto.AuthCode, 
 		}
 
 		err := errors.ErrCacheGetError.Wrap(err, "could not get from authcode cache")
-		c.logger.Error(ctx, "could not read from authcode cache", zap.Error(err))
+		c.logger.Error(ctx, "could not read from authcode cache", zap.Error(err), zap.String("code", code))
 	}
 
 	var authCode dto.AuthCode
 	err = json.Unmarshal([]byte(authCodeResult), &authCode)
 	if err != nil {
 		err := errors.ErrCacheGetError.Wrap(err, "could not unmarshal authcode")
-		c.logger.Error(ctx, "could not unmarshal authcode", zap.Error(err))
+		c.logger.Error(ctx, "could not unmarshal authcode", zap.Error(err), zap.String("code", code))
 		return dto.AuthCode{}, err
 	}
 
@@ -56,14 +56,14 @@ func (c *AuthCode) SaveAuthCode(ctx context.Context, authCode dto.AuthCode) erro
 	authCodeValue, err := json.Marshal(authCode)
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not marshal authcode")
-		c.logger.Error(ctx, "could not marshal authcode", zap.Error(err))
+		c.logger.Error(ctx, "could not marshal authcode", zap.Error(err), zap.Any("authCode", authCode))
 		return err
 	}
 	authCodeKey := fmt.Sprintf(state.AuthCodeKey, authCode.Code)
 	err = c.client.Set(ctx, authCodeKey, authCodeValue, c.expireOn).Err()
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not set authcode")
-		c.logger.Error(ctx, "could not set authcode", zap.Error(err))
+		c.logger.Error(ctx, "could not set authcode", zap.Error(err), zap.Any("authCode", authCode))
 		return err
 	}
 
@@ -75,7 +75,7 @@ func (c *AuthCode) DeleteAuthCode(ctx context.Context, code string) error {
 	err := c.client.Del(ctx, authCodeKey).Err()
 	if err != nil {
 		err := errors.ErrCacheDel.Wrap(err, "could not delete authcode")
-		c.logger.Error(ctx, "could not delete authcode", zap.Error(err))
+		c.logger.Error(ctx, "could not delete authcode", zap.Error(err), zap.String("code", code))
 		return err
 	}
 

@@ -10,7 +10,6 @@ import (
 	"sso/internal/module"
 	"sso/platform/logger"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -45,31 +44,39 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/authorize [get]
 func (o *oauth2) Authorize(ctx *gin.Context) {
-	authRequestParam := dto.AuthorizationRequestParam{}
-	err := ctx.ShouldBindQuery(&authRequestParam)
-	if err != nil {
-		o.logger.Info(ctx, zap.Error(err).String)
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
-		return
-	}
-
-	errRedirectURI, err := url.Parse(authRequestParam.RedirectURI)
+	errorURL, err := url.Parse(state.ConsentURL)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
-	errQuery := errRedirectURI.Query()
+	errQuery := errorURL.Query()
+
+	authRequestParam := dto.AuthorizationRequestParam{}
+	err = ctx.ShouldBindQuery(&authRequestParam)
+	if err != nil {
+		o.logger.Info(ctx, zap.Error(err).String)
+		errQuery.Set("error", "invalid_request")
+		errQuery.Set("error_description", err.Error())
+		errQuery.Set("error_code", "400")
+		errorURL.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusBadRequest, errorURL.String())
+		return
+	}
+
+	// errRedirectURI, err := url.Parse(authRequestParam.RedirectURI)
+	// if err != nil {
+	// 	_ = ctx.Error(err)
+	// 	return
+	// }
 	authRequestParam.ClientID, err = uuid.Parse(ctx.Query("client_id"))
 	if err != nil {
 		o.logger.Info(ctx, zap.Error(err).String)
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
-
 		errQuery.Set("error", "invalid_client_id")
 		errQuery.Set("error_description", "invalid client id.")
-		errQuery.Set("state", authRequestParam.State)
+		errQuery.Set("code", "400")
 
-		errRedirectURI.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusFound, errRedirectURI.String())
+		errorURL.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusFound, errorURL.String())
 		return
 	}
 
@@ -81,9 +88,9 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		errQuery.Set("error_description", authErrRsp.ErrorDescription)
 		errQuery.Set("state", authRequestParam.State)
 
-		errRedirectURI.RawQuery = errQuery.Encode()
+		errorURL.RawQuery = errQuery.Encode()
 
-		ctx.Redirect(http.StatusFound, errRedirectURI.String())
+		ctx.Redirect(http.StatusFound, errorURL.String())
 		return
 	}
 
@@ -107,12 +114,13 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @param id path string true "id"
+// @param user_id query string true "user_id"
 // @Success      200  {object}  dto.ConsentData
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Router       /oauth/consent/{id} [get]
 func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 	consentID := ctx.Param("id")
-	userID := ctx.GetString("user_id")
+	userID := ctx.Query("user_id")
 
 	consent, err := o.oauth2Module.GetConsentByID(ctx.Request.Context(), consentID, userID)
 	if err != nil {
@@ -156,6 +164,7 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 		return
 	}
 	query := redirectURI.Query()
+	query.Set("state", consent.State)
 
 	if accessRqResult == "true" {
 		authCode, st, err := o.oauth2Module.IssueAuthCode(ctx, consent)
@@ -170,11 +179,6 @@ func (o *oauth2) Approval(ctx *gin.Context) {
 		}
 		if strings.Contains(consent.ResponseType, "id_token") {
 			query.Set("id_token", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
-		}
-		if strings.Contains(consent.ResponseType, "token") {
-			query.Set("access_token", "TOKEN")
-			query.Set("token_type", "Bearer")
-			query.Set("expires_in", time.Now().Format(time.RFC3339))
 		}
 
 	} else {
