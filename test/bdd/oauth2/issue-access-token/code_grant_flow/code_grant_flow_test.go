@@ -2,6 +2,7 @@ package codegrantflow
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -62,7 +63,7 @@ func (i *issueAccessTokenCodeGrantTest) theUserGrantedAccessToTheClient(arg1 *go
 		Value:    string(authCodeValue),
 		ExpireAt: time.Duration(time.Minute * 2),
 	}
-	fmt.Printf("%+v\n", i.authCode)
+
 	err = i.redisSeeder.Feed(i.authCode)
 	if err != nil {
 		return err
@@ -100,25 +101,26 @@ func (i *issueAccessTokenCodeGrantTest) iHaveTheFollowingParameters(tokenParam *
 }
 
 func (i *issueAccessTokenCodeGrantTest) theClientRequestForToken() error {
+	i.apiTest.SetHeader("Authorization", "Basic "+basicAuth(i.client.ID.String(), i.client.Secret))
+	i.apiTest.SetHeader("Content-Type", "application/json")
 	i.apiTest.SendRequest()
 	return nil
 }
-
+func basicAuth(username, password string) string {
+	auth := username + ":" + password
+	return base64.StdEncoding.EncodeToString([]byte(auth))
+}
 func (i *issueAccessTokenCodeGrantTest) theRequestShouldFailWithFieldErrorAndMessage(fieldMessage, errorMessage string) error {
-
-	if err := i.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+	if err := i.apiTest.AssertBodyColumn("error.message", errorMessage); err != nil {
 		return err
 	}
-	if err := i.apiTest.AssertBodyColumn("error_message", errorMessage); err != nil {
-		return err
-	}
-	return i.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", fieldMessage)
+	return i.apiTest.AssertBodyColumn("error.field_error.0.description", fieldMessage)
 }
 
 func (i *issueAccessTokenCodeGrantTest) theirIsAClient() error {
 	var err error
 	if i.client, err = i.DB.CreateClient(context.Background(), db.CreateClientParams{
-		RedirectUris: utils.ArrayToString([]string{"https://google.com"}),
+		RedirectUris: utils.ArrayToString([]string{"https://www.google.com"}),
 		Name:         "google",
 		Scopes:       "openid",
 		ClientType:   "confidential",
@@ -158,6 +160,8 @@ func (i *issueAccessTokenCodeGrantTest) InitializeScenario(ctx *godog.ScenarioCo
 
 		_, _ = i.DB.DeleteUser(context.Background(), i.user.ID)
 		_ = i.redisSeeder.Starve(i.authCode)
+		_, _ = i.Conn.Exec(ctx, "Delete * from auth_histories where true")
+		_, _ = i.Conn.Exec(ctx, "Delete * from refreshtokens where true")
 		_, _ = i.DB.DeleteClient(context.Background(), i.client.ID)
 		return ctx, nil
 	})
