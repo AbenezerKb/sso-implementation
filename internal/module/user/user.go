@@ -2,13 +2,13 @@ package user
 
 import (
 	"context"
-	"math/rand"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/dongri/phonenumber"
@@ -31,8 +31,6 @@ func Init(logger logger.Logger, oauthPersistence storage.OAuthPersistence, smsCl
 		enforcer,
 	}
 }
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321"
 
 func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, error) {
 	if err := param.ValidateUser(); err != nil {
@@ -60,15 +58,12 @@ func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, err
 		return nil, errors.ErrDataExists.Wrap(err, "user with this email already exists")
 	}
 
-	password := make([]byte, 6)
-	for i := range password {
-		password[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]
-	}
-	param.Password, err = u.HashAndSalt(ctx, password)
+	password := utils.GenerateRandomString(6, false)
+
+	param.Password, err = utils.HashAndSalt(ctx, []byte(password), u.logger)
 	if err != nil {
 		return nil, err
 	}
-
 	err = u.smsClient.SendSMSWithTemplate(ctx, param.Phone, "password", string(password))
 	if err != nil {
 		return nil, err

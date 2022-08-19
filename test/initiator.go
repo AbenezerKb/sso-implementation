@@ -110,7 +110,7 @@ func Initiate(path string) TestInstance {
 
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
-	initiator.InitRouter(server, v1, handler, module, log, enforcer, path+viper.GetString("public_key"))
+	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
 
 	return TestInstance{
