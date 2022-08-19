@@ -2,13 +2,15 @@ package client
 
 import (
 	"context"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type clientModule struct {
@@ -34,4 +36,8 @@ func (c *clientModule) Create(ctx context.Context, clientParam dto.Client) (*dto
 	clientParam.Secret = utils.GenerateRandomString(25, true)
 
 	return c.clientPersistence.Create(ctx, clientParam)
+}
+
+func (c *clientModule) GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
+	return c.clientPersistence.GetClientByID(ctx, id)
 }

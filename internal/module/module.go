@@ -6,6 +6,7 @@ import (
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 
+	"github.com/google/uuid"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -32,4 +33,5 @@ type UserModule interface {
 
 type ClientModule interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
+	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 }
