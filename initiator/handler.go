@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	"github.com/spf13/viper"
 	"sso/internal/handler/rest"
 	"sso/internal/handler/rest/client"
 	"sso/internal/handler/rest/oauth"
@@ -10,7 +11,6 @@ import (
 )
 
 type Handler struct {
-	// TODO implement
 	oauth  rest.OAuth
 	oauth2 rest.OAuth2
 	user   rest.User
@@ -19,10 +19,12 @@ type Handler struct {
 
 func InitHandler(module Module, log logger.Logger) Handler {
 	return Handler{
-		// TODO implement
 		oauth:  oauth.InitOAuth(log.Named("oauth-handler"), module.OAuthModule),
 		user:   user.Init(log.Named("user-handler"), module.userModule),
 		client: client.Init(log.Named("client-handler"), module.clientModule),
-		oauth2: oauth2.InitOAuth2(log.Named("oauth2-handler"), module.OAuth2Module),
+		oauth2: oauth2.InitOAuth2(log.Named("oauth2-handler"), module.OAuth2Module, oauth2.SetOptions(oauth2.Options{
+			ConsentURL: viper.GetString("server.oauth2.consent_url"),
+			ErrorURL:   viper.GetString("server.oauth2.error_url"),
+		})),
 	}
 }

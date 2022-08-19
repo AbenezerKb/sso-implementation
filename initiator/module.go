@@ -18,7 +18,6 @@ import (
 )
 
 type Module struct {
-	// TODO implement
 	OAuthModule  module.OAuthModule
 	OAuth2Module module.OAuth2Module
 	userModule   module.UserModule
@@ -51,6 +50,13 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			}),
 		),
 		clientModule: client.InitClient(log.Named("client-module"), persistence.ClientPersistence),
-		OAuth2Module: oauth2.InitOAuth2(log.Named("oauth2-module"), persistence.OAuth2Persistence, persistence.OAuthPersistence, persistence.ClientPersistence, cache.ConsentCacheLayer, cache.AuthCodeCacheLayer),
+		OAuth2Module: oauth2.InitOAuth2(
+			log.Named("oauth2-module"),
+			persistence.OAuth2Persistence,
+			persistence.OAuthPersistence,
+			persistence.ClientPersistence,
+			cache.ConsentCacheLayer,
+			cache.AuthCodeCacheLayer,
+		),
 	}
 }
