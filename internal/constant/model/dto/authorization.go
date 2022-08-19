@@ -13,8 +13,6 @@ type Consent struct {
 	Approved bool `json:"approved"`
 	// Users Id
 	UserID uuid.UUID `json:"userID"`
-	// Roles of the user.
-	Roles string `json:"roles"`
 }
 
 type AuthCode struct {
@@ -41,25 +39,25 @@ type ConsentData struct {
 	// The scope data
 	Scopes []Scope `json:"scopes"`
 }
-
 type AuthorizationRequestParam struct {
-	// The client identifier.
+	// client identifier.
 	ClientID uuid.UUID `form:"-" query:"-" json:"client_id,omitempty"`
-	// The redirection URI used in the initial authorization request.
+	// redirection URI used in the initial authorization request.
 	ResponseType string `form:"response_type" json:"response_type" query:"response_type"`
-	// the state parameter passed in the initial authorization request.
-	State string `form:"state" json:"state" query:"state"`
-	// The scope of the access request expressed as a list of space-delimited,
+	// state parameter passed in the initial authorization request.
+	State string `form:"state.omitempty" json:"state,omitempty" query:"state,omitempty"`
+	// scope of the access request expressed as a list of space-delimited,
 	Scope string `form:"scope" json:"scope" query:"scope"`
-	// The redirection URI used in the initial authorization request.
+	// redirection URI used in the initial authorization request.
 	RedirectURI string `form:"redirect_uri" json:"redirect_uri" query:"redirect_uri"`
+	// specifies whether the Authorization Server MUST prompt the End-User for reauthentication.
+	Prompt string `form:"prompt,omitempty" json:"prompt,omitempty" query:"prompt,omitempty"`
 }
 
 func (a *AuthorizationRequestParam) Validate() error {
 	return validation.ValidateStruct(a,
 		validation.Field(&a.ClientID, validation.Required.Error("client_id is required")),
 		validation.Field(&a.ResponseType, validation.Required.Error("response_type is required"), validation.In("code", "token")),
-		validation.Field(&a.State, validation.Required.Error("state is required")),
 		validation.Field(&a.Scope, validation.Required.Error("scope is required"), validation.In("openid", "profile", "email", "phone", "address", "offline_access")),
 		validation.Field(&a.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL),
 	)
