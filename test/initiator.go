@@ -18,6 +18,7 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
+	"github.com/jackc/pgx/v4"
 	"github.com/spf13/viper"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
@@ -35,6 +36,7 @@ type TestInstance struct {
 	AccessToken string
 	enforcer    *casbin.Enforcer
 	Logger      logger.Logger
+	Conn        *pgx.Conn
 }
 
 func Initiate(path string) TestInstance {
@@ -84,7 +86,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")
-	platformLayer := initiator.InitMockPlatformLayer(log)
+	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"))
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing module")
@@ -118,6 +120,7 @@ func Initiate(path string) TestInstance {
 		Module:   module,
 		enforcer: enforcer,
 		Logger:   log,
+		Conn:     pgxConn,
 	}
 }
 func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
