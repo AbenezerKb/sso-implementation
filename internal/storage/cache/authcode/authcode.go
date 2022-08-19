@@ -34,11 +34,14 @@ func (c *AuthCode) GetAuthCode(ctx context.Context, code string) (dto.AuthCode, 
 	authCodeResult, err := c.client.Get(ctx, authCodeKey).Result()
 	if err != nil {
 		if err == redis.Nil {
-			return dto.AuthCode{}, nil
+			err := errors.ErrCacheGetError.Wrap(err, "no record of code found")
+			c.logger.Info(ctx, "record not found", zap.Error(err), zap.String("code", code))
+			return dto.AuthCode{}, err
 		}
 
 		err := errors.ErrCacheGetError.Wrap(err, "could not get from authcode cache")
-		c.logger.Error(ctx, "could not read from authcode cache", zap.Error(err), zap.String("code", code))
+		c.logger.Error(ctx, "could not read from authcode cache", zap.Error(err))
+		return dto.AuthCode{}, err
 	}
 
 	var authCode dto.AuthCode
