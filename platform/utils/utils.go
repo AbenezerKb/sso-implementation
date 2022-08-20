@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"math/rand"
 	"sso/platform/logger"
 	"strings"
@@ -35,6 +36,10 @@ func GenerateRandomString(length int, includeSpecial bool) string {
 		randString[i] = str[rand.Int63()%int64(len(str))]
 	}
 	return string(randString)
+}
+
+func GenerateTimeStampedRandomString(length int, includeSpecial bool) string {
+	return fmt.Sprintf("%s%d", GenerateRandomString(length, includeSpecial), time.Now().Unix())
 }
 
 func ArrayToString(array []string) string {

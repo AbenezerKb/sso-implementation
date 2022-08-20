@@ -35,13 +35,16 @@ func TestGetConsentByID(t *testing.T) {
 	a.apiTest.InitializeTest(t, "Get consent by id test", "features/consent.feature", a.InitializeScenario)
 
 }
-
+func (g *getConsentTest) iAmLoggedInWithCredentials(credentials *godog.Table) error {
+	return g.Authenicate(credentials)
+}
 func (g *getConsentTest) iHaveAConsentWithID(consentID string) error {
 	g.apiTest.URL += "/" + consentID
 	return nil
 }
 
 func (g *getConsentTest) iRequestConsentData() error {
+	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
 	g.apiTest.SendRequest()
 	return nil
 }
@@ -145,11 +148,13 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		_, _ = g.DB.DeleteUser(context.Background(), g.userData.ID)
-		g.redisSeeder.Starve(g.redisModel)
+		_, _ = g.DB.DeleteUser(ctx, g.userData.ID)
+		_, _ = g.DB.DeleteUser(ctx, g.User.ID)
+		_ = g.redisSeeder.Starve(g.redisModel)
 		return ctx, nil
 	})
 
+	ctx.Step(`^I am logged in with credentials$`, g.iAmLoggedInWithCredentials)
 	ctx.Step(`^I have a consent with ID "([^"]*)"$`, g.iHaveAConsentWithID)
 	ctx.Step(`^I request consent Data$`, g.iRequestConsentData)
 	ctx.Step(`^I should get error "([^"]*)"$`, g.iShouldGetError)

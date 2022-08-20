@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"context"
+	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -9,6 +10,7 @@ import (
 	"sso/internal/storage"
 	"sso/platform"
 	"sso/platform/logger"
+	"sso/platform/utils"
 	"strings"
 	"time"
 
@@ -155,33 +157,88 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string
 	}, nil
 }
 
-func (o *oauth2) Approval(ctx context.Context, consentId string, accessRqResult string) (dto.Consent, error) {
-	consent := dto.Consent{}
-
+func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID) (string, error) {
 	// check if consent is valid
-	consent, err := o.consentCache.GetConsent(ctx, consentId)
-	if err != nil || consent.ID.String() != consentId {
+	consent, err := o.consentCache.GetConsent(ctx, consentID)
+	if err != nil {
 		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
-		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentId))
-		return consent, err
+		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
+		return "", err
 	}
 
-	if accessRqResult == "true" {
-		var err error
-		consent, err = o.consentCache.ChangeStatus(ctx, true, consent)
-		if err != nil {
-			return dto.Consent{}, err
-		}
-	} else {
-		var err error
-		consent, err = o.consentCache.ChangeStatus(ctx, false, consent)
-		if err != nil {
-			return dto.Consent{}, err
-		}
+	_, err = o.consentCache.ChangeStatus(ctx, true, consent)
+	if err != nil {
+		return "", err
 	}
-	return consent, nil
+
+	redirectURI, err := url.Parse(consent.RedirectURI)
+	if err != nil {
+		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		return "", err
+	}
+
+	query := redirectURI.Query()
+	query.Set("state", consent.State)
+
+	authCode := dto.AuthCode{
+		Code:        utils.GenerateTimeStampedRandomString(25, true),
+		Scope:       consent.Scope,
+		RedirectURI: consent.RedirectURI,
+		ClientID:    consent.ClientID,
+		UserID:      userID,
+	}
+	if err := o.authCodeCache.SaveAuthCode(ctx, authCode); err != nil {
+		return "", err
+	}
+
+	query.Set("code", authCode.Code)
+	if consent.State != "" {
+		query.Set("state", consent.State)
+	}
+	if strings.Contains(consent.ResponseType, "id_token") {
+		user, err := o.oauthPersistence.GetUserByID(ctx, userID)
+		if err != nil {
+			return "", err
+		}
+		idToken, err := o.token.GenerateIdToken(ctx, user)
+		if err != nil {
+			return "", err
+		}
+		query.Set("id_token", idToken)
+	}
+
+	redirectURI.RawQuery = query.Encode()
+	return redirectURI.String(), nil
 }
 
+func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason string) (string, error) {
+	// check if consent is valid
+	consent, err := o.consentCache.GetConsent(ctx, consentID)
+	if err != nil {
+		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
+		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
+		return "", err
+	}
+
+	redirectURI, err := url.Parse(consent.RedirectURI)
+	if err != nil {
+		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		return "", err
+	}
+
+	query := redirectURI.Query()
+	query.Set("state", consent.State)
+	if failureReason == "" {
+		failureReason = "access_denied"
+	}
+	query.Set("error", failureReason)
+	if consent.State != "" {
+		query.Set("state", consent.State)
+	}
+
+	redirectURI.RawQuery = query.Encode()
+	return redirectURI.String(), nil
+}
 func (o *oauth2) IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error) {
 	authCode := dto.AuthCode{
 		Code:        uuid.New().String(),

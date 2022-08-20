@@ -111,7 +111,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/oauth/approval": {
+        "/oauth/approveConsent": {
             "get": {
                 "description": "is used to approve consent.",
                 "consumes": [
@@ -123,19 +123,12 @@ const docTemplate = `{
                 "tags": [
                     "OAuth2"
                 ],
-                "summary": "Approval.",
+                "summary": "Consent Approval..",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "consentId",
                         "name": "consentId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "access",
-                        "name": "access",
                         "in": "query",
                         "required": true
                     }
@@ -280,6 +273,60 @@ const docTemplate = `{
                         "description": "invalid input",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/rejectConsent": {
+            "get": {
+                "description": "is used to reject consent.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "Consent Rejection.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "consentId",
+                        "name": "consentId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "failureReason",
+                        "name": "failureReason",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        },
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
                         }
                     }
                 }
@@ -547,26 +594,26 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.Client"
                 },
                 "client_id": {
-                    "description": "The client identifier.",
+                    "description": "client identifier.",
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
+                "prompt": {
+                    "description": "specifies whether the Authorization Server MUST prompt the End-User for reauthentication.",
+                    "type": "string"
+                },
                 "redirect_uri": {
-                    "description": "The redirection URI used in the initial authorization request.",
+                    "description": "redirection URI used in the initial authorization request.",
                     "type": "string"
                 },
                 "response_type": {
-                    "description": "The redirection URI used in the initial authorization request.",
-                    "type": "string"
-                },
-                "roles": {
-                    "description": "Roles of the user.",
+                    "description": "redirection URI used in the initial authorization request.",
                     "type": "string"
                 },
                 "scope": {
-                    "description": "The scope of the access request expressed as a list of space-delimited,",
+                    "description": "scope of the access request expressed as a list of space-delimited,",
                     "type": "string"
                 },
                 "scopes": {
@@ -577,7 +624,7 @@ const docTemplate = `{
                     }
                 },
                 "state": {
-                    "description": "the state parameter passed in the initial authorization request.",
+                    "description": "state parameter passed in the initial authorization request.",
                     "type": "string"
                 },
                 "user": {

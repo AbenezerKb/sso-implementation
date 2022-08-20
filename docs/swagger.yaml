@@ -66,21 +66,22 @@ definitions:
         $ref: '#/definitions/dto.Client'
         description: The client data
       client_id:
-        description: The client identifier.
+        description: client identifier.
         type: string
       id:
         type: string
+      prompt:
+        description: specifies whether the Authorization Server MUST prompt the End-User
+          for reauthentication.
+        type: string
       redirect_uri:
-        description: The redirection URI used in the initial authorization request.
+        description: redirection URI used in the initial authorization request.
         type: string
       response_type:
-        description: The redirection URI used in the initial authorization request.
-        type: string
-      roles:
-        description: Roles of the user.
+        description: redirection URI used in the initial authorization request.
         type: string
       scope:
-        description: The scope of the access request expressed as a list of space-delimited,
+        description: scope of the access request expressed as a list of space-delimited,
         type: string
       scopes:
         description: The scope data
@@ -88,7 +89,7 @@ definitions:
           $ref: '#/definitions/dto.Scope'
         type: array
       state:
-        description: the state parameter passed in the initial authorization request.
+        description: state parameter passed in the initial authorization request.
         type: string
       user:
         $ref: '#/definitions/dto.User'
@@ -380,7 +381,7 @@ paths:
       summary: Login a user.
       tags:
       - auth
-  /oauth/approval:
+  /oauth/approveConsent:
     get:
       consumes:
       - application/json
@@ -389,11 +390,6 @@ paths:
       - description: consentId
         in: query
         name: consentId
-        required: true
-        type: string
-      - description: access
-        in: query
-        name: access
         required: true
         type: string
       produces:
@@ -413,7 +409,7 @@ paths:
               type: string
           schema:
             $ref: '#/definitions/model.ErrorResponse'
-      summary: Approval.
+      summary: Consent Approval..
       tags:
       - OAuth2
   /oauth/authorize:
@@ -495,6 +491,42 @@ paths:
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: GetConsentByID.
+      tags:
+      - OAuth2
+  /oauth/rejectConsent:
+    get:
+      consumes:
+      - application/json
+      description: is used to reject consent.
+      parameters:
+      - description: consentId
+        in: query
+        name: consentId
+        required: true
+        type: string
+      - description: failureReason
+        in: query
+        name: failureReason
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+        "400":
+          description: invalid input
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Consent Rejection.
       tags:
       - OAuth2
   /oauth/token:
