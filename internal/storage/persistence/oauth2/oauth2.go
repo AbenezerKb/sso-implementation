@@ -116,3 +116,28 @@ func (o *oauth2) RemoveRefreshToken(ctx context.Context, code string) error {
 	}
 	return nil
 }
+
+func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error) {
+	refereshToken, err := o.db.CheckIfUserGrantedClient(ctx, db.CheckIfUserGrantedClientParams{
+		UserID:   userID,
+		ClientID: clientID,
+	})
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return false, dto.RefreshToken{}, nil
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "error could not check if user granted", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
+		return false, dto.RefreshToken{}, err
+	}
+
+	return true, dto.RefreshToken{
+		ID:           refereshToken.ID,
+		Code:         refereshToken.Code,
+		Refreshtoken: refereshToken.Refreshtoken,
+		RedirectUri:  refereshToken.RedirectUri.String,
+		Scope:        refereshToken.Scope.String,
+		UserID:       refereshToken.UserID,
+		ClientID:     refereshToken.ClientID,
+	}, nil
+}
