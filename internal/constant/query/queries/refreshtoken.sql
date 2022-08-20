@@ -14,3 +14,6 @@ RETURNING *;
 
 -- name: RemoveRefreshToken :exec
 DELETE FROM refreshtokens WHERE code = $1;
+
+-- name: CheckIfUserGrantedClient :one
+SELECT * FROM refreshtokens WHERE user_id = $1 AND client_id = $2;

@@ -13,6 +13,33 @@ import (
 	"github.com/google/uuid"
 )
 
+const checkIfUserGrantedClient = `-- name: CheckIfUserGrantedClient :one
+SELECT id, refreshtoken, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refreshtokens WHERE user_id = $1 AND client_id = $2
+`
+
+type CheckIfUserGrantedClientParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	ClientID uuid.UUID `json:"client_id"`
+}
+
+func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserGrantedClientParams) (Refreshtoken, error) {
+	row := q.db.QueryRow(ctx, checkIfUserGrantedClient, arg.UserID, arg.ClientID)
+	var i Refreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.Refreshtoken,
+		&i.Code,
+		&i.UserID,
+		&i.Scope,
+		&i.RedirectUri,
+		&i.ExpiresAt,
+		&i.ClientID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const removeRefreshToken = `-- name: RemoveRefreshToken :exec
 DELETE FROM refreshtokens WHERE code = $1
 `

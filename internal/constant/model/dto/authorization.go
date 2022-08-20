@@ -86,3 +86,21 @@ type AuthHistory struct {
 	// It is automatically set when the refresh token is created.
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type ConsentResponse struct {
+	Scopes []Scope `json:"scopes"`
+	// client name
+	Client_Name string `json:"client_name"`
+	// client logo
+	Client_Logo string `json:"client_logo"`
+	// client Type
+	Client_Type string `json:"client_type"`
+	// is the client fully trusted
+	Client_Trusted bool `json:"client_trusted"`
+	// client id
+	Client_ID uuid.UUID `json:"client_id"`
+	// user id
+	User_ID uuid.UUID `json:"user_id"`
+	// whether the user has consented to the scopes
+	Approved bool `json:"approved"`
+}
