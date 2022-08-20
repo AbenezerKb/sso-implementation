@@ -2,18 +2,21 @@ package register
 
 import (
 	"context"
-	"github.com/cucumber/godog"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
+	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
+
+	"github.com/cucumber/godog"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
 type clientRegistrationTest struct {
 	test.TestInstance
 	apiTest src.ApiTest
 	client  *dto.Client
+	Admin   db.User
 }
 
 func TestClientRegistration(t *testing.T) {
@@ -22,7 +25,12 @@ func TestClientRegistration(t *testing.T) {
 	c.apiTest.InitializeTest(t, "Client registration test", "features/client_registration.feature", c.InitializeScenario)
 }
 func (c *clientRegistrationTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) error {
-	return c.Authenicate(adminCredentials)
+	var err error
+	c.Admin, err = c.Authenicate(adminCredentials)
+	if err != nil {
+		return err
+	}
+	return c.GrantRoleForUser(c.Admin.ID.String(), adminCredentials)
 }
 
 func (c *clientRegistrationTest) iFillTheFollowingClientForm(clientForm *godog.Table) error {
@@ -76,7 +84,7 @@ func (c *clientRegistrationTest) InitializeScenario(ctx *godog.ScenarioContext) 
 		//}
 
 		// delete the admin
-		_, err = c.DB.DeleteUser(ctx, c.User.ID)
+		_, err = c.DB.DeleteUser(ctx, c.Admin.ID)
 		return ctx, err
 	})
 	ctx.Step(`^I am logged in as admin user$`, c.iAmLoggedInAsAdminUser)
