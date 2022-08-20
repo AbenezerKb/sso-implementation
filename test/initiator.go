@@ -123,17 +123,17 @@ func Initiate(path string) TestInstance {
 		Conn:     pgxConn,
 	}
 }
-func (t *TestInstance) Authenicate(creadentials *godog.Table) (db.User, error) {
+func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
 	// read email and password from table
 	apiTest := src.ApiTest{
 		URL:    "/v1/login",
 		Method: http.MethodPost,
 	}
-	email, err := apiTest.ReadCellString(creadentials, "email")
+	email, err := apiTest.ReadCellString(credentials, "email")
 	if err != nil {
 		return db.User{}, err
 	}
-	password, err := apiTest.ReadCellString(creadentials, "password")
+	password, err := apiTest.ReadCellString(credentials, "password")
 	if err != nil {
 		return db.User{}, err
 	}
@@ -151,7 +151,7 @@ func (t *TestInstance) Authenicate(creadentials *godog.Table) (db.User, error) {
 
 	apiTest.InitializeServer(t.Server)
 	apiTest.SetHeader("Content-Type", "application/json")
-	body, err := apiTest.ReadRow(creadentials, nil, false)
+	body, err := apiTest.ReadRow(credentials, nil, false)
 	if err != nil {
 		return db.User{}, err
 	}

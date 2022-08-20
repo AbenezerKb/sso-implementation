@@ -26,7 +26,7 @@ func TestClientRegistration(t *testing.T) {
 }
 func (c *clientRegistrationTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) error {
 	var err error
-	c.Admin, err = c.Authenicate(adminCredentials)
+	c.Admin, err = c.Authenticate(adminCredentials)
 	if err != nil {
 		return err
 	}

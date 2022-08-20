@@ -38,7 +38,7 @@ func TestGetConsentByID(t *testing.T) {
 }
 func (g *getConsentTest) iAmLoggedInWithCredentials(credentials *godog.Table) error {
 	var err error
-	g.User, err = g.Authenicate(credentials)
+	g.User, err = g.Authenticate(credentials)
 	if err != nil {
 		return err
 	}

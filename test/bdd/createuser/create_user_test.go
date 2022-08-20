@@ -30,13 +30,13 @@ func TestCreateuser(t *testing.T) {
 
 	c.apiTest.InitializeTest(t, "Create user test", "features/create_user.feature", c.InitializeScenario)
 }
-func (c *createuserTest) iAmLoggedInWithTheFollowingCreadentials(creadentials *godog.Table) error {
+func (c *createuserTest) iAmLoggedInWithTheFollowingCreadentials(credentials *godog.Table) error {
 	var err error
-	c.Admin, err = c.Authenicate(creadentials)
+	c.Admin, err = c.Authenticate(credentials)
 	if err != nil {
 		return err
 	}
-	return c.GrantRoleForUser(c.Admin.ID.String(), creadentials)
+	return c.GrantRoleForUser(c.Admin.ID.String(), credentials)
 }
 
 func (c *createuserTest) iFillTheFormWithTheFollowingDetails(userForm *godog.Table) error {
@@ -93,7 +93,7 @@ func (c *createuserTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
-	ctx.Step(`^I am logged in with the following creadentials$`, c.iAmLoggedInWithTheFollowingCreadentials)
+	ctx.Step(`^I am logged in with the following credentials$`, c.iAmLoggedInWithTheFollowingCreadentials)
 	ctx.Step(`^I fill the form with the following details$`, c.iFillTheFormWithTheFollowingDetails)
 	ctx.Step(`^I submit the create user form$`, c.iSubmitTheCreateUserForm)
 	ctx.Step(`^the creating process should fail with "([^"]*)"$`, c.theCreatingProcessShouldFailWith)
