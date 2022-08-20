@@ -21,18 +21,28 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			UnAuthorize: true,
 		},
 		{
-			Method:      "GET",
-			Path:        "/consent/:id",
-			Handler:     handler.GetConsentByID,
-			Middlewares: []gin.HandlerFunc{},
+			Method:  "GET",
+			Path:    "/consent/:id",
+			Handler: handler.GetConsentByID,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
 			UnAuthorize: true,
 		},
 
 		{
+			Method:  "GET",
+			Path:    "/approval",
+			Handler: handler.ApproveConsent,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
+		{
 			Method:      "GET",
-			Path:        "/approval",
-			Handler:     handler.Approval,
-			Middlewares: []gin.HandlerFunc{},
+			Path:        "/reject",
+			Handler:     handler.RejectConsent,
 			UnAuthorize: true,
 		},
 		{
