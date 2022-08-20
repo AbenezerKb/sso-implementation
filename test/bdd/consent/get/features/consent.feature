@@ -5,8 +5,8 @@ Feature: Get Conset By ID
 
     Background: I have consent with the following details
         Given I have a consent with the following details
-            | client_name | scopes         | description | client_type  | redirect_uri     | response_type | user_id   | consent_id |
-            | ride        | scope1, scope2 | description | confidential | http://localhost | code          | 48684fe2-43fa-46b8-ba6b-78cfc7196fb8 | 48684fe2-43fa-46b8-ba6b-78cfc7196fb8 |
+            | client_id                            | client_name | scopes | description | client_type  | redirect_uri     | response_type | user_id                              | consent_id                           |
+            | 48684fe2-43fa-46b8-ba6b-78cfc7196fb8 | ride        | openid | description | confidential | http://localhost | code          | 48684fe2-43fa-46b8-ba6b-78cfc7196fb8 | 48684fe2-43fa-46b8-ba6b-78cfc7196fb8 |
     @success
     Scenario: Valid Conset ID
         Given I have a consent with ID "<consent_id>"

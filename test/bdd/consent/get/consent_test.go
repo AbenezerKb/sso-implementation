@@ -26,6 +26,7 @@ type getConsentTest struct {
 	redisSeeder seed.RedisDB
 	redisModel  seed.RedisModel
 	userData    db.User
+	client      db.Client
 }
 
 func TestGetConsentByID(t *testing.T) {
@@ -76,12 +77,23 @@ func (g *getConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog.Tab
 	g.user_id, _ = g.apiTest.ReadCellString(consent, "user_id")
 	scopes, _ := g.apiTest.ReadCellString(consent, "scopes")
 	redirectURI, _ := g.apiTest.ReadCellString(consent, "redirect_uri")
-	clientID, _ := g.apiTest.ReadCellString(consent, "client_id")
 	status, _ := g.apiTest.ReadCellString(consent, "status")
-
 	consentID, _ := uuid.Parse(g.consentID)
 	userID, _ := uuid.Parse(g.user_id)
-	ParsedclientID, _ := uuid.Parse(clientID)
+
+	clientData, err := g.DB.CreateClient(context.Background(), db.CreateClientParams{
+		Name:         "test",
+		RedirectUris: redirectURI,
+		Secret:       "test",
+		Scopes:       scopes,
+		ClientType:   "confidential",
+		LogoUrl:      "test",
+	})
+	g.client = clientData
+
+	if err != nil {
+		return err
+	}
 
 	consents := dto.Consent{
 		ID:     consentID,
@@ -89,7 +101,7 @@ func (g *getConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog.Tab
 		AuthorizationRequestParam: dto.AuthorizationRequestParam{
 			Scope:       scopes,
 			RedirectURI: redirectURI,
-			ClientID:    ParsedclientID,
+			ClientID:    clientData.ID,
 		},
 		Approved: bool(status == "approved"),
 	}
@@ -146,6 +158,7 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = g.DB.DeleteUser(context.Background(), g.userData.ID)
+		_, _ = g.DB.DeleteClient(context.Background(), g.client.ID)
 		g.redisSeeder.Starve(g.redisModel)
 		return ctx, nil
 	})
