@@ -44,3 +44,12 @@ func ArrayToString(array []string) string {
 func StringToArray(str string) []string {
 	return strings.Split(str, " ")
 }
+
+func ContainsValue(str string, arr []string) bool {
+	for _, s := range arr {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
