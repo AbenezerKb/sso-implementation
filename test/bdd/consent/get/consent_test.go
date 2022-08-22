@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"sso/platform/utils"
 	"sso/test"
 	"testing"
 
@@ -25,7 +24,7 @@ type getConsentTest struct {
 	consentID   string
 	redisSeeder seed.RedisDB
 	redisModel  seed.RedisModel
-	userData    db.User
+	client      db.Client
 	User        db.User
 }
 
@@ -85,12 +84,23 @@ func (g *getConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog.Tab
 	g.user_id, _ = g.apiTest.ReadCellString(consent, "user_id")
 	scopes, _ := g.apiTest.ReadCellString(consent, "scopes")
 	redirectURI, _ := g.apiTest.ReadCellString(consent, "redirect_uri")
-	clientID, _ := g.apiTest.ReadCellString(consent, "client_id")
 	status, _ := g.apiTest.ReadCellString(consent, "status")
-
 	consentID, _ := uuid.Parse(g.consentID)
 	userID, _ := uuid.Parse(g.user_id)
-	ParsedclientID, _ := uuid.Parse(clientID)
+
+	clientData, err := g.DB.CreateClient(context.Background(), db.CreateClientParams{
+		Name:         "test",
+		RedirectUris: redirectURI,
+		Secret:       "test",
+		Scopes:       scopes,
+		ClientType:   "confidential",
+		LogoUrl:      "test",
+	})
+	g.client = clientData
+
+	if err != nil {
+		return err
+	}
 
 	consents := dto.Consent{
 		ID:     consentID,
@@ -98,7 +108,7 @@ func (g *getConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog.Tab
 		AuthorizationRequestParam: dto.AuthorizationRequestParam{
 			Scope:       scopes,
 			RedirectURI: redirectURI,
-			ClientID:    ParsedclientID,
+			ClientID:    clientData.ID,
 		},
 		Approved: bool(status == "approved"),
 	}
@@ -124,25 +134,6 @@ func (g *getConsentTest) invalidUserID(user_id string) error {
 	return nil
 }
 
-func (g *getConsentTest) userWithID(user_id string) error {
-	// seed user
-	hash, err := utils.HashAndSalt(context.Background(), []byte("password"), g.Logger)
-	if err != nil {
-		return err
-	}
-	userData, err := g.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone:    "1234567890",
-		Email:    utils.StringOrNull("email"),
-		Password: hash,
-	})
-	if err != nil {
-		return err
-	}
-	g.userData = userData
-	g.apiTest.SetQueryParam("user_id", userData.ID.String())
-	return nil
-}
-
 func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
@@ -154,7 +145,6 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		_, _ = g.DB.DeleteUser(ctx, g.userData.ID)
 		_, _ = g.DB.DeleteUser(ctx, g.User.ID)
 		_ = g.redisSeeder.Starve(g.redisModel)
 		return ctx, nil
@@ -167,5 +157,4 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should get valid consent data$`, g.iShouldGetValidConsentData)
 	ctx.Step(`^Invalid user ID "([^"]*)"$`, g.invalidUserID)
 	ctx.Step(`^I have a consent with the following details$`, g.iHaveAConsentWithTheFollowingDetails)
-	ctx.Step(`^user with ID "([^"]*)"$`, g.userWithID)
 }

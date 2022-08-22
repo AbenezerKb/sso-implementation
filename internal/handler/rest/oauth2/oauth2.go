@@ -1,9 +1,6 @@
 package oauth2
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"sso/internal/constant"
@@ -13,6 +10,10 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type oauth2 struct {
@@ -141,9 +142,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // @Router       /oauth/consent/{id} [get]
 func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 	consentID := ctx.Param("id")
-	userID := ctx.Query("user_id")
-
-	consent, err := o.oauth2Module.GetConsentByID(ctx.Request.Context(), consentID, userID)
+	consent, err := o.oauth2Module.GetConsentByID(ctx.Request.Context(), consentID)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

@@ -219,6 +219,9 @@ definitions:
       name:
         description: The scope name.
         type: string
+      resource_server_name:
+        description: resource server name
+        type: string
     type: object
   dto.TokenResponse:
     properties:
@@ -529,6 +532,63 @@ paths:
       summary: Consent Rejection.
       tags:
       - OAuth2
+  /oauth/scopes:
+    post:
+      consumes:
+      - application/json
+      description: Create a new scope
+      operationId: create-scope
+      parameters:
+      - description: Create a new scope
+        in: body
+        name: scope
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Scope'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.Scope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new scope
+      tags:
+      - scope
+  /oauth/scopes/{name}:
+    get:
+      consumes:
+      - application/json
+      description: Get a scope
+      operationId: get-scope
+      parameters:
+      - description: Scope name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Scope'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a scope
+      tags:
+      - scope
   /oauth/token:
     post:
       consumes:

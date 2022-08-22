@@ -325,6 +325,96 @@
                 }
             }
         },
+        "/oauth/scopes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new scope",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scope"
+                ],
+                "summary": "Create a new scope",
+                "operationId": "create-scope",
+                "parameters": [
+                    {
+                        "description": "Create a new scope",
+                        "name": "scope",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/scopes/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a scope",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scope"
+                ],
+                "summary": "Get a scope",
+                "operationId": "get-scope",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Scope name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/token": {
             "post": {
                 "security": [
@@ -766,6 +856,10 @@
                 },
                 "name": {
                     "description": "The scope name.",
+                    "type": "string"
+                },
+                "resource_server_name": {
+                    "description": "resource server name",
                     "type": "string"
                 }
             }

@@ -37,6 +37,7 @@ type OAuth2Persistence interface {
 	PersistRefreshToken(ctx context.Context, param dto.RefreshToken) (*dto.RefreshToken, error)
 	RemoveRefreshToken(ctx context.Context, code string) error
 	AddAuthHistory(ctx context.Context, param dto.AuthHistory) (*dto.AuthHistory, error)
+	CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error)
 }
 
 type ConsentCache interface {
@@ -54,4 +55,10 @@ type AuthCodeCache interface {
 	SaveAuthCode(ctx context.Context, authCode dto.AuthCode) error
 	GetAuthCode(ctx context.Context, code string) (dto.AuthCode, error)
 	DeleteAuthCode(ctx context.Context, code string) error
+}
+
+type ScopePersistence interface {
+	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
+	GetScope(ctx context.Context, scope string) (dto.Scope, error)
+	GetListedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 }

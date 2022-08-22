@@ -47,6 +47,15 @@ type Refreshtoken struct {
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
+type Scope struct {
+	ID                 uuid.UUID      `json:"id"`
+	Name               string         `json:"name"`
+	Description        string         `json:"description"`
+	ResourceServerID   uuid.NullUUID  `json:"resource_server_id"`
+	ResourceServerName sql.NullString `json:"resource_server_name"`
+	Status             string         `json:"status"`
+}
+
 type User struct {
 	ID             uuid.UUID      `json:"id"`
 	FirstName      string         `json:"first_name"`

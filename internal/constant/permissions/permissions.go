@@ -21,4 +21,14 @@ var (
 		Name:     "create a client",
 		Category: "client",
 	}
+	CreateScope = Permission{
+		ID:       "create_scope",
+		Name:     "create a scope",
+		Category: "scope",
+	}
+	GetScope = Permission{
+		ID:       "get_scope",
+		Name:     "get a scope",
+		Category: "scope",
+	}
 )

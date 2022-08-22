@@ -1,13 +1,15 @@
 package initiator
 
 import (
-	"github.com/spf13/viper"
 	"sso/internal/handler/rest"
 	"sso/internal/handler/rest/client"
 	"sso/internal/handler/rest/oauth"
 	"sso/internal/handler/rest/oauth2"
+	"sso/internal/handler/rest/scope"
 	"sso/internal/handler/rest/user"
 	"sso/platform/logger"
+
+	"github.com/spf13/viper"
 )
 
 type Handler struct {
@@ -15,6 +17,7 @@ type Handler struct {
 	oauth2 rest.OAuth2
 	user   rest.User
 	client rest.Client
+	scope  rest.Scope
 }
 
 func InitHandler(module Module, log logger.Logger) Handler {
@@ -26,5 +29,6 @@ func InitHandler(module Module, log logger.Logger) Handler {
 			ConsentURL: viper.GetString("server.oauth2.consent_url"),
 			ErrorURL:   viper.GetString("server.oauth2.error_url"),
 		})),
+		scope: scope.InitScope(log.Named("scope-handler"), module.scopeModule),
 	}
 }

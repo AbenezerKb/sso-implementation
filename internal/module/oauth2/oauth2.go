@@ -42,9 +42,10 @@ type oauth2 struct {
 	authCodeCache     storage.AuthCodeCache
 	token             platform.Token
 	options           Options
+	scopePersistence  storage.ScopePersistence
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options, scope storage.ScopePersistence) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
@@ -54,6 +55,7 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 		authCodeCache:     authCodeCache,
 		token:             token,
 		options:           options,
+		scopePersistence:  scope,
 	}
 }
 
@@ -118,42 +120,71 @@ func (o *oauth2) ContainsRedirectURL(redirectURIs []string, redirectURI string) 
 	return false
 }
 
-func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentData, error) {
+func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.ConsentResponse, error) {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Error(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		return dto.ConsentResponse{}, err
+	}
+
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
 		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
 		o.logger.Info(ctx, "consent not found", zap.Error(err))
-		return dto.ConsentData{}, err
+		return dto.ConsentResponse{}, err
 	}
 
 	// get client
-	client, err := o.oauth2Persistence.GetClient(ctx, consent.ClientID)
+	client, err := o.clientPersistence.GetClientByID(ctx, consent.ClientID)
 	if err != nil {
-		return dto.ConsentData{}, err
+		return dto.ConsentResponse{}, err
 	}
-	// get scopes
-	scopes, err := o.oauth2Persistence.GetNamedScopes(ctx, strings.Split(consent.Scope, " ")...)
-	if err != nil {
-		return dto.ConsentData{}, err
-	}
-	// get user
 
+	// get scopes
+	requestedscopes, err := o.scopePersistence.GetListedScopes(ctx, strings.Split(consent.Scope, " ")...)
+	if err != nil {
+		return dto.ConsentResponse{}, err
+	}
+
+	// get user
 	userID, err := uuid.Parse(id)
 	if err != nil {
 		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
 		o.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
-		return dto.ConsentData{}, err
+		return dto.ConsentResponse{}, err
 	}
 	user, err := o.oauthPersistence.GetUserByID(ctx, userID)
 	if err != nil {
-		return dto.ConsentData{}, err
+		return dto.ConsentResponse{}, err
 	}
 
-	return dto.ConsentData{
-		Consent: consent,
-		Client:  client,
-		Scopes:  scopes,
-		User:    user,
+	clientStatus := true
+	check, refreshToken, err := o.oauth2Persistence.CheckIfUserGrantedClient(ctx, userID, client.ID)
+	if err != nil {
+		return dto.ConsentResponse{}, err
+	}
+
+	grantedScopes := utils.StringToArray(refreshToken.Scope)
+	if check {
+		for _, rs := range requestedscopes {
+			if !utils.ContainsValue(rs.Name, grantedScopes) {
+				clientStatus = false
+				break
+			}
+		}
+	} else {
+		clientStatus = false
+	}
+	return dto.ConsentResponse{
+		Scopes:         requestedscopes,
+		Client_Name:    client.Name,
+		Client_Logo:    client.LogoURL,
+		Client_Type:    client.ClientType,
+		Client_Trusted: true,
+		Client_ID:      client.ID,
+		Approved:       clientStatus,
+		User_ID:        user.ID,
 	}, nil
 }
 

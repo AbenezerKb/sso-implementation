@@ -37,11 +37,24 @@ func (o *oauth2) GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, erro
 }
 
 func (o *oauth2) GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error) {
-	return []dto.Scope{
-		{Name: "openid", Description: "openid"},
-		{Name: "profile", Description: "profile"},
-		{Name: "email", Description: "email"},
-	}, nil
+	namedScopes := []dto.Scope{}
+	for _, scope := range scopes {
+		scope, err := o.db.GetScope(ctx, scope)
+		if err != nil {
+			if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+				continue
+			}
+			err = errors.ErrReadError.Wrap(err, "could not read the scope")
+			o.logger.Error(ctx, "unable to read the scope", zap.Error(err), zap.Any("scope", scope))
+			return nil, err
+		}
+		namedScopes = append(namedScopes, dto.Scope{
+			Name:        scope.Name,
+			Description: scope.Description,
+		})
+
+	}
+	return namedScopes, nil
 }
 
 func (o *oauth2) AuthHistoryExists(ctx context.Context, code string) (bool, error) {
@@ -115,4 +128,29 @@ func (o *oauth2) RemoveRefreshToken(ctx context.Context, code string) error {
 		return err
 	}
 	return nil
+}
+
+func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error) {
+	refereshToken, err := o.db.CheckIfUserGrantedClient(ctx, db.CheckIfUserGrantedClientParams{
+		UserID:   userID,
+		ClientID: clientID,
+	})
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return false, dto.RefreshToken{}, nil
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "error could not check if user granted", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
+		return false, dto.RefreshToken{}, err
+	}
+
+	return true, dto.RefreshToken{
+		ID:           refereshToken.ID,
+		Code:         refereshToken.Code,
+		Refreshtoken: refereshToken.Refreshtoken,
+		RedirectUri:  refereshToken.RedirectUri.String,
+		Scope:        refereshToken.Scope.String,
+		UserID:       refereshToken.UserID,
+		ClientID:     refereshToken.ClientID,
+	}, nil
 }
