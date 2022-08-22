@@ -26,6 +26,7 @@ type getConsentTest struct {
 	redisSeeder seed.RedisDB
 	redisModel  seed.RedisModel
 	userData    db.User
+	User        db.User
 }
 
 func TestGetConsentByID(t *testing.T) {
@@ -36,7 +37,12 @@ func TestGetConsentByID(t *testing.T) {
 
 }
 func (g *getConsentTest) iAmLoggedInWithCredentials(credentials *godog.Table) error {
-	return g.Authenicate(credentials)
+	var err error
+	g.User, err = g.Authenticate(credentials)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 func (g *getConsentTest) iHaveAConsentWithID(consentID string) error {
 	g.apiTest.URL += "/" + consentID

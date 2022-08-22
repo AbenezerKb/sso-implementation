@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
@@ -19,17 +20,23 @@ type createuserTest struct {
 		OK   bool     `json:"ok"`
 		Data dto.User `json:"data"`
 	}
+	Admin db.User
 }
 
 func TestCreateuser(t *testing.T) {
 
 	c := &createuserTest{}
-	c.TestInstance = test.Initiate("../../../")
+	c.TestInstance = test.Initiate("../../../../")
 
 	c.apiTest.InitializeTest(t, "Create user test", "features/create_user.feature", c.InitializeScenario)
 }
-func (c *createuserTest) iAmLoggedInWithTheFollowingCreadentials(creadentials *godog.Table) error {
-	return c.Authenicate(creadentials)
+func (c *createuserTest) iAmLoggedInWithTheFollowingCreadentials(credentials *godog.Table) error {
+	var err error
+	c.Admin, err = c.Authenticate(credentials)
+	if err != nil {
+		return err
+	}
+	return c.GrantRoleForUser(c.Admin.ID.String(), credentials)
 }
 
 func (c *createuserTest) iFillTheFormWithTheFollowingDetails(userForm *godog.Table) error {
@@ -82,11 +89,11 @@ func (c *createuserTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		_, _ = c.DB.DeleteUser(ctx, c.user.Data.ID)
 
 		// delete the admin
-		_, _ = c.DB.DeleteUser(ctx, c.User.ID)
+		_, _ = c.DB.DeleteUser(ctx, c.Admin.ID)
 		return ctx, nil
 	})
 
-	ctx.Step(`^I am logged in with the following creadentials$`, c.iAmLoggedInWithTheFollowingCreadentials)
+	ctx.Step(`^I am logged in with the following credentials$`, c.iAmLoggedInWithTheFollowingCreadentials)
 	ctx.Step(`^I fill the form with the following details$`, c.iFillTheFormWithTheFollowingDetails)
 	ctx.Step(`^I submit the create user form$`, c.iSubmitTheCreateUserForm)
 	ctx.Step(`^the creating process should fail with "([^"]*)"$`, c.theCreatingProcessShouldFailWith)

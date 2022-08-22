@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"sso/initiator"
+	"sso/internal/constant"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/handler/middleware"
@@ -28,7 +29,6 @@ type TestInstance struct {
 	DB       *db.Queries
 	Redis    *redis.Client
 	Module   initiator.Module
-	User     dto.User
 	response struct {
 		OK   bool              `json:"ok"`
 		Data dto.TokenResponse `json:"data"`
@@ -123,38 +123,37 @@ func Initiate(path string) TestInstance {
 		Conn:     pgxConn,
 	}
 }
-func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
+func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
 	// read email and password from table
 	apiTest := src.ApiTest{
 		URL:    "/v1/login",
 		Method: http.MethodPost,
 	}
-	email, err := apiTest.ReadCellString(creadentials, "email")
+	email, err := apiTest.ReadCellString(credentials, "email")
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
-	password, err := apiTest.ReadCellString(creadentials, "password")
+	password, err := apiTest.ReadCellString(credentials, "password")
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
 	hash, err := utils.HashAndSalt(context.Background(), []byte(password), t.Logger)
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
-	userData, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
+	user, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
 		Email:    utils.StringOrNull(email),
 		Password: hash,
 	})
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
 
-	t.User.ID = userData.ID
 	apiTest.InitializeServer(t.Server)
 	apiTest.SetHeader("Content-Type", "application/json")
-	body, err := apiTest.ReadRow(creadentials, nil, false)
+	body, err := apiTest.ReadRow(credentials, nil, false)
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
 
 	apiTest.Body = body
@@ -166,14 +165,28 @@ func (t *TestInstance) Authenicate(creadentials *godog.Table) error {
 
 	err = json.Unmarshal(apiTest.ResponseBody, &t.response)
 	if err != nil {
-		return err
+		return db.User{}, err
 	}
 
-	permission, err := apiTest.ReadCellString(creadentials, "role")
+	t.AccessToken = t.response.Data.AccessToken
+	return user, nil
+}
+
+func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error {
+	test := src.ApiTest{}
+	permission, err := test.ReadCellString(role, "role")
 	if err != nil {
 		return err
 	}
-	t.enforcer.AddRoleForUser(t.User.ID.String(), permission)
-	t.AccessToken = t.response.Data.AccessToken
+	exists, err := t.enforcer.HasRoleForUser(userID, permission, constant.User)
+	if err != nil {
+		return err
+	}
+	if !exists {
+		_, err := t.enforcer.AddRoleForUser(userID, permission, constant.User)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
