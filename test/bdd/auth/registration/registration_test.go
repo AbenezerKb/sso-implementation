@@ -27,7 +27,7 @@ type registrationTest struct {
 func TestRegistertion(t *testing.T) {
 
 	a := &registrationTest{}
-	a.TestInstance = test.Initiate("../../../")
+	a.TestInstance = test.Initiate("../../../../")
 	a.redisSeeder = seed.RedisDB{DB: a.Redis}
 
 	a.apiTest.InitializeTest(t, "Login test", "features/registration.feature", a.InitializeScenario)

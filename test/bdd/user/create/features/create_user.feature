@@ -1,6 +1,6 @@
 Feature: Create user
     Background: I am logged in
-        Given I am logged in with the following creadentials
+        Given I am logged in with the following credentials
             | email           | password | role        |
             | test2@gmail.com | 1234567  | create_user |
     Scenario: Successfully create user

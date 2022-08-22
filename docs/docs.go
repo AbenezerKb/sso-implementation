@@ -111,7 +111,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/oauth/approval": {
+        "/oauth/approveConsent": {
             "get": {
                 "description": "is used to approve consent.",
                 "consumes": [
@@ -123,19 +123,12 @@ const docTemplate = `{
                 "tags": [
                     "OAuth2"
                 ],
-                "summary": "Approval.",
+                "summary": "Consent Approval..",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "consentId",
                         "name": "consentId",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "access",
-                        "name": "access",
                         "in": "query",
                         "required": true
                     }
@@ -370,6 +363,60 @@ const docTemplate = `{
                         "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/rejectConsent": {
+            "get": {
+                "description": "is used to reject consent.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "Consent Rejection.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "consentId",
+                        "name": "consentId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "failureReason",
+                        "name": "failureReason",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        },
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
                         }
                     }
                 }

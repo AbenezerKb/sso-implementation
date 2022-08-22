@@ -1,6 +1,9 @@
 package oauth2
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"net/http"
 	"net/url"
 	"sso/internal/constant"
@@ -10,11 +13,6 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
-	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 type oauth2 struct {
@@ -153,67 +151,76 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, consent)
 }
 
-// Approval is used to approve consent.
-// @Summary      Approval.
+// ApproveConsent is used to approve consent.
+// @Summary      Consent Approval..
 // @Description  is used to approve consent.
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
 // @param consentId query string true "consentId"
-// @param access query string true "access"
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
-// @Router       /oauth/approval [get]
-func (o *oauth2) Approval(ctx *gin.Context) {
+// @Router       /oauth/approveConsent [get]
+func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	consentId := ctx.Query("consentId")
-	accessRqResult := ctx.Query("access")
-	failureReason := ctx.Query("failureReason")
-	// userID := ctx.GetString("user_id")
-	if consentId == "" || accessRqResult == "" {
-		o.logger.Error(ctx, "invalid input", zap.String("phone", consentId), zap.String("access", accessRqResult))
-		_ = ctx.Error(errors.ErrInvalidUserInput.New("invalid input"))
+	requestCtx := ctx.Request.Context()
+	userIDString, ok := requestCtx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInternalServerError.New("no user_id was found")
+		o.logger.Error(ctx, "no user_id was found on gin context", zap.Error(err), zap.String("request-uri", ctx.Request.RequestURI))
+		_ = ctx.Error(err)
+	}
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "invalid user id")
+		o.logger.Error(ctx, "error while parsing x-user-id from request context", zap.Error(err), zap.String("x-user-id", userIDString))
+		_ = ctx.Error(err)
 		return
 	}
-	consent, err := o.oauth2Module.Approval(ctx.Request.Context(), consentId, accessRqResult)
+	if consentId == "" {
+		err := errors.ErrInvalidUserInput.New("invalid consentId")
+		o.logger.Info(ctx, "empty consent id", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentId, userID)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	redirectURI, err := url.Parse(consent.RedirectURI)
-	if err != nil {
-		o.logger.Error(ctx, "invalid input", zap.String("redirect_uri", consent.RedirectURI))
+	ctx.Redirect(http.StatusFound, redirectURI)
+}
+
+// RejectConsent is used to reject consent.
+// @Summary      Consent Rejection.
+// @Description  is used to reject consent.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param consentId query string true "consentId"
+// @param failureReason query string true "failureReason"
+// @success 	 200
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Header       200,400            {string}  Location  "redirect_uri"
+// @Router       /oauth/rejectConsent [get]
+func (o *oauth2) RejectConsent(ctx *gin.Context) {
+	consentId := ctx.Query("consentId")
+	failureReason := ctx.GetString("failureReason")
+	if consentId == "" {
+		err := errors.ErrInvalidUserInput.New("invalid consentId")
+		o.logger.Info(ctx, "empty consent id", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
-	query := redirectURI.Query()
-	query.Set("state", consent.State)
-
-	if accessRqResult == "true" {
-		authCode, st, err := o.oauth2Module.IssueAuthCode(ctx, consent)
-		if err != nil {
-			_ = ctx.Error(err)
-			return
-		}
-
-		query.Set("code", authCode)
-		if st != "" {
-			query.Set("state", st)
-		}
-		if strings.Contains(consent.ResponseType, "id_token") {
-			query.Set("id_token", "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.TJVA95OrM7E2cBab30RMHrHDcEfxjoYZgeFONFh7HgQ")
-		}
-
-	} else {
-		if failureReason == "" {
-			failureReason = "access_denied"
-		}
-		query.Set("error", failureReason)
+	redirectURI, err := o.oauth2Module.RejectConsent(ctx.Request.Context(), consentId, failureReason)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
 	}
 
-	redirectURI.RawQuery = query.Encode()
-	ctx.Redirect(http.StatusFound, redirectURI.String())
+	ctx.Redirect(http.StatusFound, redirectURI)
 }
 
 // Token is used to exchange the authorization code for access token.

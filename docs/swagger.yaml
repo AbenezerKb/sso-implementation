@@ -384,7 +384,7 @@ paths:
       summary: Login a user.
       tags:
       - auth
-  /oauth/approval:
+  /oauth/approveConsent:
     get:
       consumes:
       - application/json
@@ -393,11 +393,6 @@ paths:
       - description: consentId
         in: query
         name: consentId
-        required: true
-        type: string
-      - description: access
-        in: query
-        name: access
         required: true
         type: string
       produces:
@@ -417,7 +412,7 @@ paths:
               type: string
           schema:
             $ref: '#/definitions/model.ErrorResponse'
-      summary: Approval.
+      summary: Consent Approval..
       tags:
       - OAuth2
   /oauth/authorize:
@@ -499,6 +494,42 @@ paths:
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: GetConsentByID.
+      tags:
+      - OAuth2
+  /oauth/rejectConsent:
+    get:
+      consumes:
+      - application/json
+      description: is used to reject consent.
+      parameters:
+      - description: consentId
+        in: query
+        name: consentId
+        required: true
+        type: string
+      - description: failureReason
+        in: query
+        name: failureReason
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+        "400":
+          description: invalid input
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Consent Rejection.
       tags:
       - OAuth2
   /oauth/scopes:

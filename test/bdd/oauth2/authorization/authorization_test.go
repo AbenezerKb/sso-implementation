@@ -32,7 +32,7 @@ type authRspQueryParams struct {
 
 func TestAuthorization(t *testing.T) {
 	a := &authorizationTest{}
-	a.TestInstance = test.Initiate("../../../")
+	a.TestInstance = test.Initiate("../../../../")
 	a.apiTest.InitializeTest(t, "Authorization test", "features/authorization.feature", a.InitializeScenario)
 
 }
