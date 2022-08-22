@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/casbin/casbin/v2"
-	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"sso/platform/logger"
 	"sso/platform/pgxadapter"
 )
 
-func InitEnforcer(path string, conn *pgx.Conn, log logger.Logger) *casbin.Enforcer {
+func InitEnforcer(path string, conn *pgxpool.Pool, log logger.Logger) *casbin.Enforcer {
 	adapter, err := pgxadapter.NewAdapterWithDB(conn)
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to create adapter: %v", err))

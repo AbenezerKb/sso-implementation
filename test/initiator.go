@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"net/http"
 	"os"
 	"sso/initiator"
@@ -19,7 +20,6 @@ import (
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/jackc/pgx/v4"
 	"github.com/spf13/viper"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
@@ -36,7 +36,7 @@ type TestInstance struct {
 	AccessToken string
 	enforcer    *casbin.Enforcer
 	Logger      logger.Logger
-	Conn        *pgx.Conn
+	Conn        *pgxpool.Pool
 }
 
 func Initiate(path string) TestInstance {
