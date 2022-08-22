@@ -3,6 +3,7 @@ package pgxadapter
 import (
 	"context"
 	"fmt"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"strings"
 	"time"
 
@@ -24,7 +25,7 @@ type Adapter struct {
 	schema    string
 	timeout   time.Duration
 	filtered  bool
-	db        *pgx.Conn
+	db        *pgxpool.Pool
 }
 
 type Filter struct {
@@ -34,7 +35,7 @@ type Filter struct {
 
 // NewAdapterByDB creates a new adapter with connection conn which must either be a PostgreSQL
 // connection or an instance of *pgx.ConnConfig from package github.com/jackc/pgx/v4.
-func NewAdapterWithDB(db *pgx.Conn) (*Adapter, error) {
+func NewAdapterWithDB(db *pgxpool.Pool) (*Adapter, error) {
 	a := &Adapter{
 		tableName: DefaultTableName,
 		timeout:   DefaultTimeout,
@@ -369,7 +370,7 @@ func (a *Adapter) UpdateFilteredPolicies(sec string, ptype string, newPolicies [
 
 func (a *Adapter) Close() {
 	if a != nil && a.db != nil {
-		a.db.Close(context.Background())
+		a.db.Close()
 	}
 }
 

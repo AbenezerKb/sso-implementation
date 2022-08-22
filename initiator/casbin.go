@@ -10,11 +10,7 @@ import (
 )
 
 func InitEnforcer(path string, conn *pgxpool.Pool, log logger.Logger) *casbin.Enforcer {
-	pgxConn, err := conn.Acquire(context.Background())
-	if err != nil {
-		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))
-	}
-	adapter, err := pgxadapter.NewAdapterWithDB(pgxConn.Conn())
+	adapter, err := pgxadapter.NewAdapterWithDB(conn)
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to create adapter: %v", err))
 	}
