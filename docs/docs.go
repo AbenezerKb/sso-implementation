@@ -285,6 +285,96 @@ const docTemplate = `{
                 }
             }
         },
+        "/oauth/scopes": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new scope",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scope"
+                ],
+                "summary": "Create a new scope",
+                "operationId": "create-scope",
+                "parameters": [
+                    {
+                        "description": "Create a new scope",
+                        "name": "scope",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/scopes/{name}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a scope",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scope"
+                ],
+                "summary": "Get a scope",
+                "operationId": "get-scope",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Scope name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Scope"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/token": {
             "post": {
                 "security": [
@@ -547,26 +637,26 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.Client"
                 },
                 "client_id": {
-                    "description": "The client identifier.",
+                    "description": "client identifier.",
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
+                "prompt": {
+                    "description": "specifies whether the Authorization Server MUST prompt the End-User for reauthentication.",
+                    "type": "string"
+                },
                 "redirect_uri": {
-                    "description": "The redirection URI used in the initial authorization request.",
+                    "description": "redirection URI used in the initial authorization request.",
                     "type": "string"
                 },
                 "response_type": {
-                    "description": "The redirection URI used in the initial authorization request.",
-                    "type": "string"
-                },
-                "roles": {
-                    "description": "Roles of the user.",
+                    "description": "redirection URI used in the initial authorization request.",
                     "type": "string"
                 },
                 "scope": {
-                    "description": "The scope of the access request expressed as a list of space-delimited,",
+                    "description": "scope of the access request expressed as a list of space-delimited,",
                     "type": "string"
                 },
                 "scopes": {
@@ -577,7 +667,7 @@ const docTemplate = `{
                     }
                 },
                 "state": {
-                    "description": "the state parameter passed in the initial authorization request.",
+                    "description": "state parameter passed in the initial authorization request.",
                     "type": "string"
                 },
                 "user": {
@@ -726,6 +816,10 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "The scope name.",
+                    "type": "string"
+                },
+                "resource_server_name": {
+                    "description": "resource server name",
                     "type": "string"
                 }
             }
