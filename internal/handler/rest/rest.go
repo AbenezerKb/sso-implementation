@@ -21,3 +21,8 @@ type User interface {
 type Client interface {
 	CreateClient(ctx *gin.Context)
 }
+
+type Scope interface {
+	GetScope(ctx *gin.Context)
+	CreateScope(ctx *gin.Context)
+}
