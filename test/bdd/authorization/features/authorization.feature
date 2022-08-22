@@ -5,7 +5,10 @@ Feature: obtaining authorization
     I want to obtain authorization from the resource owner
 
     So that I can request to get an access token or refresh token.
-
+    Background: there is registered scope
+        Given there is registered scope with following details:
+            | name   | description      |
+            | openid | scope for openid |
     Scenario Outline: Succesfull Obtaining Authorization
         Given I have the following parameters:
             | response_type   | client_id   | redirect_uri   | scope   | state   |

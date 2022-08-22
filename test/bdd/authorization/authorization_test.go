@@ -20,6 +20,7 @@ type authorizationTest struct {
 	apiTest      src.ApiTest
 	requestParam *dto.AuthorizationRequestParam
 	clientID     uuid.UUID
+	scope        dto.Scope
 }
 
 type authRspQueryParams struct {
@@ -150,6 +151,32 @@ func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingErrorParameters
 	return nil
 }
 
+func (a *authorizationTest) thereIsRegisteredScopeWithFollowingDetails(scopeForm *godog.Table) error {
+	scopeValue := dto.Scope{}
+	body, err := a.apiTest.ReadRow(scopeForm, nil, false)
+	if err != nil {
+		return err
+	}
+	if err := a.apiTest.UnmarshalJSONAt([]byte(body), "", &scopeValue); err != nil {
+		return err
+	}
+
+	createdValue, err := a.DB.CreateScope(context.Background(), db.CreateScopeParams{
+		Name:        scopeValue.Name,
+		Description: scopeValue.Description,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	a.scope = dto.Scope{
+		Name:        createdValue.Name,
+		Description: createdValue.Description,
+	}
+	return nil
+}
+
 func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		a.apiTest.URL = "/v1/oauth/authorize"
@@ -161,6 +188,7 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = a.DB.DeleteClient(context.Background(), a.clientID)
+		_, _ = a.DB.DeleteScope(context.Background(), a.scope.Name)
 		a.apiTest.QueryParams = nil
 		return ctx, nil
 	})
@@ -170,4 +198,6 @@ func (a *authorizationTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should be redirected to "([^"]*)" with the following error parameters:$`, a.iShouldBeRedirectedToWithTheFollowingErrorParameters)
 	ctx.Step(`^I should be redirected to "([^"]*)" with the following success parameters:$`, a.iShouldBeRedirectedToWithTheFollowingSuccessParameters)
 	ctx.Step(`^I have the following parameters with invalid client:$`, a.iHaveTheFollowingParametersWithInvalidClient)
+	ctx.Step(`^there is registered scope with following details:$`, a.thereIsRegisteredScopeWithFollowingDetails)
+
 }
