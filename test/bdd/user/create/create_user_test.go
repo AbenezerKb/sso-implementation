@@ -26,7 +26,7 @@ type createuserTest struct {
 func TestCreateuser(t *testing.T) {
 
 	c := &createuserTest{}
-	c.TestInstance = test.Initiate("../../../")
+	c.TestInstance = test.Initiate("../../../../")
 
 	c.apiTest.InitializeTest(t, "Create user test", "features/create_user.feature", c.InitializeScenario)
 }

@@ -26,7 +26,7 @@ type loginTest struct {
 
 func TestLogin(t *testing.T) {
 	a := &loginTest{}
-	a.TestInstance = test.Initiate("../../../")
+	a.TestInstance = test.Initiate("../../../../")
 	// create redis seeder
 	a.redisSeeder = seed.RedisDB{DB: a.Redis}
 	a.apiTest.InitializeTest(t, "Login test", "features/login.feature", a.InitializeScenario)
