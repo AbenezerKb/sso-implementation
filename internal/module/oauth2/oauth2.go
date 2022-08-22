@@ -154,7 +154,6 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string
 	clientStatus := true
 	check, refreshToken, err := o.oauth2Persistence.CheckIfUserGrantedClient(ctx, userID, client.ID)
 	if err != nil {
-		err := errors.ErrReadError.Wrap(err, "failed to check if user has already granted consent", zap.String("user id", userID.String()), zap.String("client id", client.ID.String()))
 		return dto.ConsentResponse{}, err
 	}
 
