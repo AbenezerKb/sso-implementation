@@ -1,6 +1,7 @@
 package scope
 
 import (
+	"sso/internal/constant/permissions"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
@@ -20,7 +21,7 @@ func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middle
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
 			},
-			UnAuthorize: true,
+			Permission: permissions.GetScope,
 		},
 		{
 			Method:  "POST",
@@ -30,7 +31,7 @@ func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middle
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
 			},
-			UnAuthorize: true,
+			Permission: permissions.CreateScope,
 		},
 	}
 	routing.RegisterRoutes(scopeGroup, scopeRoutes, enforcer)
