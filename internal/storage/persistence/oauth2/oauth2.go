@@ -37,11 +37,24 @@ func (o *oauth2) GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, erro
 }
 
 func (o *oauth2) GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error) {
-	return []dto.Scope{
-		{Name: "openid", Description: "openid"},
-		{Name: "profile", Description: "profile"},
-		{Name: "email", Description: "email"},
-	}, nil
+	namedScopes := []dto.Scope{}
+	for _, scope := range scopes {
+		scope, err := o.db.GetScope(ctx, scope)
+		if err != nil {
+			if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+				continue
+			}
+			err = errors.ErrReadError.Wrap(err, "could not read the scope")
+			o.logger.Error(ctx, "unable to read the scope", zap.Error(err), zap.Any("scope", scope))
+			return nil, err
+		}
+		namedScopes = append(namedScopes, dto.Scope{
+			Name:        scope.Name,
+			Description: scope.Description,
+		})
+
+	}
+	return namedScopes, nil
 }
 
 func (o *oauth2) AuthHistoryExists(ctx context.Context, code string) (bool, error) {
