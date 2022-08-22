@@ -12,6 +12,7 @@ import (
 
 	"sso/internal/glue/routing/oauth"
 	"sso/internal/glue/routing/oauth2"
+	"sso/internal/glue/routing/scope"
 	"sso/internal/glue/routing/user"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
@@ -28,4 +29,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	oauth2.InitRoute(group, handler.oauth2, authMiddleware, enforcer)
 	user.InitRoute(group, handler.user, authMiddleware, enforcer)
 	client.InitRoute(group, handler.client, authMiddleware, enforcer)
+	scope.InitRoute(group, handler.scope, authMiddleware, enforcer)
 }
