@@ -120,7 +120,14 @@ func (o *oauth2) ContainsRedirectURL(redirectURIs []string, redirectURI string) 
 	return false
 }
 
-func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string) (dto.ConsentResponse, error) {
+func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.ConsentResponse, error) {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Error(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		return dto.ConsentResponse{}, err
+	}
+
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
 		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")

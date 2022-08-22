@@ -3,6 +3,7 @@ package create
 import (
 	"context"
 	"net/http"
+	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
@@ -15,6 +16,7 @@ type scopeCreateTest struct {
 	test.TestInstance
 	apiTest src.ApiTest
 	scope   dto.Scope
+	User    db.User
 }
 
 func TestScopeCreation(t *testing.T) {
@@ -24,12 +26,13 @@ func TestScopeCreation(t *testing.T) {
 }
 
 func (s *scopeCreateTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) error {
-	err := s.Authenicate(adminCredentials)
+	var err error
+	s.User, err = s.Authenticate(adminCredentials)
 	if err != nil {
 		return err
 	}
 
-	return nil
+	return s.GrantRoleForUser(s.User.ID.String(), adminCredentials)
 }
 
 func (s *scopeCreateTest) iCreateTheScope() error {

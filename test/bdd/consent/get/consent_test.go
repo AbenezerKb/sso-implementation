@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"sso/platform/utils"
 	"sso/test"
 	"testing"
 
@@ -135,25 +134,6 @@ func (g *getConsentTest) invalidUserID(user_id string) error {
 	return nil
 }
 
-func (g *getConsentTest) userWithID(user_id string) error {
-	// seed user
-	hash, err := utils.HashAndSalt(context.Background(), []byte("password"), g.Logger)
-	if err != nil {
-		return err
-	}
-	userData, err := g.DB.CreateUser(context.Background(), db.CreateUserParams{
-		Phone:    "1234567890",
-		Email:    utils.StringOrNull("email"),
-		Password: hash,
-	})
-	if err != nil {
-		return err
-	}
-	g.userData = userData
-	g.apiTest.SetQueryParam("user_id", userData.ID.String())
-	return nil
-}
-
 func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
@@ -165,7 +145,6 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		_, _ = g.DB.DeleteUser(ctx, g.userData.ID)
 		_, _ = g.DB.DeleteUser(ctx, g.User.ID)
 		_ = g.redisSeeder.Starve(g.redisModel)
 		return ctx, nil
@@ -178,5 +157,4 @@ func (g *getConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should get valid consent data$`, g.iShouldGetValidConsentData)
 	ctx.Step(`^Invalid user ID "([^"]*)"$`, g.invalidUserID)
 	ctx.Step(`^I have a consent with the following details$`, g.iHaveAConsentWithTheFollowingDetails)
-	ctx.Step(`^user with ID "([^"]*)"$`, g.userWithID)
 }
