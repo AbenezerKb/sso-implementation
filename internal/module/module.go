@@ -31,3 +31,8 @@ type ClientModule interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 }
+
+type ScopeMoudle interface {
+	GetScope(ctx context.Context, scope string) (dto.Scope, error)
+	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
+}

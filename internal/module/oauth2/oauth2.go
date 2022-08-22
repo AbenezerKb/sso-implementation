@@ -41,9 +41,10 @@ type oauth2 struct {
 	authCodeCache     storage.AuthCodeCache
 	token             platform.Token
 	options           Options
+	scopePersistence  storage.ScopePersistence
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options, scope storage.ScopePersistence) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
@@ -53,6 +54,7 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 		authCodeCache:     authCodeCache,
 		token:             token,
 		options:           options,
+		scopePersistence:  scope,
 	}
 }
 
@@ -132,7 +134,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string, id string
 	}
 
 	// get scopes
-	requestedscopes, err := o.oauth2Persistence.GetNamedScopes(ctx, strings.Split(consent.Scope, " ")...)
+	requestedscopes, err := o.scopePersistence.GetListedScopes(ctx, strings.Split(consent.Scope, " ")...)
 	if err != nil {
 		return dto.ConsentResponse{}, err
 	}
