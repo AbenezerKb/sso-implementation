@@ -2,8 +2,9 @@ package utils
 
 import (
 	"context"
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"io"
 	"sso/platform/logger"
 	"strings"
 	"time"
@@ -30,11 +31,12 @@ func GenerateRandomString(length int, includeSpecial bool) string {
 		str += specialBytes
 	}
 
-	rand.Seed(time.Now().Unix())
 	randString := make([]byte, length)
-	for i := range randString {
-		randString[i] = str[rand.Int63()%int64(len(str))]
+	io.ReadAtLeast(rand.Reader, randString, length)
+	for i := 0; i < len(randString); i++ {
+		randString[i] = str[int(randString[i])%len(str)]
 	}
+
 	return string(randString)
 }
 
