@@ -140,6 +140,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // @Success      200  {object}  dto.ConsentData
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Router       /oauth/consent/{id} [get]
+// @Security	BearerAuth
 func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 	consentID := ctx.Param("id")
 	consent, err := o.oauth2Module.GetConsentByID(ctx.Request.Context(), consentID)
@@ -161,6 +162,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/approveConsent [get]
+// @Security	BearerAuth
 func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	consentId := ctx.Query("consentId")
 	requestCtx := ctx.Request.Context()
