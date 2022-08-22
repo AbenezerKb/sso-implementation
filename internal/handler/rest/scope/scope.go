@@ -67,7 +67,7 @@ func (s *scope) CreateScope(ctx *gin.Context) {
 	err := ctx.ShouldBind(&scopeParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		s.logger.Info(ctx, "couldn't bind to dto.Scope body", zap.Error(err))
+		s.logger.Info(ctx, "couldn't bind", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
@@ -78,6 +78,6 @@ func (s *scope) CreateScope(ctx *gin.Context) {
 		return
 	}
 
-	s.logger.Info(ctx, "created scope")
+	s.logger.Info(ctx, "created scope", zap.Any("scope", createdScope))
 	constant.SuccessResponse(ctx, http.StatusCreated, createdScope, nil)
 }

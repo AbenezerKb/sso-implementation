@@ -35,8 +35,13 @@ func (s *scopeModule) CreateScope(ctx context.Context, scope dto.Scope) (dto.Sco
 		return dto.Scope{}, err
 	}
 
+	name := scope.Name
+	if scope.ResourceServerName != "" {
+		name = scope.ResourceServerName + "." + name
+	}
+
 	return s.scopePersistence.CreateScope(ctx, dto.Scope{
-		Name:               scope.ResourceServerName + "." + scope.Name,
+		Name:               name,
 		Description:        scope.Description,
 		ResourceServerName: scope.ResourceServerName,
 	})
