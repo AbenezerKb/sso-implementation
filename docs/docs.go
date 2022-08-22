@@ -113,6 +113,11 @@ const docTemplate = `{
         },
         "/oauth/approveConsent": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "is used to approve consent.",
                 "consumes": [
                     "application/json"
@@ -235,6 +240,11 @@ const docTemplate = `{
         },
         "/oauth/consent/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "is used to get consent by id.",
                 "consumes": [
                     "application/json"

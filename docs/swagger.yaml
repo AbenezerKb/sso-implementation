@@ -412,6 +412,8 @@ paths:
               type: string
           schema:
             $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Consent Approval..
       tags:
       - OAuth2
@@ -493,6 +495,8 @@ paths:
           description: invalid input
           schema:
             $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: GetConsentByID.
       tags:
       - OAuth2
