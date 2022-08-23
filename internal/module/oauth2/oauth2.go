@@ -86,7 +86,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		}, err
 	}
 
-	scopes, err := o.oauth2Persistence.GetNamedScopes(ctx, strings.Split(authRequestParm.Scope, " ")...)
+	scopes, err := o.scopePersistence.GetListedScopes(ctx, strings.Split(authRequestParm.Scope, " ")...)
 	if err != nil || len(scopes) == 0 {
 		err := errors.ErrInvalidUserInput.New("invalid scope")
 		o.logger.Info(ctx, "invalid scope", zap.Error(err))
@@ -96,9 +96,21 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		}, err
 	}
 
+	scopeStr := ""
+	for _, x := range scopes {
+		scopeStr += x.Name + " "
+	}
+
 	consent := dto.Consent{
-		ID:                        uuid.New(),
-		AuthorizationRequestParam: authRequestParm,
+		ID: uuid.New(),
+		AuthorizationRequestParam: dto.AuthorizationRequestParam{
+			ClientID:     client.ID,
+			Scope:        strings.TrimSpace(scopeStr),
+			RedirectURI:  authRequestParm.RedirectURI,
+			State:        authRequestParm.State,
+			ResponseType: authRequestParm.ResponseType,
+			Prompt:       authRequestParm.Prompt,
+		},
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
 		return "", errors.AuhtErrResponse{
