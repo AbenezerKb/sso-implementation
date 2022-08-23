@@ -21,7 +21,6 @@ type OAuth2Module interface {
 	GetConsentByID(ctx context.Context, consentID string) (dto.ConsentResponse, error)
 	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID) (string, error)
 	RejectConsent(ctx context.Context, consentID, failureReason string) (string, error)
-	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
 	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
 }
 type UserModule interface {

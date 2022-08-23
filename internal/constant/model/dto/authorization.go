@@ -10,11 +10,10 @@ import (
 
 type Consent struct {
 	AuthorizationRequestParam
+	// ID is the unique id of this consent
 	ID uuid.UUID `json:"id"`
-	// The consent status.
+	// Approved tells if this consent is approved by the user
 	Approved bool `json:"approved"`
-	// Users Id
-	UserID uuid.UUID `json:"userID"`
 }
 
 type AuthCode struct {
@@ -32,15 +31,6 @@ type AuthCode struct {
 	State string `json:"state"`
 }
 
-type ConsentData struct {
-	Consent
-	// The user data
-	User *User `json:"user"`
-	// The client data
-	Client *Client `json:"client"`
-	// The scope data
-	Scopes []Scope `json:"scopes"`
-}
 type AuthorizationRequestParam struct {
 	// client identifier.
 	ClientID uuid.UUID `form:"-" query:"-" json:"client_id,omitempty"`
@@ -88,19 +78,21 @@ type AuthHistory struct {
 }
 
 type ConsentResponse struct {
+	// Scopes is the list of scopes this consent holds
 	Scopes []Scope `json:"scopes"`
-	// client name
-	Client_Name string `json:"client_name"`
-	// client logo
-	Client_Logo string `json:"client_logo"`
-	// client Type
-	Client_Type string `json:"client_type"`
-	// is the client fully trusted
-	Client_Trusted bool `json:"client_trusted"`
-	// client id
-	Client_ID uuid.UUID `json:"client_id"`
-	// user id
-	User_ID uuid.UUID `json:"user_id"`
-	// whether the user has consented to the scopes
+	// ClientName is the name of the client
+	ClientName string `json:"client_name"`
+	// ClientLogo is the logo url of the client
+	ClientLogo string `json:"client_logo"`
+	// ClientType is the type of the client
+	// It might be confidential or public
+	ClientType string `json:"client_type"`
+	// ClientTrusted tells if this client is a trusted first party client
+	ClientTrusted bool `json:"client_trusted"`
+	// ClientID is the id of the client given at the time of registration
+	ClientID uuid.UUID `json:"client_id"`
+	// UserID is the id of the user this consent is being given to
+	UserID uuid.UUID `json:"user_id"`
+	// Approved tells if this exact scope is previously approved by this user
 	Approved bool `json:"approved"`
 }

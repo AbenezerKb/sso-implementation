@@ -177,14 +177,14 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 		clientStatus = false
 	}
 	return dto.ConsentResponse{
-		Scopes:         requestedscopes,
-		Client_Name:    client.Name,
-		Client_Logo:    client.LogoURL,
-		Client_Type:    client.ClientType,
-		Client_Trusted: true,
-		Client_ID:      client.ID,
-		Approved:       clientStatus,
-		User_ID:        user.ID,
+		Scopes:        requestedscopes,
+		ClientName:    client.Name,
+		ClientLogo:    client.LogoURL,
+		ClientType:    client.ClientType,
+		ClientTrusted: true,
+		ClientID:      client.ID,
+		Approved:      clientStatus,
+		UserID:        user.ID,
 	}, nil
 }
 
@@ -269,19 +269,6 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 
 	redirectURI.RawQuery = query.Encode()
 	return redirectURI.String(), nil
-}
-func (o *oauth2) IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error) {
-	authCode := dto.AuthCode{
-		Code:        uuid.New().String(),
-		Scope:       consent.Scope,
-		RedirectURI: consent.AuthorizationRequestParam.RedirectURI,
-		ClientID:    consent.ClientID,
-		UserID:      consent.UserID,
-	}
-	if err := o.authCodeCache.SaveAuthCode(ctx, authCode); err != nil {
-		return "", consent.State, err
-	}
-	return authCode.Code, consent.State, nil
 }
 
 func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
