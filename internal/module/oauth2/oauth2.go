@@ -188,7 +188,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 		ClientName:    client.Name,
 		ClientLogo:    client.LogoURL,
 		ClientType:    client.ClientType,
-		ClientTrusted: true,
+		ClientTrusted: false,
 		ClientID:      client.ID,
 		Approved:      clientStatus,
 		UserID:        user.ID,
