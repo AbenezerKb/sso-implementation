@@ -148,7 +148,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, consent)
+	constant.SuccessResponse(ctx, http.StatusOK, consent, nil)
 }
 
 // ApproveConsent is used to approve consent.
