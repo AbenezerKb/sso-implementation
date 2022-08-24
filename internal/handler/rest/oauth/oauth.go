@@ -122,3 +122,25 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 	o.logger.Info(ctx, "OTP sent", zap.String("phone", phone))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// Login logs in a user.
+// @Summary      logout  user.
+// @Description  logout user.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      401  {object}  model.ErrorResponse "unauthorized"
+// @Router       /logout [get]
+func (o *oauth) Logout(ctx *gin.Context) {
+	err := o.oauthModule.Logout(ctx.Request.Context())
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	// change opbs
+	// ctx.SetCookie("opbs", utils.GenerateNewOPBS() , 3600, "/", "", true, false)
+
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
