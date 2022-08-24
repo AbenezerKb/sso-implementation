@@ -59,7 +59,7 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 	}
 }
 
-func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam) (string, errors.AuhtErrResponse, error) {
+func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam, requestOrigin string) (string, errors.AuhtErrResponse, error) {
 	if err := authRequestParm.Validate(); err != nil {
 		errRsp := errors.AuhtErrResponse{
 			Error:            "invalid_request",
@@ -106,6 +106,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 			ResponseType: authRequestParm.ResponseType,
 			Prompt:       authRequestParm.Prompt,
 		},
+		RequestOrigin: requestOrigin,
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
 		return "", errors.AuhtErrResponse{

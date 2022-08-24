@@ -14,6 +14,8 @@ type Consent struct {
 	ID uuid.UUID `json:"id"`
 	// Approved tells if this consent is approved by the user
 	Approved bool `json:"approved"`
+	// RequestOrigin is the origin of the client requesting authorization
+	RequestOrigin string
 }
 
 type AuthCode struct {

@@ -95,8 +95,19 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		ctx.Redirect(http.StatusFound, errorURL.String())
 		return
 	}
+	requestOrigin := ctx.Request.Host
+	if requestOrigin == "" {
+		err := errors.ErrInvalidUserInput.New("invalid request origin")
+		o.logger.Warn(ctx, "a request without a request origin header was made", zap.Error(err))
+		errQuery.Set("error", err.Message())
+		errQuery.Set("error_description", err.Error())
+		errQuery.Set("error_code", "400")
 
-	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam)
+		errorURL.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusFound, errorURL.String())
+		return
+	}
+	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam, requestOrigin)
 	if err != nil {
 		o.logger.Info(ctx, "error while authorizing authorization request", zap.Error(err), zap.Any("auth-request-param", authRequestParam))
 		errQuery.Set("error", authErrRsp.Error)
