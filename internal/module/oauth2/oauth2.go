@@ -86,8 +86,8 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		}, err
 	}
 
-	scopes, err := o.scopePersistence.GetListedScopes(ctx, strings.Split(authRequestParm.Scope, " ")...)
-	if err != nil || len(scopes) == 0 {
+	scopes, err := o.scopePersistence.GetScopeNameOnly(ctx, strings.Split(authRequestParm.Scope, " ")...)
+	if err != nil || scopes == "" {
 		err := errors.ErrInvalidUserInput.New("invalid scope")
 		o.logger.Info(ctx, "invalid scope", zap.Error(err))
 		return "", errors.AuhtErrResponse{
@@ -96,16 +96,11 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		}, err
 	}
 
-	scopeStr := ""
-	for _, x := range scopes {
-		scopeStr += x.Name + " "
-	}
-
 	consent := dto.Consent{
 		ID: uuid.New(),
 		AuthorizationRequestParam: dto.AuthorizationRequestParam{
 			ClientID:     client.ID,
-			Scope:        strings.TrimSpace(scopeStr),
+			Scope:        scopes,
 			RedirectURI:  authRequestParm.RedirectURI,
 			State:        authRequestParm.State,
 			ResponseType: authRequestParm.ResponseType,
