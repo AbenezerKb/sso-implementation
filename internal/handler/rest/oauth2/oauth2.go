@@ -10,6 +10,7 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -196,12 +197,19 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentId, userID)
+
+	opbs, err := ctx.Request.Cookie("opbs")
+	if err != nil {
+		err := errors.ErrAuthError.Wrap(err, "user not logged in")
+		o.logger.Info(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
+	}
+	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentId, userID, opbs.Value)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	ctx.Redirect(http.StatusFound, redirectURI)
 }
 

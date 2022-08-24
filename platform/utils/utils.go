@@ -60,3 +60,11 @@ func ContainsValue(str string, arr []string) bool {
 	}
 	return false
 }
+
+func GenerateNewOPBS() string {
+	return GenerateRandomString(100, true)
+}
+
+func CalculateSessionState(client_id, origin, opbs string) string {
+	return "not implemented"
+}

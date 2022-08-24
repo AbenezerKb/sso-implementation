@@ -196,7 +196,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 	}, nil
 }
 
-func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID) (string, error) {
+func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error) {
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
@@ -245,6 +245,9 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		}
 		query.Set("id_token", idToken)
 	}
+	// calculate session state
+	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs)
+	query.Set("session_state", sessionState)
 
 	redirectURI.RawQuery = query.Encode()
 	return redirectURI.String(), nil
