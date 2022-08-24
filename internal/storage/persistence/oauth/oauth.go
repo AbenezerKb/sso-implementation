@@ -210,3 +210,29 @@ func (o *oauth) GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error
 		Phone:      user.Phone,
 	}, nil
 }
+
+func (o *oauth) SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error {
+	_, err := o.db.SaveInternalRefreshToken(ctx, db.SaveInternalRefreshTokenParams{
+		UserID:       rf.UserID,
+		Refreshtoken: rf.Refreshtoken,
+	})
+
+	if err != nil {
+		err = errors.ErrWriteError.Wrap(err, "could not save internal rf token")
+		o.logger.Error(ctx, "could not save internal refresh token", zap.Error(err), zap.Any("internalRefrshToken", rf))
+		return err
+	}
+
+	return nil
+}
+
+func (o *oauth) RemoveInternalRefreshToken(ctx context.Context, id uuid.UUID) error {
+	err := o.db.RemoveInternalRefreshToken(ctx, id)
+	if err != nil {
+		err = errors.ErrDBDelError.Wrap(err, "could not remove internal rf token")
+		o.logger.Error(ctx, "could not remove internal rf token", zap.Error(err), zap.Any("user_id", id))
+		return err
+	}
+
+	return nil
+}

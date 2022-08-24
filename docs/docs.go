@@ -111,6 +111,32 @@ const docTemplate = `{
                 }
             }
         },
+        "/logout": {
+            "get": {
+                "description": "logout user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "logout  user.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/approveConsent": {
             "get": {
                 "security": [

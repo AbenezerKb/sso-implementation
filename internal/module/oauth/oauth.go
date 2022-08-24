@@ -147,11 +147,13 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	refreshToken := o.token.GenerateRefreshToken(ctx)
 
 	// TODO: persist the refresh token
-	//err = o.cache.Set(ctx, refreshToken, user.ID.String(), time.Hour*24*7).Err()
-	//if err != nil {
-	//	o.logger.Error(ctx, "could not persist refresh token", zap.Error(err))
-	//	return nil, errors.ErrCacheSetError.Wrap(err, "could not persist refresh token")
-	//}
+	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+		Refreshtoken: refreshToken,
+		UserID:       user.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	idToken, err := o.token.GenerateIdToken(ctx, user)
 	if err != nil {
@@ -197,4 +199,26 @@ func (o *oauth) GetUserStatus(ctx context.Context, Id string) (string, error) {
 	}
 
 	return status, nil
+}
+
+func (o *oauth) Logout(ctx context.Context) error {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Error(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		return err
+	}
+	userId, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "could not parse user id")
+		o.logger.Error(ctx, "parse error", zap.Error(err))
+		return err
+	}
+
+	err = o.oauthPersistence.RemoveInternalRefreshToken(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
