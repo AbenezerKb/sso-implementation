@@ -34,6 +34,7 @@ func (l *logoutTest) iAmALogedinUserWithTheFollowingDetails(userCredentials *god
 }
 
 func (l *logoutTest) iLogout() error {
+	l.apiTest.SetHeader("Authorization", "Bearer "+l.AccessToken)
 	l.apiTest.SendRequest()
 	return nil
 }
@@ -48,7 +49,7 @@ func (l *logoutTest) iShouldSuccessfullyLogoutOfTheSystem() error {
 func (l *logoutTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		l.apiTest.URL = "/v1/logout"
-		l.apiTest.Method = http.MethodPost
+		l.apiTest.Method = http.MethodGet
 		l.apiTest.SetHeader("Content-Type", "application/json")
 		l.apiTest.InitializeServer(l.Server)
 		return ctx, nil
