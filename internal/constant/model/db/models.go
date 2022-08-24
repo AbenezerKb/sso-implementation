@@ -34,6 +34,15 @@ type Client struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
+type Internalrefreshtoken struct {
+	ID           uuid.UUID `json:"id"`
+	Refreshtoken string    `json:"refreshtoken"`
+	UserID       uuid.UUID `json:"user_id"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	CreatedAt    time.Time `json:"created_at"`
+	UpdatedAt    time.Time `json:"updated_at"`
+}
+
 type Refreshtoken struct {
 	ID           uuid.UUID      `json:"id"`
 	Refreshtoken string         `json:"refreshtoken"`
