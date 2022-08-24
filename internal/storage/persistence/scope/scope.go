@@ -9,6 +9,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"go.uber.org/zap"
 )
@@ -77,4 +78,17 @@ func (s *scopePersistence) CreateScope(ctx context.Context, scope dto.Scope) (dt
 		Name:        createdScope.Name,
 		Description: createdScope.Description,
 	}, nil
+}
+
+func (s *scopePersistence) GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error) {
+	scopesAry, err := s.GetListedScopes(ctx, scopes...)
+	if err != nil {
+		return "", err
+	}
+	scopeNameAry := []string{}
+	for _, x := range scopesAry {
+		scopeNameAry = append(scopeNameAry, x.Name)
+	}
+	scopeStr := utils.ArrayToString(scopeNameAry)
+	return scopeStr, nil
 }

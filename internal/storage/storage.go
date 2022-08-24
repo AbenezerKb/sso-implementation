@@ -61,4 +61,5 @@ type ScopePersistence interface {
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	GetListedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
+	GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error)
 }
