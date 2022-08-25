@@ -104,3 +104,12 @@ type ConsentResponse struct {
 	// whether the user has consented to the scopes
 	Approved bool `json:"approved"`
 }
+
+type LogoutRequest struct {
+	IDTokenHint           string `form:"id_token_hint" json:"id_token_hint"`
+	LogoutHint            string `form:"logout_hint" json:"logout_hint"`
+	ClientID              string `form:"client_id" json:"client_id"`
+	PostLogoutRedirectUri string `form:"post_logout_redirect_uri" json:"post_logout_redirect_uri"`
+	State                 string `state:"" json:"state"`
+	UiLocales             string `form:"ui_locales" json:"ui_locales"`
+}
