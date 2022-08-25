@@ -262,3 +262,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
 }
+
+func (o *oauth2) Logout(ctx *gin.Context) {
+
+}
