@@ -138,7 +138,7 @@ const docTemplate = `{
             }
         },
         "/oauth/approveConsent": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -315,7 +315,7 @@ const docTemplate = `{
             }
         },
         "/oauth/rejectConsent": {
-            "get": {
+            "post": {
                 "description": "is used to reject consent.",
                 "consumes": [
                     "application/json"
