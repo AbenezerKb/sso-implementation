@@ -146,7 +146,6 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	}
 	refreshToken := o.token.GenerateRefreshToken(ctx)
 
-	// TODO: persist the refresh token
 	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
 		Refreshtoken: refreshToken,
 		UserID:       user.ID,
