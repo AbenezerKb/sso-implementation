@@ -131,7 +131,7 @@
             }
         },
         "/oauth/approveConsent": {
-            "get": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -308,7 +308,7 @@
             }
         },
         "/oauth/rejectConsent": {
-            "get": {
+            "post": {
                 "description": "is used to reject consent.",
                 "consumes": [
                     "application/json"

@@ -402,7 +402,7 @@ paths:
       tags:
       - auth
   /oauth/approveConsent:
-    get:
+    post:
       consumes:
       - application/json
       description: is used to approve consent.
@@ -518,7 +518,7 @@ paths:
       tags:
       - OAuth2
   /oauth/rejectConsent:
-    get:
+    post:
       consumes:
       - application/json
       description: is used to reject consent.
