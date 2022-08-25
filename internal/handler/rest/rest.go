@@ -6,6 +6,7 @@ type OAuth interface {
 	Register(ctx *gin.Context)
 	Login(ctx *gin.Context)
 	RequestOTP(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 }
 
 type OAuth2 interface {

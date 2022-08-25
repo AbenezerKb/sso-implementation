@@ -69,7 +69,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return "", errRsp, err
 	}
-	client, err := o.oauth2Persistence.GetClient(ctx, authRequestParm.ClientID)
+	client, err := o.clientPersistence.GetClientByID(ctx, authRequestParm.ClientID)
 	if err != nil {
 		return "", errors.AuhtErrResponse{
 			Error:            "invalid_client",

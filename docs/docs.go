@@ -111,8 +111,34 @@ const docTemplate = `{
                 }
             }
         },
-        "/oauth/approveConsent": {
+        "/logout": {
             "get": {
+                "description": "logout user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "logout  user.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/oauth/approveConsent": {
+            "post": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -289,7 +315,7 @@ const docTemplate = `{
             }
         },
         "/oauth/rejectConsent": {
-            "get": {
+            "post": {
                 "description": "is used to reject consent.",
                 "consumes": [
                     "application/json"

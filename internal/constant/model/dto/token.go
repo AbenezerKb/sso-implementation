@@ -89,3 +89,19 @@ type RefreshToken struct {
 	// It is automatically set when the refresh token is created.
 	CreatedAt time.Time `json:"created_at"`
 }
+
+type InternalRefreshToken struct {
+	// ID is the unique identifier for the refresh token.
+	// It is automatically generated when the refresh token is created.
+	ID uuid.UUID `json:"id"`
+	// Refreshtoken is the opaque string users uses to refresh access token.
+	Refreshtoken string `json:"refreshtoken"`
+	// ExpiresAt is time the refresh token is going to be expired.
+	// UserID is the id of the user who granted access to the client.
+	UserID uuid.UUID `json:"user_id"`
+	// ExpiresAt is time the refresh token is going to be expired.
+	ExpiresAt time.Time `json:"expires_at"`
+	// CreatedAt is the time when the refresh token is created.
+	// It is automatically set when the refresh token is created.
+	CreatedAt time.Time `json:"created_at"`
+}

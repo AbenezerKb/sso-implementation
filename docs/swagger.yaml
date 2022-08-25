@@ -384,8 +384,25 @@ paths:
       summary: Login a user.
       tags:
       - auth
-  /oauth/approveConsent:
+  /logout:
     get:
+      consumes:
+      - application/json
+      description: logout user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: logout  user.
+      tags:
+      - auth
+  /oauth/approveConsent:
+    post:
       consumes:
       - application/json
       description: is used to approve consent.
@@ -501,7 +518,7 @@ paths:
       tags:
       - OAuth2
   /oauth/rejectConsent:
-    get:
+    post:
       consumes:
       - application/json
       description: is used to reject consent.
