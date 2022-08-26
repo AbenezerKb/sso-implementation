@@ -8,6 +8,7 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -80,18 +81,11 @@ func (o *oauth) Login(ctx *gin.Context) {
 		return
 	}
 
-	//Todo: save session
-	//Todo: possibly redirect to authorize endpoint
-
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	ctx.SetCookie("access_token", loginRsp.AccessToken, 3600, "/", "", false, true)
 	ctx.SetCookie("id_token", loginRsp.RefreshToken, 12000, "/", "", false, true)
 	o.logger.Info(ctx, "user logged in")
 
-	//redirectUrl := ctx.Query("redirect_url")
-	//if redirectUrl == "" {
-	//	redirectUrl = "/"
-	//}
-	//ctx.Redirect(http.StatusFound, redirectUrl)
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }
 
@@ -123,7 +117,7 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
-// Login logs in a user.
+// Logout logs out a user.
 // @Summary      logout  user.
 // @Description  logout user.
 // @Tags         auth
@@ -140,7 +134,6 @@ func (o *oauth) Logout(ctx *gin.Context) {
 	}
 
 	// change opbs
-	// ctx.SetCookie("opbs", utils.GenerateNewOPBS() , 3600, "/", "", true, false)
-
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }

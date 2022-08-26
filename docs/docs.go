@@ -302,7 +302,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.ConsentData"
+                            "$ref": "#/definitions/dto.ConsentResponse"
                         }
                     },
                     "400": {
@@ -708,57 +708,42 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ConsentData": {
+        "dto.ConsentResponse": {
             "type": "object",
             "properties": {
                 "approved": {
-                    "description": "The consent status.",
+                    "description": "Approved tells if this exact scope is previously approved by this user",
                     "type": "boolean"
                 },
-                "client": {
-                    "description": "The client data",
-                    "$ref": "#/definitions/dto.Client"
-                },
                 "client_id": {
-                    "description": "client identifier.",
+                    "description": "ClientID is the id of the client given at the time of registration",
                     "type": "string"
                 },
-                "id": {
+                "client_logo": {
+                    "description": "ClientLogo is the logo url of the client",
                     "type": "string"
                 },
-                "prompt": {
-                    "description": "specifies whether the Authorization Server MUST prompt the End-User for reauthentication.",
+                "client_name": {
+                    "description": "ClientName is the name of the client",
                     "type": "string"
                 },
-                "redirect_uri": {
-                    "description": "redirection URI used in the initial authorization request.",
-                    "type": "string"
+                "client_trusted": {
+                    "description": "ClientTrusted tells if this client is a trusted first party client",
+                    "type": "boolean"
                 },
-                "response_type": {
-                    "description": "redirection URI used in the initial authorization request.",
-                    "type": "string"
-                },
-                "scope": {
-                    "description": "scope of the access request expressed as a list of space-delimited,",
+                "client_type": {
+                    "description": "ClientType is the type of the client\nIt might be confidential or public",
                     "type": "string"
                 },
                 "scopes": {
-                    "description": "The scope data",
+                    "description": "Scopes is the list of scopes this consent holds",
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.Scope"
                     }
                 },
-                "state": {
-                    "description": "state parameter passed in the initial authorization request.",
-                    "type": "string"
-                },
-                "user": {
-                    "description": "The user data",
-                    "$ref": "#/definitions/dto.User"
-                },
-                "userID": {
-                    "description": "Users Id",
+                "user_id": {
+                    "description": "UserID is the id of the user this consent is being given to",
                     "type": "string"
                 }
             }
