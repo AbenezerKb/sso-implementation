@@ -16,7 +16,7 @@ type OAuthPersistence interface {
 	UserByEmailExists(ctx context.Context, email string) (bool, error)
 	GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error)
 	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
-	RemoveInternalRefreshToken(ctx context.Context, id uuid.UUID) error
+	RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error
 	SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error
 }
 
