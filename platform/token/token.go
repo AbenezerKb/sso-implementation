@@ -16,21 +16,6 @@ import (
 	"go.uber.org/zap"
 )
 
-type Options struct {
-	AccessTokenExpireTime  time.Duration
-	RefreshTokenExpireTime time.Duration
-}
-
-func SetOptions(options Options) Options {
-	if options.AccessTokenExpireTime == 0 {
-		options.AccessTokenExpireTime = time.Minute * 10
-	}
-	if options.RefreshTokenExpireTime == 0 {
-		options.RefreshTokenExpireTime = time.Hour * 24 * 30
-	}
-	return options
-}
-
 type Jwt struct {
 	logger     logger.Logger
 	privateKey *rsa.PrivateKey
@@ -65,7 +50,7 @@ func (j *Jwt) GenerateRefreshToken(ctx context.Context) string {
 	return utils.GenerateRandomString(25, true)
 }
 
-func (j *Jwt) GenerateIdToken(ctx context.Context, user *dto.User) (string, error) {
+func (j *Jwt) GenerateIdToken(ctx context.Context, user *dto.User, clientId string, expiresAt time.Duration) (string, error) {
 	claims := dto.IDTokenPayload{
 		FirstName:   user.FirstName,
 		MiddleName:  user.MiddleName,
@@ -74,7 +59,10 @@ func (j *Jwt) GenerateIdToken(ctx context.Context, user *dto.User) (string, erro
 		Email:       user.Email,
 		PhoneNumber: user.Phone,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(user.CreatedAt),
+			Subject:   user.ID.String(),
+			Audience:  jwt.ClaimStrings{clientId},
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresAt)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
 
@@ -107,4 +95,30 @@ func (j *Jwt) VerifyToken(signingMethod jwt.SigningMethod, token string) (bool, 
 		return false, claims
 	}
 	return true, claims
+}
+
+func (j *Jwt) VerifyIdToken(signingMethod jwt.SigningMethod, token string) (bool, *dto.IDTokenPayload) {
+	claims := &dto.IDTokenPayload{}
+
+	segments := strings.Split(token, ".")
+	if len(segments) < 3 {
+		return false, claims
+	}
+
+	err := signingMethod.Verify(strings.Join(segments[:2], "."), segments[2], j.publicKey)
+	if err != nil {
+		return false, claims
+	}
+
+	if _, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodRSAPSS); !ok {
+			return nil, fmt.Errorf("unexpected siging method %v", t.Header["alg"])
+		}
+		return j.publicKey, nil
+	}); err != nil {
+		return false, claims
+	}
+
+	return true, claims
+
 }
