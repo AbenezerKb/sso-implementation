@@ -149,7 +149,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 // @Produce      json
 // @param id path string true "id"
 // @param user_id query string true "user_id"
-// @Success      200  {object}  dto.ConsentData
+// @Success      200  {object}  dto.ConsentResponse
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Router       /oauth/consent/{id} [get]
 // @Security	BearerAuth
