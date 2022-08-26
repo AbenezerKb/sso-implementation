@@ -14,7 +14,7 @@ type OAuthModule interface {
 	ComparePassword(hashedPwd, plainPassword string) bool
 	RequestOTP(ctx context.Context, phone string, rqType string) error
 	GetUserStatus(ctx context.Context, Id string) (string, error)
-	Logout(ctx context.Context) error
+	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
 }
 
 type OAuth2Module interface {
