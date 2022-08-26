@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -291,6 +292,7 @@ func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessT
 
 	grantTypes := map[string]func(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error){
 		constant.AuthorizationCode: o.authorizationCodeGrant,
+		constant.RefreshToken:      o.refreshToken,
 	}
 
 	// Grant processing
@@ -400,4 +402,69 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		RefreshToken: refreshToken.Refreshtoken,
 		IDToken:      idToken,
 	}, nil
+}
+
+func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
+	oldRefreshToken, err := o.oauth2Persistence.GetRefreshToken(ctx, param.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	if oldRefreshToken.ClientID != client.ID {
+		err := errors.ErrAuthError.New("client id mismatch")
+		o.logger.Warn(ctx, "client id mismatch", zap.Error(err), zap.String("refresh-token-client-id", oldRefreshToken.ClientID.String()), zap.String("given-client-id", client.ID.String()))
+		return nil, err
+	}
+
+	if time.Now().After(oldRefreshToken.ExpiresAt) {
+		if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+			return nil, err
+		}
+
+		err := errors.ErrAuthError.New("refresh token expired")
+		o.logger.Warn(ctx, "token expired", zap.Error(err), zap.String("refresh token", oldRefreshToken.Refreshtoken))
+		return nil, err
+	}
+
+	accessToken, err := o.token.GenerateAccessTokenForClient(ctx, oldRefreshToken.UserID.String(), oldRefreshToken.ClientID.String(), oldRefreshToken.Scope, o.options.AccessTokenExpireTime)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
+		UserID:       oldRefreshToken.UserID,
+		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		ClientID:     oldRefreshToken.ClientID,
+		Scope:        oldRefreshToken.Scope,
+		RedirectUri:  oldRefreshToken.RedirectUri,
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+	})
+	if err != nil {
+		return nil, err
+	}
+	tokenResponse := &dto.TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken.Refreshtoken,
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}
+
+	if utils.ContainsValue(constant.OpenID, utils.StringToArray(newRefreshToken.Scope)) {
+
+		user, err := o.oauthPersistence.GetUserByID(ctx, newRefreshToken.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		idToken, err := o.token.GenerateIdToken(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		tokenResponse.IDToken = idToken
+
+	}
+	return tokenResponse, nil
 }
