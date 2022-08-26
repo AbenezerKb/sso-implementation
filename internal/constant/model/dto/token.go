@@ -35,6 +35,8 @@ type TokenResponse struct {
 	RefreshToken string `form:"refresh_token" query:"refresh_token" json:"refresh_token,omitempty"`
 	// TokenType is the type of token
 	TokenType string `form:"token_type" query:"token_type" json:"token_type,omitempty"`
+	// ExpiresAt is time the access token is going to be expired.
+	ExpiresIn string `json:"expires_in"`
 }
 
 type IDTokenPayload struct {
@@ -57,13 +59,17 @@ type AccessTokenRequest struct {
 	Code string `json:"code" form:"code"`
 	// Redirection URI used in the initial authorization request.
 	RedirectURI string `json:"redirect_uri" form:"redirect_uri"`
+	// RefreshToken is the opaque string that was given by the auth server when issuing the access token.
+	// it's used to refresh the access token.
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (a AccessTokenRequest) Validate() error {
 	return validation.ValidateStruct(&a,
 		validation.Field(&a.Code, validation.When(a.GrantType == constant.AuthorizationCode, validation.Required.Error("code is required"))),
-		validation.Field(&a.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL.Error("invalid redirect_uri")),
+		validation.Field(&a.RedirectURI, validation.When(a.GrantType == constant.AuthorizationCode, validation.Required.Error("redirect_uri is required")), is.URL.Error("invalid redirect_uri")),
 		validation.Field(&a.GrantType, validation.Required.Error("grant_type is required"), validation.In(constant.AuthorizationCode, constant.RefreshToken)),
+		validation.Field(&a.RefreshToken, validation.When(a.GrantType == constant.RefreshToken, validation.Required.Error("refresh_token is required"))),
 	)
 }
 
