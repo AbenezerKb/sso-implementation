@@ -14,7 +14,7 @@ import (
 )
 
 const checkIfUserGrantedClient = `-- name: CheckIfUserGrantedClient :one
-SELECT id, refreshtoken, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refreshtokens WHERE user_id = $1 AND client_id = $2
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE user_id = $1 AND client_id = $2
 `
 
 type CheckIfUserGrantedClientParams struct {
@@ -22,12 +22,34 @@ type CheckIfUserGrantedClientParams struct {
 	ClientID uuid.UUID `json:"client_id"`
 }
 
-func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserGrantedClientParams) (Refreshtoken, error) {
+func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserGrantedClientParams) (RefreshToken, error) {
 	row := q.db.QueryRow(ctx, checkIfUserGrantedClient, arg.UserID, arg.ClientID)
-	var i Refreshtoken
+	var i RefreshToken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
+		&i.Code,
+		&i.UserID,
+		&i.Scope,
+		&i.RedirectUri,
+		&i.ExpiresAt,
+		&i.ClientID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE refresh_token = $1
+`
+
+func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getRefreshToken, refreshToken)
+	var i RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.RefreshToken,
 		&i.Code,
 		&i.UserID,
 		&i.Scope,
@@ -41,27 +63,36 @@ func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserG
 }
 
 const removeRefreshToken = `-- name: RemoveRefreshToken :exec
-DELETE FROM refreshtokens WHERE code = $1
+DELETE FROM refresh_tokens WHERE refresh_token = $1
 `
 
-func (q *Queries) RemoveRefreshToken(ctx context.Context, code string) error {
-	_, err := q.db.Exec(ctx, removeRefreshToken, code)
+func (q *Queries) RemoveRefreshToken(ctx context.Context, refreshToken string) error {
+	_, err := q.db.Exec(ctx, removeRefreshToken, refreshToken)
+	return err
+}
+
+const removeRefreshTokenByCode = `-- name: RemoveRefreshTokenByCode :exec
+DELETE FROM refresh_tokens WHERE code = $1
+`
+
+func (q *Queries) RemoveRefreshTokenByCode(ctx context.Context, code string) error {
+	_, err := q.db.Exec(ctx, removeRefreshTokenByCode, code)
 	return err
 }
 
 const saveRefreshToken = `-- name: SaveRefreshToken :one
-INSERT INTO refreshtokens (
+INSERT INTO refresh_tokens (
     expires_at,
     user_id,
     scope,
     redirect_uri,
     client_id,
-    refreshtoken,
+    refresh_token,
     code
 ) VALUES (
     $1, $2, $3, $4, $5,$6,$7
 )
-RETURNING id, refreshtoken, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
+RETURNING id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
 `
 
 type SaveRefreshTokenParams struct {
@@ -70,24 +101,24 @@ type SaveRefreshTokenParams struct {
 	Scope        sql.NullString `json:"scope"`
 	RedirectUri  sql.NullString `json:"redirect_uri"`
 	ClientID     uuid.UUID      `json:"client_id"`
-	Refreshtoken string         `json:"refreshtoken"`
+	RefreshToken string         `json:"refresh_token"`
 	Code         string         `json:"code"`
 }
 
-func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (Refreshtoken, error) {
+func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenParams) (RefreshToken, error) {
 	row := q.db.QueryRow(ctx, saveRefreshToken,
 		arg.ExpiresAt,
 		arg.UserID,
 		arg.Scope,
 		arg.RedirectUri,
 		arg.ClientID,
-		arg.Refreshtoken,
+		arg.RefreshToken,
 		arg.Code,
 	)
-	var i Refreshtoken
+	var i RefreshToken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
 		&i.Code,
 		&i.UserID,
 		&i.Scope,

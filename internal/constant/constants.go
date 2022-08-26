@@ -3,11 +3,13 @@ package constant
 type Context string
 
 const (
-	Active   = "ACTIVE"
-	Inactive = "INACTIVE"
-	Revoke   = "Revoke"
-	Grant    = "Grant"
-	User     = "user"
+	Active      = "ACTIVE"
+	Inactive    = "INACTIVE"
+	Revoke      = "Revoke"
+	Grant       = "Grant"
+	User        = "user"
+	BearerToken = "Bearer"
+	OpenID      = "openid"
 )
 
 const (

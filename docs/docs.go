@@ -665,6 +665,10 @@ const docTemplate = `{
                 "redirect_uri": {
                     "description": "Redirection URI used in the initial authorization request.",
                     "type": "string"
+                },
+                "refresh_token": {
+                    "description": "RefreshToken is the opaque string that was given by the auth server when issuing the access token.\nit's used to refresh the access token.",
+                    "type": "string"
                 }
             }
         },
@@ -897,6 +901,10 @@ const docTemplate = `{
             "properties": {
                 "access_token": {
                     "description": "AccessToken is the access token for the current login",
+                    "type": "string"
+                },
+                "expires_in": {
+                    "description": "ExpiresAt is time the access token is going to be expired.",
                     "type": "string"
                 },
                 "id_token": {
