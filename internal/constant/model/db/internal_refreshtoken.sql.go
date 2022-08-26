@@ -13,11 +13,11 @@ import (
 )
 
 const removeInternalRefreshToken = `-- name: RemoveInternalRefreshToken :exec
-DELETE FROM internalrefreshtokens WHERE user_id = $1
+DELETE FROM internalrefreshtokens WHERE refreshtoken =$1
 `
 
-func (q *Queries) RemoveInternalRefreshToken(ctx context.Context, userID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, removeInternalRefreshToken, userID)
+func (q *Queries) RemoveInternalRefreshToken(ctx context.Context, refreshtoken string) error {
+	_, err := q.db.Exec(ctx, removeInternalRefreshToken, refreshtoken)
 	return err
 }
 

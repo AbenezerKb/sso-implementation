@@ -23,7 +23,7 @@ func TestLogout(t *testing.T) {
 	l.apiTest.InitializeTest(t, "Logout test", "features/logout.feature", l.InitializeScenario)
 }
 
-func (l *logoutTest) iAmALogedinUserWithTheFollowingDetails(userCredentials *godog.Table) error {
+func (l *logoutTest) iAmALoggedinUserWithTheFollowingDetails(userCredentials *godog.Table) error {
 	var err error
 	l.User, err = l.Authenticate(userCredentials)
 	if err != nil {
@@ -34,6 +34,7 @@ func (l *logoutTest) iAmALogedinUserWithTheFollowingDetails(userCredentials *god
 }
 
 func (l *logoutTest) iLogout() error {
+	l.apiTest.Body = `{"refresh_token":"` + l.RefreshToken + `"}`
 	l.apiTest.SetHeader("Authorization", "Bearer "+l.AccessToken)
 	l.apiTest.SendRequest()
 	return nil
@@ -49,7 +50,7 @@ func (l *logoutTest) iShouldSuccessfullyLogoutOfTheSystem() error {
 func (l *logoutTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		l.apiTest.URL = "/v1/logout"
-		l.apiTest.Method = http.MethodGet
+		l.apiTest.Method = http.MethodPost
 		l.apiTest.SetHeader("Content-Type", "application/json")
 		l.apiTest.InitializeServer(l.Server)
 		return ctx, nil
@@ -60,7 +61,7 @@ func (l *logoutTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, err
 	})
 
-	ctx.Step(`^I am a logedin  user with the following details:$`, l.iAmALogedinUserWithTheFollowingDetails)
+	ctx.Step(`^I am a loggedin  user with the following details:$`, l.iAmALoggedinUserWithTheFollowingDetails)
 	ctx.Step(`^I should Successfully logout of the system$`, l.iShouldSuccessfullyLogoutOfTheSystem)
 	ctx.Step(`^I logout$`, l.iLogout)
 }

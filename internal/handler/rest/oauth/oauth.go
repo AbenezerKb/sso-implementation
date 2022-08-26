@@ -121,13 +121,22 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 // @Summary      logout  user.
 // @Description  logout user.
 // @Tags         auth
+// @param tokenParam body dto.InternalRefreshTokenRequestBody true "logoutParam"
 // @Accept       json
 // @Produce      json
 // @Success      200
 // @Failure      401  {object}  model.ErrorResponse "unauthorized"
-// @Router       /logout [get]
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /logout [post]
+// @Security	BearerAuth
 func (o *oauth) Logout(ctx *gin.Context) {
-	err := o.oauthModule.Logout(ctx.Request.Context())
+	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
+	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+	err := o.oauthModule.Logout(ctx.Request.Context(), refreshTokenRequest)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

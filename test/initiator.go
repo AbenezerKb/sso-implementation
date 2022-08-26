@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
 	"net/http"
 	"os"
 	"sso/initiator"
@@ -14,6 +13,8 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -33,10 +34,11 @@ type TestInstance struct {
 		OK   bool              `json:"ok"`
 		Data dto.TokenResponse `json:"data"`
 	}
-	AccessToken string
-	enforcer    *casbin.Enforcer
-	Logger      logger.Logger
-	Conn        *pgxpool.Pool
+	AccessToken  string
+	RefreshToken string
+	enforcer     *casbin.Enforcer
+	Logger       logger.Logger
+	Conn         *pgxpool.Pool
 }
 
 func Initiate(path string) TestInstance {
@@ -169,6 +171,7 @@ func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
 	}
 
 	t.AccessToken = t.response.Data.AccessToken
+	t.RefreshToken = t.response.Data.RefreshToken
 	return user, nil
 }
 

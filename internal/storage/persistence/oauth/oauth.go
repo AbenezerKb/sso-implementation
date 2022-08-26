@@ -226,11 +226,11 @@ func (o *oauth) SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRef
 	return nil
 }
 
-func (o *oauth) RemoveInternalRefreshToken(ctx context.Context, id uuid.UUID) error {
-	err := o.db.RemoveInternalRefreshToken(ctx, id)
+func (o *oauth) RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error {
+	err := o.db.RemoveInternalRefreshToken(ctx, refreshToken)
 	if err != nil {
 		err = errors.ErrDBDelError.Wrap(err, "could not remove internal rf token")
-		o.logger.Error(ctx, "could not remove internal rf token", zap.Error(err), zap.Any("user_id", id))
+		o.logger.Error(ctx, "could not remove internal rf token", zap.Error(err), zap.Any("refresh-token", refreshToken))
 		return err
 	}
 

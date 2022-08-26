@@ -112,7 +112,12 @@ const docTemplate = `{
             }
         },
         "/logout": {
-            "get": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "logout user.",
                 "consumes": [
                     "application/json"
@@ -124,9 +129,26 @@ const docTemplate = `{
                     "auth"
                 ],
                 "summary": "logout  user.",
+                "parameters": [
+                    {
+                        "description": "logoutParam",
+                        "name": "tokenParam",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InternalRefreshTokenRequestBody"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK"
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
                     },
                     "401": {
                         "description": "unauthorized",
@@ -801,6 +823,15 @@ const docTemplate = `{
                 },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InternalRefreshTokenRequestBody": {
+            "type": "object",
+            "properties": {
+                "refresh_token": {
+                    "description": "RefreshToken is the opaque string users uses to refresh access token.",
                     "type": "string"
                 }
             }
