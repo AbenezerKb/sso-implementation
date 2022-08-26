@@ -9,4 +9,4 @@ INSERT INTO internalrefreshtokens (
 RETURNING *;
 
 -- name: RemoveInternalRefreshToken :exec
-DELETE FROM internalrefreshtokens WHERE user_id = $1;
+DELETE FROM internalrefreshtokens WHERE refreshtoken =$1;
