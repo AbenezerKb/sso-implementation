@@ -40,12 +40,43 @@ func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserG
 	return i, err
 }
 
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT id, refreshtoken, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refreshtokens WHERE refreshtoken = $1
+`
+
+func (q *Queries) GetRefreshToken(ctx context.Context, refreshtoken string) (Refreshtoken, error) {
+	row := q.db.QueryRow(ctx, getRefreshToken, refreshtoken)
+	var i Refreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.Refreshtoken,
+		&i.Code,
+		&i.UserID,
+		&i.Scope,
+		&i.RedirectUri,
+		&i.ExpiresAt,
+		&i.ClientID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const removeRefreshToken = `-- name: RemoveRefreshToken :exec
+DELETE FROM refreshtokens WHERE refreshtoken = $1
+`
+
+func (q *Queries) RemoveRefreshToken(ctx context.Context, refreshtoken string) error {
+	_, err := q.db.Exec(ctx, removeRefreshToken, refreshtoken)
+	return err
+}
+
+const removeRefreshTokenByCode = `-- name: RemoveRefreshTokenByCode :exec
 DELETE FROM refreshtokens WHERE code = $1
 `
 
-func (q *Queries) RemoveRefreshToken(ctx context.Context, code string) error {
-	_, err := q.db.Exec(ctx, removeRefreshToken, code)
+func (q *Queries) RemoveRefreshTokenByCode(ctx context.Context, code string) error {
+	_, err := q.db.Exec(ctx, removeRefreshTokenByCode, code)
 	return err
 }
 

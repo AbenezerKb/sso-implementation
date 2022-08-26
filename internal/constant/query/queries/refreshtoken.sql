@@ -12,8 +12,15 @@ INSERT INTO refreshtokens (
 )
 RETURNING *;
 
--- name: RemoveRefreshToken :exec
+-- name: RemoveRefreshTokenByCode :exec
 DELETE FROM refreshtokens WHERE code = $1;
+
+-- name: RemoveRefreshToken :exec
+DELETE FROM refreshtokens WHERE refreshtoken = $1;
 
 -- name: CheckIfUserGrantedClient :one
 SELECT * FROM refreshtokens WHERE user_id = $1 AND client_id = $2;
+
+-- name: GetRefreshToken :one
+SELECT * FROM refreshtokens WHERE refreshtoken = $1;
+
