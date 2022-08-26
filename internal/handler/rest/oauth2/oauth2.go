@@ -264,5 +264,21 @@ func (o *oauth2) Token(ctx *gin.Context) {
 }
 
 func (o *oauth2) Logout(ctx *gin.Context) {
+	logoutReqParam := dto.LogoutRequest{}
+	err := ctx.ShouldBindQuery(&logoutReqParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	redirectURI, err := o.oauth2Module.Logout(ctx.Request.Context(), logoutReqParam)
+	if err != nil {
+		// _ = ctx.Error(err)
+		ctx.Redirect(http.StatusFound, redirectURI)
+		return
+	}
 
+	// ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	ctx.Redirect(http.StatusFound, redirectURI)
 }

@@ -5,4 +5,5 @@ const (
 	AuthCodeKey = "authcode:%v"
 	ConsentURL  = "https://www.google.com/"
 	ErrorURL    = "https://www.google.com/"
+	LogoutURL   = "https://www.google.com/"
 )
