@@ -310,11 +310,6 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		return nil, err
 	}
 
-	user, err := o.oauthPersistence.GetUserByID(ctx, authcode.UserID)
-	if err != nil {
-		return nil, err
-	}
-
 	exists, err := o.oauth2Persistence.AuthHistoryExists(ctx, authcode.Code)
 	if err != nil {
 		return nil, err
@@ -367,11 +362,6 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		return nil, err
 	}
 
-	idToken, err := o.token.GenerateIdToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
 	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
 		UserID:       authcode.UserID,
 		Refreshtoken: o.token.GenerateRefreshToken(ctx),
@@ -379,7 +369,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		Scope:        authcode.Scope,
 		RedirectUri:  authcode.RedirectURI,
 		Code:         authcode.Code,
-		ExpiresAt:    time.Now().UTC().Add(o.options.RefreshTokenExpireTime),
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
 	})
 	if err != nil {
 		return nil, err
@@ -397,11 +387,27 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 	); err != nil {
 		return nil, err
 	}
-	return &dto.TokenResponse{
+	tokenResponse := &dto.TokenResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken.Refreshtoken,
-		IDToken:      idToken,
-	}, nil
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}
+	if utils.ContainsValue(constant.OpenID, utils.StringToArray(authcode.Scope)) {
+
+		user, err := o.oauthPersistence.GetUserByID(ctx, authcode.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		idToken, err := o.token.GenerateIdToken(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		tokenResponse.IDToken = idToken
+
+	}
+	return tokenResponse, nil
 }
 
 func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
