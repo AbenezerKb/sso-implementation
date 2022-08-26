@@ -6,6 +6,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/state"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -14,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -21,6 +23,7 @@ import (
 type Options struct {
 	AccessTokenExpireTime  time.Duration
 	RefreshTokenExpireTime time.Duration
+	IDTokenExpireTime      time.Duration
 }
 
 func SetOptions(options Options) Options {
@@ -29,6 +32,9 @@ func SetOptions(options Options) Options {
 	}
 	if options.RefreshTokenExpireTime == 0 {
 		options.RefreshTokenExpireTime = time.Hour * 24 * 30
+	}
+	if options.IDTokenExpireTime == 0 {
+		options.IDTokenExpireTime = time.Minute * 10
 	}
 	return options
 }
@@ -238,7 +244,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		if err != nil {
 			return "", err
 		}
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, consent.ClientID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return "", err
 		}
@@ -374,7 +380,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		return nil, err
 	}
 
-	idToken, err := o.token.GenerateIdToken(ctx, user)
+	idToken, err := o.token.GenerateIdToken(ctx, user, authcode.ClientID.String(), o.options.IDTokenExpireTime)
 	if err != nil {
 		return nil, err
 	}
@@ -409,4 +415,61 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		RefreshToken: refreshToken.Refreshtoken,
 		IDToken:      idToken,
 	}, nil
+}
+
+func (o oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, error) {
+	errRedirectUri, err := url.Parse(state.ErrorURL)
+	errQuery := errRedirectUri.Query()
+
+	logoutRedirectUri, err := url.Parse(state.LogoutURL)
+	logoutQuery := logoutRedirectUri.Query()
+
+	isValid, idToken := o.token.VerifyIdToken(jwt.SigningMethodPS512, logoutReqParam.IDTokenHint)
+	if isValid {
+		err := errors.ErrInvalidUserInput.New("id_token is invalid")
+		o.logger.Error(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
+		errQuery.Set("error", "invalid request")
+		errQuery.Set("error_description", "no logedin user found")
+
+		errRedirectUri.RawQuery = errQuery.Encode()
+		return errRedirectUri.String(), err
+	}
+
+	redirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
+	if err != nil {
+		err = errors.ErrInvalidUserInput.New("invalid post logout redirect uri")
+		o.logger.Error(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
+		errQuery.Set("error", "invalid post logout redirect uri")
+		errQuery.Set("error_description", "post logout redirect uri")
+
+		errRedirectUri.RawQuery = errQuery.Encode()
+		return errRedirectUri.String(), err
+	}
+
+	// we cleared rf_token
+	//
+	//
+	// o.oauth2Persistence.RemoveRefreshToken(idToken.Subject)
+
+	userID, err := uuid.Parse(idToken.Subject)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		o.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", idToken.Subject))
+		errQuery.Set("error", "invalid user input")
+		errQuery.Set("error_description", "invalid user input")
+
+		errRedirectUri.RawQuery = errQuery.Encode()
+		return errRedirectUri.String(), err
+	}
+
+	o.oauthPersistence.RemoveInternalRefreshToken(ctx, userID)
+	query := redirectURI.Query()
+	query.Set("state", logoutReqParam.State)
+	redirectURI.RawQuery = query.Encode()
+
+	logoutQuery.Set("post_logout_uri", redirectURI.String())
+	logoutQuery.Set("user_id", idToken.Subject)
+	logoutRedirectUri.RawQuery = logoutQuery.Encode()
+
+	return logoutRedirectUri.String(), nil
 }

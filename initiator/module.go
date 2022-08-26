@@ -36,6 +36,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
+				IDTokenExpireTime:      viper.GetDuration("server.login.id_token.expire_time"),
 			}),
 		),
 		clientModule: client.InitClient(log.Named("client-module"), persistence.ClientPersistence),

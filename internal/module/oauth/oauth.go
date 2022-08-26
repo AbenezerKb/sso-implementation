@@ -31,6 +31,7 @@ type oauth struct {
 type Options struct {
 	AccessTokenExpireTime  time.Duration
 	RefreshTokenExpireTime time.Duration
+	IDTokenExpireTime      time.Duration
 }
 
 func SetOptions(options Options) Options {
@@ -39,6 +40,9 @@ func SetOptions(options Options) Options {
 	}
 	if options.RefreshTokenExpireTime == 0 {
 		options.RefreshTokenExpireTime = time.Hour * 24 * 30
+	}
+	if options.IDTokenExpireTime == 0 {
+		options.IDTokenExpireTime = time.Minute * 10
 	}
 	return options
 }
@@ -150,12 +154,13 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
 		Refreshtoken: refreshToken,
 		UserID:       user.ID,
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	idToken, err := o.token.GenerateIdToken(ctx, user)
+	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)
 	if err != nil {
 		return nil, err
 	}

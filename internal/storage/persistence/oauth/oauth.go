@@ -215,6 +215,7 @@ func (o *oauth) SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRef
 	_, err := o.db.SaveInternalRefreshToken(ctx, db.SaveInternalRefreshTokenParams{
 		UserID:       rf.UserID,
 		Refreshtoken: rf.Refreshtoken,
+		ExpiresAt:    rf.ExpiresAt,
 	})
 
 	if err != nil {
