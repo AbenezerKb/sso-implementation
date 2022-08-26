@@ -77,8 +77,8 @@ type RefreshToken struct {
 	// ID is the unique identifier for the refresh token.
 	// It is automatically generated when the refresh token is created.
 	ID uuid.UUID `json:"id"`
-	// Refreshtoken is the opaque string the client uses to refresh access token.
-	Refreshtoken string `json:"refreshtoken"`
+	// RefreshToken is the opaque string the client uses to refresh access token.
+	RefreshToken string `json:"refresh_token"`
 	// Code is the code the client uses to get access token.
 	Code string `json:"code"`
 	// UserID is the id of the user who granted access to the client.

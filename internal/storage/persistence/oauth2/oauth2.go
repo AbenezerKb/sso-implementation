@@ -77,7 +77,7 @@ func (o *oauth2) PersistRefreshToken(ctx context.Context, param dto.RefreshToken
 		ClientID:     param.ClientID,
 		Scope:        utils.StringOrNull(param.Scope),
 		RedirectUri:  utils.StringOrNull(param.RedirectUri),
-		Refreshtoken: param.Refreshtoken,
+		RefreshToken: param.RefreshToken,
 		Code:         param.Code,
 	})
 	if err != nil {
@@ -87,7 +87,7 @@ func (o *oauth2) PersistRefreshToken(ctx context.Context, param dto.RefreshToken
 	}
 	return &dto.RefreshToken{
 		Code:         refToken.Code,
-		Refreshtoken: refToken.Refreshtoken,
+		RefreshToken: refToken.RefreshToken,
 		RedirectUri:  refToken.RedirectUri.String,
 		Scope:        refToken.Scope.String,
 		UserID:       refToken.UserID,
@@ -155,7 +155,7 @@ func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID,
 	return true, dto.RefreshToken{
 		ID:           refereshToken.ID,
 		Code:         refereshToken.Code,
-		Refreshtoken: refereshToken.Refreshtoken,
+		RefreshToken: refereshToken.RefreshToken,
 		RedirectUri:  refereshToken.RedirectUri.String,
 		Scope:        refereshToken.Scope.String,
 		UserID:       refereshToken.UserID,
@@ -178,7 +178,7 @@ func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.Refres
 	return &dto.RefreshToken{
 		ID:           refreshToken.ID,
 		Code:         refreshToken.Code,
-		Refreshtoken: refreshToken.Refreshtoken,
+		RefreshToken: refreshToken.RefreshToken,
 		RedirectUri:  refreshToken.RedirectUri.String,
 		Scope:        refreshToken.Scope.String,
 		UserID:       refreshToken.UserID,

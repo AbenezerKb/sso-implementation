@@ -364,7 +364,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 
 	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
 		UserID:       authcode.UserID,
-		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		RefreshToken: o.token.GenerateRefreshToken(ctx),
 		ClientID:     authcode.ClientID,
 		Scope:        authcode.Scope,
 		RedirectUri:  authcode.RedirectURI,
@@ -389,7 +389,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 	}
 	tokenResponse := &dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken.Refreshtoken,
+		RefreshToken: refreshToken.RefreshToken,
 		TokenType:    constant.BearerToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
 	}
@@ -422,12 +422,12 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 	}
 
 	if time.Now().After(oldRefreshToken.ExpiresAt) {
-		if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+		if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
 			return nil, err
 		}
 
 		err := errors.ErrAuthError.New("refresh token expired")
-		o.logger.Warn(ctx, "token expired", zap.Error(err), zap.String("refresh token", oldRefreshToken.Refreshtoken))
+		o.logger.Warn(ctx, "token expired", zap.Error(err), zap.String("refresh token", oldRefreshToken.RefreshToken))
 		return nil, err
 	}
 
@@ -436,13 +436,13 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 		return nil, err
 	}
 
-	if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+	if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
 		return nil, err
 	}
 
 	newRefreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
 		UserID:       oldRefreshToken.UserID,
-		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		RefreshToken: o.token.GenerateRefreshToken(ctx),
 		ClientID:     oldRefreshToken.ClientID,
 		Scope:        oldRefreshToken.Scope,
 		RedirectUri:  oldRefreshToken.RedirectUri,
@@ -453,7 +453,7 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 	}
 	tokenResponse := &dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: newRefreshToken.Refreshtoken,
+		RefreshToken: newRefreshToken.RefreshToken,
 		TokenType:    constant.BearerToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
 	}

@@ -1,11 +1,11 @@
 -- name: SaveRefreshToken :one
-INSERT INTO refreshtokens (
+INSERT INTO refresh_tokens (
     expires_at,
     user_id,
     scope,
     redirect_uri,
     client_id,
-    refreshtoken,
+    refresh_token,
     code
 ) VALUES (
     $1, $2, $3, $4, $5,$6,$7
@@ -13,14 +13,14 @@ INSERT INTO refreshtokens (
 RETURNING *;
 
 -- name: RemoveRefreshTokenByCode :exec
-DELETE FROM refreshtokens WHERE code = $1;
+DELETE FROM refresh_tokens WHERE code = $1;
 
 -- name: RemoveRefreshToken :exec
-DELETE FROM refreshtokens WHERE refreshtoken = $1;
+DELETE FROM refresh_tokens WHERE refresh_token = $1;
 
 -- name: CheckIfUserGrantedClient :one
-SELECT * FROM refreshtokens WHERE user_id = $1 AND client_id = $2;
+SELECT * FROM refresh_tokens WHERE user_id = $1 AND client_id = $2;
 
 -- name: GetRefreshToken :one
-SELECT * FROM refreshtokens WHERE refreshtoken = $1;
+SELECT * FROM refresh_tokens WHERE refresh_token = $1;
 

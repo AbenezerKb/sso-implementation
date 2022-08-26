@@ -10,7 +10,7 @@ Feature: Refresh Token
             | name | redirect_uris        | secret    | scopes       | client_type  | logo_url               |
             | ride | http://localhost.com | my_secret | openid email | confidential | http://logo.client.com |
         And The user grants access to the client:
-            | refreshtoken             | expires_at                          | scope        |
+            | refresh_token            | expires_at                          | scope        |
             | +toNc!tKC8q;,SXt7h%iu#aX | 2023-09-26T09:06:36.525293389+03:00 | openid email |
 
     Scenario: Refresh Token successfully
@@ -22,17 +22,17 @@ Feature: Refresh Token
 
     Scenario Outline:missing required inputs
         When I refresh the access token:
-            | grant_type   | refreshtoken   |
-            | <grant_type> | <refreshtoken> |
+            | grant_type   | refresh_token   |
+            | <grant_type> | <refresh_token> |
         Then The request should fail with field error "<error_message>":
         Examples:
-            | grant_type    | refreshtoken             | error_message             |
+            | grant_type    | refresh_token            | error_message             |
             | refresh_token |                          | refresh_token is required |
             |               | +toNc!tKC8q;,SXt7h%iu#aX | grant_type is required    |
 
     Scenario: Refresh Token is  expired
         Given I have an expired refresh token:
-            | refreshtoken             | expires_at                          | scope        |
+            | refresh_token            | expires_at                          | scope        |
             | 0ohn8ktKC8q;,SXt7h%iu#aX | 2022-08-26T09:06:36.525293389+03:00 | openid email |
         When I refresh the access token:
             | grant_type    | refresh_token            |

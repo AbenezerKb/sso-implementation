@@ -131,7 +131,7 @@ func (r *refreshClientTokenTest) iHaveAnExpiredRefreshToken(rfParam *godog.Table
 		UserID:       r.user.ID,
 		ClientID:     r.client.ID,
 		Scope:        utils.StringOrNull(r.expiredRefreshToken.Scope),
-		Refreshtoken: r.expiredRefreshToken.Refreshtoken,
+		RefreshToken: r.expiredRefreshToken.RefreshToken,
 		RedirectUri:  utils.StringOrNull(utils.ArrayToString(r.client.RedirectURIs)),
 		ExpiresAt:    r.expiredRefreshToken.ExpiresAt,
 	})
@@ -145,7 +145,7 @@ func (r *refreshClientTokenTest) iHaveAnExpiredRefreshToken(rfParam *godog.Table
 		Scope:        rfData.Scope.String,
 		RedirectUri:  rfData.RedirectUri.String,
 		ExpiresAt:    rfData.ExpiresAt,
-		Refreshtoken: rfData.Refreshtoken,
+		RefreshToken: rfData.RefreshToken,
 	}
 	return nil
 }
@@ -175,7 +175,7 @@ func (r *refreshClientTokenTest) theUserGrantsAccessToTheClient(rfParam *godog.T
 		UserID:       r.user.ID,
 		ClientID:     r.client.ID,
 		Scope:        utils.StringOrNull(r.refreshToken.Scope),
-		Refreshtoken: r.refreshToken.Refreshtoken,
+		RefreshToken: r.refreshToken.RefreshToken,
 		RedirectUri:  utils.StringOrNull(utils.ArrayToString(r.client.RedirectURIs)),
 		ExpiresAt:    r.refreshToken.ExpiresAt,
 	})
@@ -189,7 +189,7 @@ func (r *refreshClientTokenTest) theUserGrantsAccessToTheClient(rfParam *godog.T
 		Scope:        rfData.Scope.String,
 		RedirectUri:  rfData.RedirectUri.String,
 		ExpiresAt:    rfData.ExpiresAt,
-		Refreshtoken: rfData.Refreshtoken,
+		RefreshToken: rfData.RefreshToken,
 	}
 	return nil
 }
@@ -214,8 +214,8 @@ func (r *refreshClientTokenTest) iShouldGetANewAccessTokenWithANewRefreshToken()
 }
 
 func (r *refreshClientTokenTest) theOldRefreshTokenShouldBeDeleted() error {
-	_, err := r.DB.GetRefreshToken(context.TODO(), r.refreshToken.Refreshtoken)
-	
+	_, err := r.DB.GetRefreshToken(context.TODO(), r.refreshToken.RefreshToken)
+
 	if !sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 		return errors.New("old refresh token not deleted.")
 	}
