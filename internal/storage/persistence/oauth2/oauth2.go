@@ -121,10 +121,18 @@ func (o *oauth2) AddAuthHistory(ctx context.Context, param dto.AuthHistory) (*dt
 	}, nil
 }
 
-func (o *oauth2) RemoveRefreshToken(ctx context.Context, code string) error {
-	if err := o.db.RemoveRefreshToken(ctx, code); err != nil {
+func (o *oauth2) RemoveRefreshTokenCode(ctx context.Context, code string) error {
+	if err := o.db.RemoveRefreshTokenByCode(ctx, code); err != nil {
 		err := errors.ErrDBDelError.Wrap(err, "could be able to delete the referesh token")
 		o.logger.Error(ctx, "unable to delete the refresh token", zap.Error(err), zap.Any("refresh-token-code", code))
+		return err
+	}
+	return nil
+}
+func (o *oauth2) RemoveRefreshToken(ctx context.Context, refresh_token string) error {
+	if err := o.db.RemoveRefreshToken(ctx, refresh_token); err != nil {
+		err := errors.ErrDBDelError.Wrap(err, "could be able to delete the referesh token")
+		o.logger.Error(ctx, "unable to delete the refresh token", zap.Error(err), zap.Any("refresh-token", refresh_token))
 		return err
 	}
 	return nil
@@ -152,5 +160,29 @@ func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID,
 		Scope:        refereshToken.Scope.String,
 		UserID:       refereshToken.UserID,
 		ClientID:     refereshToken.ClientID,
+	}, nil
+}
+
+func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.RefreshToken, error) {
+	refreshToken, err := o.db.GetRefreshToken(ctx, token)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "refresh token not found", zap.Error(err), zap.Any("refresh-token", token))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.RefreshToken{
+		ID:           refreshToken.ID,
+		Code:         refreshToken.Code,
+		Refreshtoken: refreshToken.Refreshtoken,
+		RedirectUri:  refreshToken.RedirectUri.String,
+		Scope:        refreshToken.Scope.String,
+		UserID:       refreshToken.UserID,
+		ClientID:     refreshToken.ClientID,
+		ExpiresAt:    refreshToken.ExpiresAt,
 	}, nil
 }
