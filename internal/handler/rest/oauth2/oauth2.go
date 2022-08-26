@@ -183,6 +183,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		err := errors.ErrInternalServerError.New("no user_id was found")
 		o.logger.Error(ctx, "no user_id was found on gin context", zap.Error(err), zap.String("request-uri", ctx.Request.RequestURI))
 		_ = ctx.Error(err)
+		return
 	}
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
@@ -202,6 +203,8 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	if err != nil {
 		err := errors.ErrAuthError.Wrap(err, "user not logged in")
 		o.logger.Info(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
+		_ = ctx.Error(err)
+		return
 	}
 	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentId, userID, opbs.Value)
 	if err != nil {
