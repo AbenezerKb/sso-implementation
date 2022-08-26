@@ -6,7 +6,7 @@ Feature: logout
 
     @success
     Scenario Outline: Successful Logout
-        Given I am a logedin  user with the following details:
+        Given I am a loggedin  user with the following details:
             | email             | password |
             | example@email.com | 1234abcd |
         When I logout
