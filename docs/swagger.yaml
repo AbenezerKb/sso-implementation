@@ -143,6 +143,13 @@ definitions:
           It is currently of no use
         type: string
     type: object
+  dto.InternalRefreshTokenRequestBody:
+    properties:
+      refresh_token:
+        description: RefreshToken is the opaque string users uses to refresh access
+          token.
+        type: string
+    type: object
   dto.LoginCredential:
     properties:
       email:
@@ -384,19 +391,32 @@ paths:
       tags:
       - auth
   /logout:
-    get:
+    post:
       consumes:
       - application/json
       description: logout user.
+      parameters:
+      - description: logoutParam
+        in: body
+        name: tokenParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InternalRefreshTokenRequestBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "401":
           description: unauthorized
           schema:
             $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: logout  user.
       tags:
       - auth
