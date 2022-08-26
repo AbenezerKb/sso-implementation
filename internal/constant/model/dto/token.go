@@ -111,3 +111,15 @@ type InternalRefreshToken struct {
 	// It is automatically set when the refresh token is created.
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// InternalRefreshTokenRequest
+type InternalRefreshTokenRequestBody struct {
+	// RefreshToken is the opaque string users uses to refresh access token.
+	RefreshToken string `json:"refresh_token"`
+}
+
+func (i InternalRefreshTokenRequestBody) Validate() error {
+	return validation.ValidateStruct(&i,
+		validation.Field(&i.RefreshToken, validation.Required.Error("refresh_token is required")),
+	)
+}
