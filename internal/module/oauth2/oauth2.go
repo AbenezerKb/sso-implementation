@@ -246,7 +246,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		query.Set("id_token", idToken)
 	}
 	// calculate session state
-	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs)
+	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs, utils.GenerateRandomString(20, true))
 	query.Set("session_state", sessionState)
 
 	redirectURI.RawQuery = query.Encode()

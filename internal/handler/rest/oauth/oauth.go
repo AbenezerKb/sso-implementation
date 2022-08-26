@@ -134,7 +134,6 @@ func (o *oauth) Logout(ctx *gin.Context) {
 	}
 
 	// change opbs
-	// ctx.SetCookie("opbs", utils.GenerateNewOPBS() , 3600, "/", "", true, false)
-
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
