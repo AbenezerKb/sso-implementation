@@ -329,6 +329,72 @@
                 }
             }
         },
+        "/oauth/logout": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "this is requested from truest client only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "rp-logout.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id_token_hint",
+                        "name": "id_token_hint",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "post_logout_redirect_uri",
+                        "name": "post_logout_redirect_uri",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "state",
+                        "name": "state",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        },
+                        "headers": {
+                            "Location": {
+                                "type": "string",
+                                "description": "redirect_uri"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/rejectConsent": {
             "post": {
                 "description": "is used to reject consent.",

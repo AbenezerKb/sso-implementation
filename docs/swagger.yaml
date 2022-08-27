@@ -536,6 +536,49 @@ paths:
       summary: GetConsentByID.
       tags:
       - OAuth2
+  /oauth/logout:
+    get:
+      consumes:
+      - application/json
+      description: this is requested from truest client only.
+      parameters:
+      - description: id_token_hint
+        in: query
+        name: id_token_hint
+        required: true
+        type: string
+      - description: post_logout_redirect_uri
+        in: query
+        name: post_logout_redirect_uri
+        required: true
+        type: string
+      - description: state
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+        "400":
+          description: Bad Request
+          headers:
+            Location:
+              description: redirect_uri
+              type: string
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: rp-logout.
+      tags:
+      - OAuth2
   /oauth/rejectConsent:
     post:
       consumes:

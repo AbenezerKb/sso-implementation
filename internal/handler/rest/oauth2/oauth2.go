@@ -285,6 +285,20 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
 }
 
+// Logout is used to logout user.
+// @Summary      rp-logout.
+// @Description  this is requested from truest client only.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param id_token_hint query string true "id_token_hint"
+// @param post_logout_redirect_uri query string true "post_logout_redirect_uri"
+// @param state query string true "state"
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Header       200,400            {string}  Location  "redirect_uri"
+// @Router       /oauth/logout [get]
+// @Security	BasicAuth
 func (o *oauth2) Logout(ctx *gin.Context) {
 	errRedirectUri, err := url.Parse(state.ErrorURL)
 	if err != nil {
@@ -318,6 +332,6 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 		return
 	}
 
-	// ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	ctx.Redirect(http.StatusFound, redirectURI)
 }
