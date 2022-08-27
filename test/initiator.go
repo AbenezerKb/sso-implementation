@@ -35,6 +35,7 @@ type TestInstance struct {
 		Data dto.TokenResponse `json:"data"`
 	}
 	AccessToken   string
+	RefreshToken  string
 	enforcer      *casbin.Enforcer
 	Logger        logger.Logger
 	Conn          *pgxpool.Pool

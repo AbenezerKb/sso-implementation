@@ -40,7 +40,7 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middl
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
 			},
-			UnAuthorize: true,
+			UnAuthorize: false,
 		},
 	}
 	routing.RegisterRoutes(router, oauthRoutes, enforcer)

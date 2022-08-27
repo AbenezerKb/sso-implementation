@@ -368,11 +368,6 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		return nil, err
 	}
 
-	idToken, err := o.token.GenerateIdToken(ctx, user, authcode.ClientID.String(), o.options.IDTokenExpireTime)
-	if err != nil {
-		return nil, err
-	}
-
 	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
 		UserID:       authcode.UserID,
 		RefreshToken: o.token.GenerateRefreshToken(ctx),
@@ -411,7 +406,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 			return nil, err
 		}
 
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, client.ID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return nil, err
 		}
@@ -476,7 +471,7 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 			return nil, err
 		}
 
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, client.ID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return nil, err
 		}
