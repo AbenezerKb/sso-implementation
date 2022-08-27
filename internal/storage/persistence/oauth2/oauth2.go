@@ -77,7 +77,7 @@ func (o *oauth2) PersistRefreshToken(ctx context.Context, param dto.RefreshToken
 		ClientID:     param.ClientID,
 		Scope:        utils.StringOrNull(param.Scope),
 		RedirectUri:  utils.StringOrNull(param.RedirectUri),
-		Refreshtoken: param.Refreshtoken,
+		RefreshToken: param.RefreshToken,
 		Code:         param.Code,
 	})
 	if err != nil {
@@ -87,7 +87,7 @@ func (o *oauth2) PersistRefreshToken(ctx context.Context, param dto.RefreshToken
 	}
 	return &dto.RefreshToken{
 		Code:         refToken.Code,
-		Refreshtoken: refToken.Refreshtoken,
+		RefreshToken: refToken.RefreshToken,
 		RedirectUri:  refToken.RedirectUri.String,
 		Scope:        refToken.Scope.String,
 		UserID:       refToken.UserID,
@@ -121,10 +121,18 @@ func (o *oauth2) AddAuthHistory(ctx context.Context, param dto.AuthHistory) (*dt
 	}, nil
 }
 
-func (o *oauth2) RemoveRefreshToken(ctx context.Context, code string) error {
-	if err := o.db.RemoveRefreshToken(ctx, code); err != nil {
+func (o *oauth2) RemoveRefreshTokenCode(ctx context.Context, code string) error {
+	if err := o.db.RemoveRefreshTokenByCode(ctx, code); err != nil {
 		err := errors.ErrDBDelError.Wrap(err, "could be able to delete the referesh token")
 		o.logger.Error(ctx, "unable to delete the refresh token", zap.Error(err), zap.Any("refresh-token-code", code))
+		return err
+	}
+	return nil
+}
+func (o *oauth2) RemoveRefreshToken(ctx context.Context, refresh_token string) error {
+	if err := o.db.RemoveRefreshToken(ctx, refresh_token); err != nil {
+		err := errors.ErrDBDelError.Wrap(err, "could be able to delete the referesh token")
+		o.logger.Error(ctx, "unable to delete the refresh token", zap.Error(err), zap.Any("refresh-token", refresh_token))
 		return err
 	}
 	return nil
@@ -147,10 +155,34 @@ func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID,
 	return true, dto.RefreshToken{
 		ID:           refereshToken.ID,
 		Code:         refereshToken.Code,
-		Refreshtoken: refereshToken.Refreshtoken,
+		RefreshToken: refereshToken.RefreshToken,
 		RedirectUri:  refereshToken.RedirectUri.String,
 		Scope:        refereshToken.Scope.String,
 		UserID:       refereshToken.UserID,
 		ClientID:     refereshToken.ClientID,
+	}, nil
+}
+
+func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.RefreshToken, error) {
+	refreshToken, err := o.db.GetRefreshToken(ctx, token)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "refresh token not found", zap.Error(err), zap.Any("refresh-token", token))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.RefreshToken{
+		ID:           refreshToken.ID,
+		Code:         refreshToken.Code,
+		RefreshToken: refreshToken.RefreshToken,
+		RedirectUri:  refreshToken.RedirectUri.String,
+		Scope:        refreshToken.Scope.String,
+		UserID:       refreshToken.UserID,
+		ClientID:     refreshToken.ClientID,
+		ExpiresAt:    refreshToken.ExpiresAt,
 	}, nil
 }

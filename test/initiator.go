@@ -172,6 +172,7 @@ func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
 	}
 
 	t.AccessToken = t.response.Data.AccessToken
+	t.RefreshToken = t.response.Data.RefreshToken
 	return user, nil
 }
 

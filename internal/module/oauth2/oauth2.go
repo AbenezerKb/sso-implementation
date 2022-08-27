@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -65,7 +66,7 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 	}
 }
 
-func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam) (string, errors.AuhtErrResponse, error) {
+func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam, requestOrigin string) (string, errors.AuhtErrResponse, error) {
 	if err := authRequestParm.Validate(); err != nil {
 		errRsp := errors.AuhtErrResponse{
 			Error:            "invalid_request",
@@ -75,7 +76,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return "", errRsp, err
 	}
-	client, err := o.oauth2Persistence.GetClient(ctx, authRequestParm.ClientID)
+	client, err := o.clientPersistence.GetClientByID(ctx, authRequestParm.ClientID)
 	if err != nil {
 		return "", errors.AuhtErrResponse{
 			Error:            "invalid_client",
@@ -112,6 +113,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 			ResponseType: authRequestParm.ResponseType,
 			Prompt:       authRequestParm.Prompt,
 		},
+		RequestOrigin: requestOrigin,
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
 		return "", errors.AuhtErrResponse{
@@ -190,18 +192,18 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 		clientStatus = false
 	}
 	return dto.ConsentResponse{
-		Scopes:         requestedscopes,
-		Client_Name:    client.Name,
-		Client_Logo:    client.LogoURL,
-		Client_Type:    client.ClientType,
-		Client_Trusted: true,
-		Client_ID:      client.ID,
-		Approved:       clientStatus,
-		User_ID:        user.ID,
+		Scopes:        requestedscopes,
+		ClientName:    client.Name,
+		ClientLogo:    client.LogoURL,
+		ClientType:    client.ClientType,
+		ClientTrusted: false,
+		ClientID:      client.ID,
+		Approved:      clientStatus,
+		UserID:        user.ID,
 	}, nil
 }
 
-func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID) (string, error) {
+func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error) {
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
@@ -250,6 +252,9 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		}
 		query.Set("id_token", idToken)
 	}
+	// calculate session state
+	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs, utils.GenerateRandomString(20, true))
+	query.Set("session_state", sessionState)
 
 	redirectURI.RawQuery = query.Encode()
 	return redirectURI.String(), nil
@@ -283,19 +288,6 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 	redirectURI.RawQuery = query.Encode()
 	return redirectURI.String(), nil
 }
-func (o *oauth2) IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error) {
-	authCode := dto.AuthCode{
-		Code:        uuid.New().String(),
-		Scope:       consent.Scope,
-		RedirectURI: consent.AuthorizationRequestParam.RedirectURI,
-		ClientID:    consent.ClientID,
-		UserID:      consent.UserID,
-	}
-	if err := o.authCodeCache.SaveAuthCode(ctx, authCode); err != nil {
-		return "", consent.State, err
-	}
-	return authCode.Code, consent.State, nil
-}
 
 func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
 	if err := param.Validate(); err != nil {
@@ -306,6 +298,7 @@ func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessT
 
 	grantTypes := map[string]func(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error){
 		constant.AuthorizationCode: o.authorizationCodeGrant,
+		constant.RefreshToken:      o.refreshToken,
 	}
 
 	// Grant processing
@@ -319,11 +312,6 @@ func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessT
 
 func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
 	authcode, err := o.authCodeCache.GetAuthCode(ctx, param.Code)
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := o.oauthPersistence.GetUserByID(ctx, authcode.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -387,12 +375,12 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 
 	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
 		UserID:       authcode.UserID,
-		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		RefreshToken: o.token.GenerateRefreshToken(ctx),
 		ClientID:     authcode.ClientID,
 		Scope:        authcode.Scope,
 		RedirectUri:  authcode.RedirectURI,
 		Code:         authcode.Code,
-		ExpiresAt:    time.Now().UTC().Add(o.options.RefreshTokenExpireTime),
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
 	})
 	if err != nil {
 		return nil, err
@@ -410,11 +398,92 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 	); err != nil {
 		return nil, err
 	}
-	return &dto.TokenResponse{
+	tokenResponse := &dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken.Refreshtoken,
-		IDToken:      idToken,
-	}, nil
+		RefreshToken: refreshToken.RefreshToken,
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}
+	if utils.ContainsValue(constant.OpenID, utils.StringToArray(authcode.Scope)) {
+
+		user, err := o.oauthPersistence.GetUserByID(ctx, authcode.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		idToken, err := o.token.GenerateIdToken(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		tokenResponse.IDToken = idToken
+
+	}
+	return tokenResponse, nil
+}
+
+func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
+	oldRefreshToken, err := o.oauth2Persistence.GetRefreshToken(ctx, param.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+	if oldRefreshToken.ClientID != client.ID {
+		err := errors.ErrAuthError.New("client id mismatch")
+		o.logger.Warn(ctx, "client id mismatch", zap.Error(err), zap.String("refresh-token-client-id", oldRefreshToken.ClientID.String()), zap.String("given-client-id", client.ID.String()))
+		return nil, err
+	}
+
+	if time.Now().After(oldRefreshToken.ExpiresAt) {
+		if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
+			return nil, err
+		}
+
+		err := errors.ErrAuthError.New("refresh token expired")
+		o.logger.Warn(ctx, "token expired", zap.Error(err), zap.String("refresh token", oldRefreshToken.RefreshToken))
+		return nil, err
+	}
+
+	accessToken, err := o.token.GenerateAccessTokenForClient(ctx, oldRefreshToken.UserID.String(), oldRefreshToken.ClientID.String(), oldRefreshToken.Scope, o.options.AccessTokenExpireTime)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
+		return nil, err
+	}
+
+	newRefreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
+		UserID:       oldRefreshToken.UserID,
+		RefreshToken: o.token.GenerateRefreshToken(ctx),
+		ClientID:     oldRefreshToken.ClientID,
+		Scope:        oldRefreshToken.Scope,
+		RedirectUri:  oldRefreshToken.RedirectUri,
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+	})
+	if err != nil {
+		return nil, err
+	}
+	tokenResponse := &dto.TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken.RefreshToken,
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}
+
+	if utils.ContainsValue(constant.OpenID, utils.StringToArray(newRefreshToken.Scope)) {
+
+		user, err := o.oauthPersistence.GetUserByID(ctx, newRefreshToken.UserID)
+		if err != nil {
+			return nil, err
+		}
+
+		idToken, err := o.token.GenerateIdToken(ctx, user)
+		if err != nil {
+			return nil, err
+		}
+		tokenResponse.IDToken = idToken
+
+	}
+	return tokenResponse, nil
 }
 
 func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error) {

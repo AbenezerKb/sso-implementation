@@ -16,7 +16,7 @@ type OAuthPersistence interface {
 	UserByEmailExists(ctx context.Context, email string) (bool, error)
 	GetUserByPhoneOrEmail(ctx context.Context, query string) (*dto.User, error)
 	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
-	RemoveInternalRefreshToken(ctx context.Context, id uuid.UUID) error
+	RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error
 	SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error
 }
 
@@ -37,9 +37,11 @@ type OAuth2Persistence interface {
 	GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	AuthHistoryExists(ctx context.Context, code string) (bool, error)
 	PersistRefreshToken(ctx context.Context, param dto.RefreshToken) (*dto.RefreshToken, error)
-	RemoveRefreshToken(ctx context.Context, code string) error
+	RemoveRefreshTokenCode(ctx context.Context, code string) error
+	RemoveRefreshToken(ctx context.Context, refresh_token string) error
 	AddAuthHistory(ctx context.Context, param dto.AuthHistory) (*dto.AuthHistory, error)
 	CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error)
+	GetRefreshToken(ctx context.Context, token string) (*dto.RefreshToken, error)
 }
 
 type ConsentCache interface {

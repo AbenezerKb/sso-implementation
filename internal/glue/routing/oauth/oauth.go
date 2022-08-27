@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"net/http"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
@@ -33,13 +34,13 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middl
 			UnAuthorize: true,
 		},
 		{
-			Method:  "GET",
+			Method:  http.MethodPost,
 			Path:    "/logout",
 			Handler: handler.Logout,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
 			},
-			UnAuthorize: false,
+			UnAuthorize: true,
 		},
 	}
 	routing.RegisterRoutes(router, oauthRoutes, enforcer)

@@ -45,6 +45,25 @@ func (j *Jwt) GenerateAccessToken(ctx context.Context, userID string, expiresAt 
 	}
 	return token, nil
 }
+func (j *Jwt) GenerateAccessTokenForClient(ctx context.Context, userID, clientID, scope string, expiresAt time.Duration) (string, error) {
+	claims := dto.AccessToken{
+		Scope: scope,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresAt)),
+			Issuer:    "test",
+			NotBefore: jwt.NewNumericDate(time.Now()),
+			Subject:   userID,
+			Audience:  jwt.ClaimStrings{clientID},
+		},
+	}
+
+	token, err := jwt.NewWithClaims(jwt.SigningMethodPS512, claims).SignedString(j.privateKey)
+	if err != nil {
+		j.logger.Error(ctx, "could not generate access token", zap.Error(err))
+		return "", errors.ErrInternalServerError.Wrap(err, "could not generate access token")
+	}
+	return token, nil
+}
 
 func (j *Jwt) GenerateRefreshToken(ctx context.Context) string {
 	return utils.GenerateRandomString(25, true)

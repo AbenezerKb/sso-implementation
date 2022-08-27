@@ -31,8 +31,8 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 		},
 
 		{
-			Method:  "GET",
-			Path:    "/approval",
+			Method:  "POST",
+			Path:    "/approveConsent",
 			Handler: handler.ApproveConsent,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
@@ -40,8 +40,8 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			UnAuthorize: true,
 		},
 		{
-			Method:      "GET",
-			Path:        "/reject",
+			Method:      "POST",
+			Path:        "/rejectConsent",
 			Handler:     handler.RejectConsent,
 			UnAuthorize: true,
 		},

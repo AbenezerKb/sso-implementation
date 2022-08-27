@@ -8,6 +8,7 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -80,18 +81,11 @@ func (o *oauth) Login(ctx *gin.Context) {
 		return
 	}
 
-	//Todo: save session
-	//Todo: possibly redirect to authorize endpoint
-
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	ctx.SetCookie("access_token", loginRsp.AccessToken, 3600, "/", "", false, true)
 	ctx.SetCookie("id_token", loginRsp.RefreshToken, 12000, "/", "", false, true)
 	o.logger.Info(ctx, "user logged in")
 
-	//redirectUrl := ctx.Query("redirect_url")
-	//if redirectUrl == "" {
-	//	redirectUrl = "/"
-	//}
-	//ctx.Redirect(http.StatusFound, redirectUrl)
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }
 
@@ -123,24 +117,32 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
-// Login logs in a user.
+// Logout logs out a user.
 // @Summary      logout  user.
 // @Description  logout user.
 // @Tags         auth
+// @param tokenParam body dto.InternalRefreshTokenRequestBody true "logoutParam"
 // @Accept       json
 // @Produce      json
 // @Success      200
 // @Failure      401  {object}  model.ErrorResponse "unauthorized"
-// @Router       /logout [get]
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /logout [post]
+// @Security	BearerAuth
 func (o *oauth) Logout(ctx *gin.Context) {
-	err := o.oauthModule.Logout(ctx.Request.Context())
+	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
+	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+	err := o.oauthModule.Logout(ctx.Request.Context(), refreshTokenRequest)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
 	// change opbs
-	// ctx.SetCookie("opbs", utils.GenerateNewOPBS() , 3600, "/", "", true, false)
-
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }

@@ -14,15 +14,14 @@ type OAuthModule interface {
 	ComparePassword(hashedPwd, plainPassword string) bool
 	RequestOTP(ctx context.Context, phone string, rqType string) error
 	GetUserStatus(ctx context.Context, Id string) (string, error)
-	Logout(ctx context.Context) error
+	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
 }
 
 type OAuth2Module interface {
-	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam) (string, errors.AuhtErrResponse, error)
+	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam, requestOrigin string) (string, errors.AuhtErrResponse, error)
 	GetConsentByID(ctx context.Context, consentID string) (dto.ConsentResponse, error)
-	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID) (string, error)
+	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error)
 	RejectConsent(ctx context.Context, consentID, failureReason string) (string, error)
-	IssueAuthCode(ctx context.Context, consent dto.Consent) (string, string, error)
 	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
 	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error)
 }

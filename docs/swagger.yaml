@@ -13,6 +13,11 @@ definitions:
       redirect_uri:
         description: Redirection URI used in the initial authorization request.
         type: string
+      refresh_token:
+        description: |-
+          RefreshToken is the opaque string that was given by the auth server when issuing the access token.
+          it's used to refresh the access token.
+        type: string
     type: object
   dto.Client:
     properties:
@@ -57,45 +62,36 @@ definitions:
           It is set to active by default.
         type: string
     type: object
-  dto.ConsentData:
+  dto.ConsentResponse:
     properties:
       approved:
-        description: The consent status.
+        description: Approved tells if this exact scope is previously approved by
+          this user
         type: boolean
-      client:
-        $ref: '#/definitions/dto.Client'
-        description: The client data
       client_id:
-        description: client identifier.
+        description: ClientID is the id of the client given at the time of registration
         type: string
-      id:
+      client_logo:
+        description: ClientLogo is the logo url of the client
         type: string
-      prompt:
-        description: specifies whether the Authorization Server MUST prompt the End-User
-          for reauthentication.
+      client_name:
+        description: ClientName is the name of the client
         type: string
-      redirect_uri:
-        description: redirection URI used in the initial authorization request.
-        type: string
-      response_type:
-        description: redirection URI used in the initial authorization request.
-        type: string
-      scope:
-        description: scope of the access request expressed as a list of space-delimited,
+      client_trusted:
+        description: ClientTrusted tells if this client is a trusted first party client
+        type: boolean
+      client_type:
+        description: |-
+          ClientType is the type of the client
+          It might be confidential or public
         type: string
       scopes:
-        description: The scope data
+        description: Scopes is the list of scopes this consent holds
         items:
           $ref: '#/definitions/dto.Scope'
         type: array
-      state:
-        description: state parameter passed in the initial authorization request.
-        type: string
-      user:
-        $ref: '#/definitions/dto.User'
-        description: The user data
-      userID:
-        description: Users Id
+      user_id:
+        description: UserID is the id of the user this consent is being given to
         type: string
     type: object
   dto.CreateUser:
@@ -145,6 +141,13 @@ definitions:
         description: |-
           UserName is the username of the user.
           It is currently of no use
+        type: string
+    type: object
+  dto.InternalRefreshTokenRequestBody:
+    properties:
+      refresh_token:
+        description: RefreshToken is the opaque string users uses to refresh access
+          token.
         type: string
     type: object
   dto.LoginCredential:
@@ -227,6 +230,9 @@ definitions:
     properties:
       access_token:
         description: AccessToken is the access token for the current login
+        type: string
+      expires_in:
+        description: ExpiresAt is time the access token is going to be expired.
         type: string
       id_token:
         description: IDToken is the OpenID specific JWT token
@@ -385,24 +391,37 @@ paths:
       tags:
       - auth
   /logout:
-    get:
+    post:
       consumes:
       - application/json
       description: logout user.
+      parameters:
+      - description: logoutParam
+        in: body
+        name: tokenParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InternalRefreshTokenRequestBody'
       produces:
       - application/json
       responses:
         "200":
           description: OK
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
         "401":
           description: unauthorized
           schema:
             $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: logout  user.
       tags:
       - auth
   /oauth/approveConsent:
-    get:
+    post:
       consumes:
       - application/json
       description: is used to approve consent.
@@ -507,7 +526,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.ConsentData'
+            $ref: '#/definitions/dto.ConsentResponse'
         "400":
           description: invalid input
           schema:
@@ -518,7 +537,7 @@ paths:
       tags:
       - OAuth2
   /oauth/rejectConsent:
-    get:
+    post:
       consumes:
       - application/json
       description: is used to reject consent.

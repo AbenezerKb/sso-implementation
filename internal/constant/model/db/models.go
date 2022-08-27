@@ -43,9 +43,9 @@ type Internalrefreshtoken struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-type Refreshtoken struct {
+type RefreshToken struct {
 	ID           uuid.UUID      `json:"id"`
-	Refreshtoken string         `json:"refreshtoken"`
+	RefreshToken string         `json:"refresh_token"`
 	Code         string         `json:"code"`
 	UserID       uuid.UUID      `json:"user_id"`
 	Scope        sql.NullString `json:"scope"`

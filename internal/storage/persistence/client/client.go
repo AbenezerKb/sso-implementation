@@ -68,11 +68,13 @@ func (c *clientPersistence) GetClientByID(ctx context.Context, id uuid.UUID) (*d
 
 	return &dto.Client{
 		ID:           client.ID,
+		Name:         client.Name,
 		Status:       client.Status,
 		Secret:       client.Secret,
 		Scopes:       client.Scopes,
 		RedirectURIs: utils.StringToArray(client.RedirectUris),
 		ClientType:   client.ClientType,
+		LogoURL:      client.LogoUrl,
 	}, nil
 
 }

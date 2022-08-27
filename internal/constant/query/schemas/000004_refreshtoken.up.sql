@@ -1,6 +1,6 @@
-CREATE TABLE refreshtokens (
+CREATE TABLE refresh_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    refreshtoken varchar(255) NOT NULL,
+    refresh_token varchar(255) NOT NULL,
     code varchar(255) NOT NULL,
     user_id UUID NOT NULL,
     scope varchar(255),

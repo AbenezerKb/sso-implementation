@@ -2,7 +2,9 @@ package utils
 
 import (
 	"context"
+	"crypto"
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"sso/platform/logger"
@@ -59,4 +61,14 @@ func ContainsValue(str string, arr []string) bool {
 		}
 	}
 	return false
+}
+
+func GenerateNewOPBS() string {
+	return GenerateRandomString(100, true)
+}
+
+func CalculateSessionState(clientID, origin, opbs, salt string) string {
+	hash := crypto.SHA256.New()
+	hash.Write([]byte(fmt.Sprintf("%s %s %s %s", clientID, origin, opbs, salt)))
+	return fmt.Sprintf("%s.%s", base64.URLEncoding.EncodeToString(hash.Sum(nil)), salt)
 }
