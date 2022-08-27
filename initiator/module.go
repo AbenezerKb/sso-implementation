@@ -25,14 +25,14 @@ type Module struct {
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer) Module {
 
 	return Module{
-		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.sms, enforcer),
+		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.Sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,
 			cache.OTPCacheLayer,
 			cache.SessionCacheLayer,
-			platformLayer.token,
-			platformLayer.sms,
+			platformLayer.Token,
+			platformLayer.Sms,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
@@ -47,7 +47,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			persistence.ClientPersistence,
 			cache.ConsentCacheLayer,
 			cache.AuthCodeCacheLayer,
-			platformLayer.token,
+			platformLayer.Token,
 			oauth2.SetOptions(
 				oauth2.Options{
 					AccessTokenExpireTime:  viper.GetDuration("server.client.access_token.expire_time"),

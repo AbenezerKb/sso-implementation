@@ -17,13 +17,13 @@ import (
 )
 
 type PlatformLayer struct {
-	sms   platform.SMSClient
-	token platform.Token
+	Sms   platform.SMSClient
+	Token platform.Token
 }
 
 func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
 	return PlatformLayer{
-		sms: sms.InitSMS(
+		Sms: sms.InitSMS(
 			platform.SMSConfig{
 				UserName:  viper.GetString("sms.username"),
 				Password:  viper.GetString("sms.password"),
@@ -37,7 +37,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 				APIKey:    viper.GetString("sms.api_key"),
 			},
 			logger.Named("sms-platform")),
-		token: token.JwtInit(logger.Named("token-platform"),
+		Token: token.JwtInit(logger.Named("token-platform"),
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
@@ -46,10 +46,10 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 
 func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
 	return PlatformLayer{
-		sms: sms2.InitMockSMS(
+		Sms: sms2.InitMockSMS(
 			platform.SMSConfig{},
 			logger.Named("sms-platform")),
-		token: token.JwtInit(logger.Named("token-platform"),
+		Token: token.JwtInit(logger.Named("token-platform"),
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
