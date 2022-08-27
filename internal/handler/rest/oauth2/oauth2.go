@@ -264,18 +264,35 @@ func (o *oauth2) Token(ctx *gin.Context) {
 }
 
 func (o *oauth2) Logout(ctx *gin.Context) {
+	errRedirectUri, err := url.Parse(state.ErrorURL)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "invalid error uri")
+		o.logger.Error(ctx, "invalid error uri", zap.Error(err))
+		_ = ctx.Error(err)
+	}
+	errQuery := errRedirectUri.Query()
+
 	logoutReqParam := dto.LogoutRequest{}
-	err := ctx.ShouldBindQuery(&logoutReqParam)
+	err = ctx.ShouldBindQuery(&logoutReqParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Error(ctx, "invalid input", zap.Error(err))
-		_ = ctx.Error(err)
+
+		errQuery.Set("error", "invalid request")
+		errQuery.Set("error_description", "no logedin user found")
+		errRedirectUri.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusFound, errRedirectUri.String())
+
 		return
 	}
-	redirectURI, err := o.oauth2Module.Logout(ctx.Request.Context(), logoutReqParam)
+
+	redirectURI, errRsp, err := o.oauth2Module.Logout(ctx.Request.Context(), logoutReqParam)
 	if err != nil {
-		// _ = ctx.Error(err)
-		ctx.Redirect(http.StatusFound, redirectURI)
+		errQuery.Set("error", errRsp.Error)
+		errQuery.Set("error_description", errRsp.ErrorDescription)
+		errRedirectUri.RawQuery = errQuery.Encode()
+
+		ctx.Redirect(http.StatusFound, errRedirectUri.String())
 		return
 	}
 

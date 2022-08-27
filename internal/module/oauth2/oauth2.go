@@ -417,59 +417,57 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 	}, nil
 }
 
-func (o oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, error) {
-	errRedirectUri, err := url.Parse(state.ErrorURL)
-	errQuery := errRedirectUri.Query()
+func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error) {
+	if err := logoutReqParam.Validate(); err != nil {
+		errRsp := errors.AuhtErrResponse{
+			Error:            "invalid request",
+			ErrorDescription: strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
+		}
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		return "", errRsp, err
+	}
 
 	logoutRedirectUri, err := url.Parse(state.LogoutURL)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "invalid logout uri")
+		o.logger.Error(ctx, "invalid logout uri", zap.Error(err))
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid logout uri",
+			ErrorDescription: "invalid logout uri",
+		}, err
+	}
 	logoutQuery := logoutRedirectUri.Query()
 
 	isValid, idToken := o.token.VerifyIdToken(jwt.SigningMethodPS512, logoutReqParam.IDTokenHint)
-	if isValid {
+	if !isValid {
 		err := errors.ErrInvalidUserInput.New("id_token is invalid")
 		o.logger.Error(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
-		errQuery.Set("error", "invalid request")
-		errQuery.Set("error_description", "no logedin user found")
 
-		errRedirectUri.RawQuery = errQuery.Encode()
-		return errRedirectUri.String(), err
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid request",
+			ErrorDescription: "no logedin user found",
+		}, err
 	}
 
 	redirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
 	if err != nil {
 		err = errors.ErrInvalidUserInput.New("invalid post logout redirect uri")
 		o.logger.Error(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
-		errQuery.Set("error", "invalid post logout redirect uri")
-		errQuery.Set("error_description", "post logout redirect uri")
 
-		errRedirectUri.RawQuery = errQuery.Encode()
-		return errRedirectUri.String(), err
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid post logout redirect uri",
+			ErrorDescription: "post logout redirect uri is invalid",
+		}, err
 	}
 
-	// we cleared rf_token
-	//
-	//
-	// o.oauth2Persistence.RemoveRefreshToken(idToken.Subject)
-
-	userID, err := uuid.Parse(idToken.Subject)
-	if err != nil {
-		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
-		o.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", idToken.Subject))
-		errQuery.Set("error", "invalid user input")
-		errQuery.Set("error_description", "invalid user input")
-
-		errRedirectUri.RawQuery = errQuery.Encode()
-		return errRedirectUri.String(), err
-	}
-
-	o.oauthPersistence.RemoveInternalRefreshToken(ctx, userID)
 	query := redirectURI.Query()
 	query.Set("state", logoutReqParam.State)
 	redirectURI.RawQuery = query.Encode()
 
-	logoutQuery.Set("post_logout_uri", redirectURI.String())
+	logoutQuery.Set("post_logout_redirect_uri", redirectURI.String())
 	logoutQuery.Set("user_id", idToken.Subject)
 	logoutRedirectUri.RawQuery = logoutQuery.Encode()
 
-	return logoutRedirectUri.String(), nil
+	return logoutRedirectUri.String(), errors.AuhtErrResponse{}, nil
 }

@@ -113,3 +113,10 @@ type LogoutRequest struct {
 	State                 string `form:"state" json:"state"`
 	UiLocales             string `form:"ui_locales" json:"ui_locales"`
 }
+
+func (l *LogoutRequest) Validate() error {
+	return validation.ValidateStruct(l,
+		validation.Field(&l.IDTokenHint, validation.Required.Error("login hint is required")),
+		validation.Field(&l.PostLogoutRedirectUri, validation.Required.Error("post logout redirect uri is required")),
+	)
+}
