@@ -69,7 +69,7 @@ func (o *oauth) Login(ctx *gin.Context) {
 	err := ctx.ShouldBind(&userParam)
 
 	if err != nil {
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
