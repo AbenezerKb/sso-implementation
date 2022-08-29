@@ -161,7 +161,7 @@ func (i *issueAccessTokenCodeGrantTest) InitializeScenario(ctx *godog.ScenarioCo
 		_, _ = i.DB.DeleteUser(context.Background(), i.user.ID)
 		_ = i.redisSeeder.Starve(i.authCode)
 		_, _ = i.Conn.Exec(ctx, "Delete from auth_histories where true")
-		_, _ = i.Conn.Exec(ctx, "Delete from refreshtokens where true")
+		_, _ = i.Conn.Exec(ctx, "Delete from refresh_tokens where true")
 		_, _ = i.DB.DeleteClient(context.Background(), i.client.ID)
 		return ctx, nil
 	})

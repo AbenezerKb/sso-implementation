@@ -146,3 +146,30 @@ func (o *oauth) Logout(ctx *gin.Context) {
 	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// RefreshToken refreshs a user access token.
+// @Summary      refresh access token.
+// @Description  refresh access token.
+// @Tags         auth
+// @param tokenParam body dto.InternalRefreshTokenRequestBody true "refreshTokenParam"
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      401  {object}  model.ErrorResponse "unauthorized"
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /refreshtoken [post]
+func (o *oauth) RefreshToken(ctx *gin.Context) {
+	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
+	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
+	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshTokenRequest)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
+}

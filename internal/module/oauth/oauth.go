@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"fmt"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -168,6 +169,8 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		IDToken:      idToken,
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
 	}
 	return &accessTokenResponse, nil
 }
@@ -211,11 +214,68 @@ func (o *oauth) Logout(ctx context.Context, param dto.InternalRefreshTokenReques
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return nil
 	}
-
-	err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, param.RefreshToken)
+	oldRefreshToken, err := o.oauthPersistence.GetInternalRefreshToken(ctx, param.RefreshToken)
 	if err != nil {
 		return err
 	}
 
+	if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+func (o *oauth) RefreshToken(ctx context.Context, param dto.InternalRefreshTokenRequestBody) (*dto.TokenResponse, error) {
+	if err := param.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		return nil, err
+	}
+
+	oldRefreshToken, err := o.oauthPersistence.GetInternalRefreshToken(ctx, param.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	if time.Now().After(oldRefreshToken.ExpiresAt) {
+		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+			return nil, err
+		}
+
+		err := errors.ErrAuthError.New("internal refresh token expired")
+		o.logger.Warn(ctx, "internal token expired", zap.Error(err), zap.String("internal refresh token", oldRefreshToken.Refreshtoken))
+		return nil, err
+	}
+
+	accessToken, err := o.token.GenerateAccessToken(ctx, oldRefreshToken.UserID.String(), o.options.AccessTokenExpireTime)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := o.oauthPersistence.UpdateInternalRefreshToken(ctx, dto.InternalRefreshToken{
+		Refreshtoken: o.token.GenerateRefreshToken(ctx),
+		ExpiresAt:    oldRefreshToken.ExpiresAt.Add(o.options.AccessTokenExpireTime),
+		ID:           oldRefreshToken.ID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := o.oauthPersistence.GetUserByID(ctx, refreshToken.UserID)
+	if err != nil {
+		return nil, err
+	}
+	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)
+	if err != nil {
+		return nil, err
+	}
+	return &dto.TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken.Refreshtoken,
+		TokenType:    constant.BearerToken,
+		IDToken:      idToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}, nil
 }

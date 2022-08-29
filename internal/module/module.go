@@ -15,6 +15,7 @@ type OAuthModule interface {
 	RequestOTP(ctx context.Context, phone string, rqType string) error
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
+	RefreshToken(ctx context.Context, param dto.InternalRefreshTokenRequestBody) (*dto.TokenResponse, error)
 }
 
 type OAuth2Module interface {

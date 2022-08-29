@@ -12,6 +12,24 @@ import (
 	"github.com/google/uuid"
 )
 
+const getInternalRefreshToken = `-- name: GetInternalRefreshToken :one
+SELECT id, refreshtoken, user_id, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE refreshtoken = $1
+`
+
+func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshtoken string) (Internalrefreshtoken, error) {
+	row := q.db.QueryRow(ctx, getInternalRefreshToken, refreshtoken)
+	var i Internalrefreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.Refreshtoken,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const removeInternalRefreshToken = `-- name: RemoveInternalRefreshToken :exec
 DELETE FROM internalrefreshtokens WHERE refreshtoken =$1
 `
@@ -40,6 +58,30 @@ type SaveInternalRefreshTokenParams struct {
 
 func (q *Queries) SaveInternalRefreshToken(ctx context.Context, arg SaveInternalRefreshTokenParams) (Internalrefreshtoken, error) {
 	row := q.db.QueryRow(ctx, saveInternalRefreshToken, arg.ExpiresAt, arg.UserID, arg.Refreshtoken)
+	var i Internalrefreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.Refreshtoken,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const updateRefreshToken = `-- name: UpdateRefreshToken :one
+Update internalrefreshtokens set expires_at = $2, refreshtoken= $3 WHERE id= $1 RETURNING id, refreshtoken, user_id, expires_at, created_at, updated_at
+`
+
+type UpdateRefreshTokenParams struct {
+	ID           uuid.UUID `json:"id"`
+	ExpiresAt    time.Time `json:"expires_at"`
+	Refreshtoken string    `json:"refreshtoken"`
+}
+
+func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (Internalrefreshtoken, error) {
+	row := q.db.QueryRow(ctx, updateRefreshToken, arg.ID, arg.ExpiresAt, arg.Refreshtoken)
 	var i Internalrefreshtoken
 	err := row.Scan(
 		&i.ID,

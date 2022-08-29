@@ -741,6 +741,34 @@ paths:
       summary: Request otp.
       tags:
       - auth
+  /refreshtoken:
+    post:
+      consumes:
+      - application/json
+      description: refresh access token.
+      parameters:
+      - description: refreshTokenParam
+        in: body
+        name: tokenParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InternalRefreshTokenRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "401":
+          description: unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: refresh access token.
+      tags:
+      - auth
   /register:
     post:
       consumes:

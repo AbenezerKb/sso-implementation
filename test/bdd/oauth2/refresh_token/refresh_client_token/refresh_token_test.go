@@ -28,7 +28,7 @@ type refreshClientTokenTest struct {
 	redisSeeder         seed.RedisDB
 }
 
-func TestIssueAccessTokenCodeGrant(t *testing.T) {
+func TestRefreshAccessToken(t *testing.T) {
 
 	r := &refreshClientTokenTest{}
 
