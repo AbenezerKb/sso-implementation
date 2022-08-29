@@ -15,6 +15,7 @@ type OAuth2 interface {
 	ApproveConsent(ctx *gin.Context)
 	RejectConsent(ctx *gin.Context)
 	Token(ctx *gin.Context)
+	Logout(ctx *gin.Context)
 }
 type User interface {
 	CreateUser(ctx *gin.Context)

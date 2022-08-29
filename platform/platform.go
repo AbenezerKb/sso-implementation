@@ -30,6 +30,7 @@ type Token interface {
 	GenerateAccessToken(ctx context.Context, userID string, expiresAt time.Duration) (string, error)
 	GenerateAccessTokenForClient(ctx context.Context, userID, clientID, scope string, expiresAt time.Duration) (string, error)
 	GenerateRefreshToken(ctx context.Context) string
-	GenerateIdToken(ctx context.Context, user *dto.User) (string, error)
+	GenerateIdToken(ctx context.Context, user *dto.User, clientId string, expiresAt time.Duration) (string, error)
 	VerifyToken(signingMethod jwt.SigningMethod, token string) (bool, *jwt.RegisteredClaims)
+	VerifyIdToken(signingMethod jwt.SigningMethod, token string) (bool, *dto.IDTokenPayload)
 }

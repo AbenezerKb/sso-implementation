@@ -117,7 +117,7 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
-// Logout logs out a user.
+// Logout logout a user.
 // @Summary      logout  user.
 // @Description  logout user.
 // @Tags         auth

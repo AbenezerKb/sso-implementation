@@ -54,6 +54,15 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/logout",
+			Handler: handler.Logout,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.ClientBasicAuth(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(oauth2Group, oauth2Routes, enforcer)
 

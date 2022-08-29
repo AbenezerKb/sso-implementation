@@ -23,6 +23,7 @@ type OAuth2Module interface {
 	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error)
 	RejectConsent(ctx context.Context, consentID, failureReason string) (string, error)
 	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
+	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error)
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)

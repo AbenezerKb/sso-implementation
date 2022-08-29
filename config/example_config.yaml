@@ -21,6 +21,8 @@ server:
       expire_time: 1h
     refresh_token:
       expire_time: 265d
+    id_token:
+      expire_time: 24h
   oauth2:
     error_uri: http://front-end/oauth2/error
     consent_uri: http://front-end/oauth2/consent

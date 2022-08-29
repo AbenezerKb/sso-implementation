@@ -7,6 +7,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/state"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -15,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -22,6 +24,7 @@ import (
 type Options struct {
 	AccessTokenExpireTime  time.Duration
 	RefreshTokenExpireTime time.Duration
+	IDTokenExpireTime      time.Duration
 }
 
 func SetOptions(options Options) Options {
@@ -30,6 +33,9 @@ func SetOptions(options Options) Options {
 	}
 	if options.RefreshTokenExpireTime == 0 {
 		options.RefreshTokenExpireTime = time.Hour * 24 * 30
+	}
+	if options.IDTokenExpireTime == 0 {
+		options.IDTokenExpireTime = time.Minute * 10
 	}
 	return options
 }
@@ -240,7 +246,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		if err != nil {
 			return "", err
 		}
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, consent.ClientID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return "", err
 		}
@@ -400,7 +406,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 			return nil, err
 		}
 
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, client.ID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return nil, err
 		}
@@ -465,7 +471,7 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 			return nil, err
 		}
 
-		idToken, err := o.token.GenerateIdToken(ctx, user)
+		idToken, err := o.token.GenerateIdToken(ctx, user, client.ID.String(), o.options.IDTokenExpireTime)
 		if err != nil {
 			return nil, err
 		}
@@ -473,4 +479,59 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 
 	}
 	return tokenResponse, nil
+}
+
+func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error) {
+	if err := logoutReqParam.Validate(); err != nil {
+		errRsp := errors.AuhtErrResponse{
+			Error:            "invalid request",
+			ErrorDescription: strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
+		}
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		return "", errRsp, err
+	}
+
+	logoutRedirectUri, err := url.Parse(state.LogoutURL)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "invalid logout uri")
+		o.logger.Error(ctx, "invalid logout uri", zap.Error(err))
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid logout uri",
+			ErrorDescription: "invalid logout uri",
+		}, err
+	}
+	logoutQuery := logoutRedirectUri.Query()
+
+	isValid, idToken := o.token.VerifyIdToken(jwt.SigningMethodPS512, logoutReqParam.IDTokenHint)
+	if !isValid {
+		err := errors.ErrInvalidUserInput.New("id_token is invalid")
+		o.logger.Error(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
+
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid request",
+			ErrorDescription: "no logedin user found",
+		}, err
+	}
+
+	redirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
+	if err != nil {
+		err = errors.ErrInvalidUserInput.New("invalid post logout redirect uri")
+		o.logger.Error(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
+
+		return "", errors.AuhtErrResponse{
+			Error:            "invalid post logout redirect uri",
+			ErrorDescription: "post logout redirect uri is invalid",
+		}, err
+	}
+
+	query := redirectURI.Query()
+	query.Set("state", logoutReqParam.State)
+	redirectURI.RawQuery = query.Encode()
+
+	logoutQuery.Set("post_logout_redirect_uri", redirectURI.String())
+	logoutQuery.Set("user_id", idToken.Subject)
+	logoutRedirectUri.RawQuery = logoutQuery.Encode()
+
+	return logoutRedirectUri.String(), errors.AuhtErrResponse{}, nil
 }

@@ -284,3 +284,54 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
 }
+
+// Logout is used to logout user.
+// @Summary      rp-logout.
+// @Description  this is requested from truest client only.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param id_token_hint query string true "id_token_hint"
+// @param post_logout_redirect_uri query string true "post_logout_redirect_uri"
+// @param state query string true "state"
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Header       200,400            {string}  Location  "redirect_uri"
+// @Router       /oauth/logout [get]
+// @Security	BasicAuth
+func (o *oauth2) Logout(ctx *gin.Context) {
+	errRedirectUri, err := url.Parse(state.ErrorURL)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "invalid error uri")
+		o.logger.Error(ctx, "invalid error uri", zap.Error(err))
+		_ = ctx.Error(err)
+	}
+	errQuery := errRedirectUri.Query()
+
+	logoutReqParam := dto.LogoutRequest{}
+	err = ctx.ShouldBindQuery(&logoutReqParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Error(ctx, "invalid input", zap.Error(err))
+
+		errQuery.Set("error", "invalid request")
+		errQuery.Set("error_description", "no logedin user found")
+		errRedirectUri.RawQuery = errQuery.Encode()
+		ctx.Redirect(http.StatusFound, errRedirectUri.String())
+
+		return
+	}
+
+	redirectURI, errRsp, err := o.oauth2Module.Logout(ctx.Request.Context(), logoutReqParam)
+	if err != nil {
+		errQuery.Set("error", errRsp.Error)
+		errQuery.Set("error_description", errRsp.ErrorDescription)
+		errRedirectUri.RawQuery = errQuery.Encode()
+
+		ctx.Redirect(http.StatusFound, errRedirectUri.String())
+		return
+	}
+
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	ctx.Redirect(http.StatusFound, redirectURI)
+}

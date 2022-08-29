@@ -34,11 +34,12 @@ type TestInstance struct {
 		OK   bool              `json:"ok"`
 		Data dto.TokenResponse `json:"data"`
 	}
-	AccessToken  string
-	RefreshToken string
-	enforcer     *casbin.Enforcer
-	Logger       logger.Logger
-	Conn         *pgxpool.Pool
+	AccessToken   string
+	RefreshToken  string
+	enforcer      *casbin.Enforcer
+	Logger        logger.Logger
+	Conn          *pgxpool.Pool
+	PlatformLayer initiator.PlatformLayer
 }
 
 func Initiate(path string) TestInstance {
@@ -116,13 +117,14 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "router initialized")
 
 	return TestInstance{
-		Server:   server,
-		DB:       sqlConn,
-		Redis:    cache,
-		Module:   module,
-		enforcer: enforcer,
-		Logger:   log,
-		Conn:     pgxConn,
+		Server:        server,
+		DB:            sqlConn,
+		Redis:         cache,
+		Module:        module,
+		enforcer:      enforcer,
+		Logger:        log,
+		Conn:          pgxConn,
+		PlatformLayer: platformLayer,
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {

@@ -98,3 +98,19 @@ type ConsentResponse struct {
 	// Approved tells if this exact scope is previously approved by this user
 	Approved bool `json:"approved"`
 }
+
+type LogoutRequest struct {
+	IDTokenHint           string `form:"id_token_hint" json:"id_token_hint"`
+	LogoutHint            string `form:"logout_hint" json:"logout_hint"`
+	ClientID              string `form:"client_id" json:"client_id"`
+	PostLogoutRedirectUri string `form:"post_logout_redirect_uri" json:"post_logout_redirect_uri"`
+	State                 string `form:"state" json:"state"`
+	UiLocales             string `form:"ui_locales" json:"ui_locales"`
+}
+
+func (l *LogoutRequest) Validate() error {
+	return validation.ValidateStruct(l,
+		validation.Field(&l.IDTokenHint, validation.Required.Error("login hint is required")),
+		validation.Field(&l.PostLogoutRedirectUri, validation.Required.Error("post logout redirect uri is required")),
+	)
+}
