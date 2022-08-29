@@ -114,3 +114,7 @@ func (l *LogoutRequest) Validate() error {
 		validation.Field(&l.PostLogoutRedirectUri, validation.Required.Error("post logout redirect uri is required")),
 	)
 }
+
+type ConsentResultRsp struct {
+	ConsentID string `josn:"consentId"`
+}
