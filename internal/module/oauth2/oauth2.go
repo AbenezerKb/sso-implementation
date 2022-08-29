@@ -219,7 +219,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
 		return "", err
 	}
 
@@ -271,7 +271,7 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
 		return "", err
 	}
 
