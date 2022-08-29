@@ -179,11 +179,13 @@ const docTemplate = `{
                 "summary": "Consent Approval..",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "consentId",
-                        "name": "consentId",
-                        "in": "query",
-                        "required": true
+                        "description": "consent_id",
+                        "name": "consent_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
@@ -417,11 +419,13 @@ const docTemplate = `{
                 "summary": "Consent Rejection.",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "consentId",
-                        "name": "consentId",
-                        "in": "query",
-                        "required": true
+                        "description": "consent_id",
+                        "name": "consent_id",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     },
                     {
                         "type": "string",

@@ -169,7 +169,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @param consentId query string true "consentId"
+// @param consent_id body string true "consent_id"
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
@@ -229,7 +229,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @param consentId query string true "consentId"
+// @param consent_id body string true "consent_id"
 // @param failureReason query string true "failureReason"
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
