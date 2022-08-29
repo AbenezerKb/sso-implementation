@@ -237,3 +237,44 @@ func (o *oauth) RemoveInternalRefreshToken(ctx context.Context, refreshToken str
 
 	return nil
 }
+
+func (o *oauth) GetInternalRefreshToken(ctx context.Context, token string) (*dto.InternalRefreshToken, error) {
+	refreshToken, err := o.db.GetInternalRefreshToken(ctx, token)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "internal refresh token not found", zap.Error(err), zap.Any("internal-refresh-token", token))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.InternalRefreshToken{
+		ID:           refreshToken.ID,
+		Refreshtoken: refreshToken.Refreshtoken,
+		ExpiresAt:    refreshToken.ExpiresAt,
+		UserID:       refreshToken.UserID,
+		CreatedAt:    refreshToken.CreatedAt,
+	}, nil
+}
+
+func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error) {
+	refreshToken, err := o.db.UpdateRefreshToken(ctx, db.UpdateRefreshTokenParams{
+		ExpiresAt:    param.ExpiresAt,
+		Refreshtoken: param.Refreshtoken,
+		ID:           param.ID,
+	})
+	if err != nil {
+		err := errors.ErrWriteError.Wrap(err, "unable to update the refresh token")
+		o.logger.Error(ctx, "error updating the user refresh ytoken", zap.Error(err), zap.String("internal-refresh-token", param.ID.String()))
+		return nil, err
+	}
+	return &dto.InternalRefreshToken{
+		ID:           refreshToken.ID,
+		Refreshtoken: refreshToken.Refreshtoken,
+		ExpiresAt:    refreshToken.ExpiresAt,
+		UserID:       refreshToken.UserID,
+		CreatedAt:    refreshToken.CreatedAt,
+	}, nil
+}
