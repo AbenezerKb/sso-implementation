@@ -40,7 +40,7 @@ func (o *oauth) Register(ctx *gin.Context) {
 	userParam := dto.RegisterUser{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
@@ -104,7 +104,7 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 	phone := ctx.Query("phone")
 	RqType := ctx.Query("type")
 	if phone == "" || RqType == "" {
-		o.logger.Error(ctx, "invalid input", zap.String("phone", phone))
+		o.logger.Info(ctx, "invalid input", zap.String("phone", phone))
 		_ = ctx.Error(errors.ErrInvalidUserInput.New("invalid phone"))
 		return
 	}
@@ -132,7 +132,7 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 func (o *oauth) Logout(ctx *gin.Context) {
 	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
 	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
@@ -161,7 +161,7 @@ func (o *oauth) Logout(ctx *gin.Context) {
 func (o *oauth) RefreshToken(ctx *gin.Context) {
 	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
 	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
