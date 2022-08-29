@@ -139,7 +139,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
 	if !ok {
 		err := errors.ErrInvalidUserInput.New("invalid user id")
-		o.logger.Error(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		o.logger.Info(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
 		return dto.ConsentResponse{}, err
 	}
 
