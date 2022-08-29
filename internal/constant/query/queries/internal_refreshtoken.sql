@@ -10,3 +10,9 @@ RETURNING *;
 
 -- name: RemoveInternalRefreshToken :exec
 DELETE FROM internalrefreshtokens WHERE refreshtoken =$1;
+
+-- name: GetInternalRefreshToken :one
+SELECT * FROM internalrefreshtokens WHERE refreshtoken = $1;
+
+-- name: UpdateRefreshToken :one
+Update internalrefreshtokens set expires_at = $2, refreshtoken= $3 WHERE id= $1 RETURNING *;
