@@ -278,7 +278,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	err := ctx.ShouldBind(&tokenParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
@@ -287,7 +287,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	client, ok := context.Value(constant.Context("x-client")).(*dto.Client)
 	if !ok {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
@@ -326,7 +326,7 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 	err = ctx.ShouldBindQuery(&logoutReqParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 
 		errQuery.Set("error", "invalid request")
 		errQuery.Set("error_description", "no logedin user found")
