@@ -64,7 +64,7 @@ func ContainsValue(str string, arr []string) bool {
 }
 
 func GenerateNewOPBS() string {
-	return GenerateRandomString(100, true)
+	return GenerateRandomString(100, false)
 }
 
 func CalculateSessionState(clientID, origin, opbs, salt string) string {
