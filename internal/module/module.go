@@ -2,8 +2,9 @@ package module
 
 import (
 	"context"
-	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+
+	"github.com/joomcode/errorx"
 
 	"github.com/google/uuid"
 )
@@ -19,12 +20,12 @@ type OAuthModule interface {
 }
 
 type OAuth2Module interface {
-	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam, requestOrigin string) (string, errors.AuhtErrResponse, error)
+	Authorize(ctx context.Context, authRequestParma dto.AuthorizationRequestParam, requestOrigin string, bindError *errorx.Error) string
 	GetConsentByID(ctx context.Context, consentID string) (dto.ConsentResponse, error)
-	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error)
-	RejectConsent(ctx context.Context, consentID, failureReason string) (string, error)
+	ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string, bindError *errorx.Error) string
+	RejectConsent(ctx context.Context, consentID, failureReason string, bindError *errorx.Error) string
 	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
-	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error)
+	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, bindError *errorx.Error) string
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
