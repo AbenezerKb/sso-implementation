@@ -23,4 +23,4 @@ Feature: Approve consent
     Then Consent approval should fail with message "<message>"
     Examples:
     | consent_id | message |
-    | not_an_id | invalid consentId |
+    | not_an_id | consent not found |
