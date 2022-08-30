@@ -592,11 +592,12 @@ paths:
         required: true
         schema:
           type: string
-      - description: failureReason
-        in: query
-        name: failureReason
+      - description: failure_reason
+        in: body
+        name: failure_reason
         required: true
-        type: string
+        schema:
+          type: string
       produces:
       - application/json
       responses:
