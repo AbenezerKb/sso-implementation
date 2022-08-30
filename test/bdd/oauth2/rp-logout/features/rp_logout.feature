@@ -33,7 +33,7 @@ Feature: logout
         Examples:
             | id_token_hint                         | post_logout_redirect_uri | state | err_uri                 | error           | error_description       |
             | iielksaklcnvlajfkje.kjkladfkje.kjklad | https://www.google.com/  | 1234  | https://www.google.com/ | invalid request | no logedin user found   |
-            |                                       | https://www.google.com/  | 1234  | https://www.google.com/ | invalid request | login hint is required. |
+            |                                       | https://www.google.com/  | 1234  | https://www.google.com/ | invalid request | invalid request |
 
     @failure
     Scenario Outline: Successful Logout
@@ -46,4 +46,4 @@ Feature: logout
             | <error> | <error_description> |
         Examples:
             | post_logout_redirect_uri | state | err_uri                 | error           | error_description                     |
-            |                          | 1234  | https://www.google.com/ | invalid request | post logout redirect uri is required. |
+            |                          | 1234  | https://www.google.com/ | invalid request | invalid request |

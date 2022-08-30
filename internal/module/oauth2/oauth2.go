@@ -525,11 +525,11 @@ func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, b
 
 	if err := logoutReqParam.Validate(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid request", zap.Error(err))
 
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
-			"error":             "invalid input",
-			"error_description": "invalid input",
+			"error":             "invalid request",
+			"error_description": "invalid request",
 		})
 	}
 
