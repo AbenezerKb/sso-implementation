@@ -2,7 +2,6 @@ package oauth2
 
 import (
 	"net/http"
-	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -121,14 +120,18 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @Security	BearerAuth
 func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	var consentResultRsp = dto.ConsentResultRsp{}
+	requestCtx := ctx.Request.Context()
+
 	err := ctx.ShouldBind(&consentResultRsp)
 	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
 		return
 	}
 
-	requestCtx := ctx.Request.Context()
 	userIDString, ok := requestCtx.Value(constant.Context("x-user-id")).(string)
 	if !ok {
 		err := errors.ErrInternalServerError.New("no user_id was found")
@@ -255,38 +258,21 @@ func (o *oauth2) Token(ctx *gin.Context) {
 // @Router       /oauth/logout [get]
 // @Security	BasicAuth
 func (o *oauth2) Logout(ctx *gin.Context) {
-	errRedirectUri, err := url.Parse("error url")
-	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "invalid error uri")
-		o.logger.Error(ctx, "invalid error uri", zap.Error(err))
-		_ = ctx.Error(err)
-	}
-	errQuery := errRedirectUri.Query()
 
 	logoutReqParam := dto.LogoutRequest{}
-	err = ctx.ShouldBindQuery(&logoutReqParam)
+	requestCtx := ctx.Request.Context()
+	err := ctx.ShouldBindQuery(&logoutReqParam)
 	if err != nil {
-		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid request")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-
-		errQuery.Set("error", "invalid request")
-		errQuery.Set("error_description", "no logedin user found")
-		errRedirectUri.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusFound, errRedirectUri.String())
-
-		return
-	}
-
-	redirectURI, errRsp, err := o.oauth2Module.Logout(ctx.Request.Context(), logoutReqParam)
-	if err != nil {
-		errQuery.Set("error", errRsp.Error)
-		errQuery.Set("error_description", errRsp.ErrorDescription)
-		errRedirectUri.RawQuery = errQuery.Encode()
-
-		ctx.Redirect(http.StatusFound, errRedirectUri.String())
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.Logout(requestCtx, logoutReqParam, err))
 		return
 	}
 
 	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
-	ctx.Redirect(http.StatusFound, redirectURI)
+	ctx.Redirect(
+		http.StatusFound,
+		o.oauth2Module.Logout(requestCtx, logoutReqParam, nil))
 }

@@ -311,7 +311,7 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 		})
 	}
 
-	var queries map[string]string
+	queries := map[string]string{}
 	if failureReason == "" {
 		failureReason = "unknown error"
 	}
@@ -515,57 +515,50 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 	return tokenResponse, nil
 }
 
-func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (string, errors.AuhtErrResponse, error) {
-	if err := logoutReqParam.Validate(); err != nil {
-		errRsp := errors.AuhtErrResponse{
-			Error:            "invalid request",
-			ErrorDescription: strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
-		}
-		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		return "", errRsp, err
+func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, bindError *errorx.Error) string {
+	if bindError != nil {
+		o.logger.Info(ctx, "error while binding to query", zap.Error(bindError))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error": bindError.Message(),
+		})
 	}
 
-	logoutRedirectUri, err := url.Parse("logout url")
-	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "invalid logout uri")
-		o.logger.Error(ctx, "invalid logout uri", zap.Error(err))
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid logout uri",
-			ErrorDescription: "invalid logout uri",
-		}, err
+	if err := logoutReqParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "invalid input",
+			"error_description": "invalid input",
+		})
 	}
-	logoutQuery := logoutRedirectUri.Query()
 
 	isValid, idToken := o.token.VerifyIdToken(jwt.SigningMethodPS512, logoutReqParam.IDTokenHint)
 	if !isValid {
 		err := errors.ErrInvalidUserInput.New("id_token is invalid")
 		o.logger.Info(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
 
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid request",
-			ErrorDescription: "no logedin user found",
-		}, err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "invalid request",
+			"error_description": "no logedin user found",
+		})
 	}
 
-	redirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
+	postLogoutgredirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
 	if err != nil {
 		err = errors.ErrInvalidUserInput.New("invalid post logout redirect uri")
 		o.logger.Info(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
 
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid post logout redirect uri",
-			ErrorDescription: "post logout redirect uri is invalid",
-		}, err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "invalid post logout redirect uri",
+			"error_description": "post logout redirect uri is invalid",
+		})
 	}
 
-	query := redirectURI.Query()
-	query.Set("state", logoutReqParam.State)
-	redirectURI.RawQuery = query.Encode()
+	return utils.GenerateRedirectString(o.urls.LogoutURL, map[string]string{
+		"post_logout_redirect_uri": postLogoutgredirectURI.String(),
+		"state":                    logoutReqParam.State,
+		"user_id":                  idToken.Subject,
+	})
 
-	logoutQuery.Set("post_logout_redirect_uri", redirectURI.String())
-	logoutQuery.Set("user_id", idToken.Subject)
-	logoutRedirectUri.RawQuery = logoutQuery.Encode()
-
-	return logoutRedirectUri.String(), errors.AuhtErrResponse{}, nil
 }
