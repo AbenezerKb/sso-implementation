@@ -144,10 +144,6 @@ func (a *authorizationTest) iShouldBeRedirectedToWithTheFollowingErrorParameters
 	if err := a.apiTest.AssertEqual(query.Get("error"), rspParamsQuery.Error); err != nil {
 		return err
 	}
-	if err := a.apiTest.AssertEqual(query.Get("error_description"), rspParamsQuery.ErrorDescription); err != nil {
-		return err
-	}
-
 	return nil
 }
 

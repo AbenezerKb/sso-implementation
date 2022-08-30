@@ -79,12 +79,12 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		})
 	}
 
-	if err := authRequestParm.Validate(); err != nil {
-		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+	if er := authRequestParm.Validate(); er != nil {
+		err := errors.ErrInvalidUserInput.Wrap(er, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
 			"error":             "invalid_request",
-			"error_description": strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
+			"error_description": strings.TrimSpace(strings.Split(er.Error(), ":")[1]),
 		})
 	}
 	redirectURI, err := url.Parse(authRequestParm.RedirectURI)
