@@ -44,83 +44,45 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAu
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/authorize [get]
 func (o *oauth2) Authorize(ctx *gin.Context) {
-	errorURL, err := url.Parse("change this nati")
-	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "failed to parse error url")
-		_ = ctx.Error(err)
-		o.logger.Error(ctx, "error parsing error url", zap.Error(err), zap.String("error_url", "change this nati"))
-		return
-	}
-	errQuery := errorURL.Query()
+	requestCtx := ctx.Request.Context()
 
 	authRequestParam := dto.AuthorizationRequestParam{}
-	err = ctx.ShouldBindQuery(&authRequestParam)
+	err := ctx.ShouldBindQuery(&authRequestParam)
 	if err != nil {
-		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid_request")
 		o.logger.Info(ctx, "error binding to AuthorizationRequestParam", zap.Error(err), zap.Any("request-uri", ctx.Request.RequestURI))
-		errQuery.Set("error", "invalid_request")
-		errQuery.Set("error_description", err.Message())
-		errQuery.Set("error_code", "400")
-		errorURL.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusBadRequest, errorURL.String())
+
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.Authorize(requestCtx, authRequestParam, "", err))
 		return
 	}
 
 	authRequestParam.ClientID, err = uuid.Parse(ctx.Query("client_id"))
 	if err != nil {
-		err := errors.ErrInvalidUserInput.Wrap(err, "invalid client id.")
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid_client_id")
 		o.logger.Info(ctx, "invalid client_id", zap.Error(err), zap.Any("client_id", ctx.Query("client_id")))
-		errQuery.Set("error", "invalid_client_id")
-		errQuery.Set("error_description", err.Message())
-		errQuery.Set("code", "400")
 
-		errorURL.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusFound, errorURL.String())
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.Authorize(requestCtx, authRequestParam, "", err))
 		return
 	}
+
 	requestOrigin := ctx.Request.Host
 	if requestOrigin == "" {
 		err := errors.ErrInvalidUserInput.New("invalid request origin")
 		o.logger.Warn(ctx, "a request without a request origin header was made", zap.Error(err))
-		errQuery.Set("error", err.Message())
-		errQuery.Set("error_description", err.Error())
-		errQuery.Set("error_code", "400")
 
-		errorURL.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusFound, errorURL.String())
-		return
-	}
-	consentId, authErrRsp, err := o.oauth2Module.Authorize(ctx.Request.Context(), authRequestParam, requestOrigin)
-	if err != nil {
-		o.logger.Info(ctx, "error while authorizing authorization request", zap.Error(err), zap.Any("auth-request-param", authRequestParam))
-		errQuery.Set("error", authErrRsp.Error)
-		errQuery.Set("error_description", authErrRsp.ErrorDescription)
-		errQuery.Set("error_code", "400")
-
-		errorURL.RawQuery = errQuery.Encode()
-		ctx.Redirect(http.StatusFound, errorURL.String())
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.Authorize(requestCtx, authRequestParam, requestOrigin, err))
 		return
 	}
 
-	consentURL, err := url.Parse("update this nati")
-	if err != nil {
-		err := errors.ErrInternalServerError.Wrap(err, "failed to parse consent url")
-		_ = ctx.Error(err)
-		o.logger.Error(ctx, "error parsing consent url", zap.Error(err), zap.String("consent_url", "update this nati"))
-		return
-	}
-	query := consentURL.Query()
-	query.Set("consentId", consentId)
-	if authRequestParam.Prompt != "" {
-		query.Set("prompt", authRequestParam.Prompt)
-	} else {
-		query.Set("prompt", "consent")
-	}
-
-	consentURL.RawQuery = query.Encode()
-
-	o.logger.Info(ctx, "consent url", zap.String("url", consentURL.String()))
-	ctx.Redirect(http.StatusFound, consentURL.String())
+	ctx.Redirect(
+		http.StatusFound,
+		o.oauth2Module.Authorize(requestCtx, authRequestParam, requestOrigin, nil))
 }
 
 // GetConsentByID is used to get consent by id.
@@ -173,7 +135,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		o.logger.Error(ctx, "no user_id was found on gin context", zap.Error(err), zap.String("request-uri", ctx.Request.RequestURI))
 		ctx.Redirect(
 			http.StatusFound,
-			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
+			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
 		return
 	}
 	userID, err := uuid.Parse(userIDString)
@@ -182,7 +144,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		o.logger.Error(ctx, "error while parsing x-user-id from request context", zap.Error(err), zap.String("x-user-id", userIDString))
 		ctx.Redirect(
 			http.StatusFound,
-			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
+			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
 		return
 	}
 	if consentResultRsp.ConsentID == "" {
@@ -190,7 +152,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
 		ctx.Redirect(
 			http.StatusFound,
-			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, userID, "", err))
+			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err))
 		return
 	}
 
@@ -200,7 +162,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		o.logger.Warn(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
 		ctx.Redirect(
 			http.StatusFound,
-			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, userID, "", err))
+			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err))
 		return
 	}
 

@@ -3,7 +3,6 @@ package oauth2
 import (
 	"context"
 	"fmt"
-	"github.com/joomcode/errorx"
 	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -16,6 +15,8 @@ import (
 	"sso/platform/utils"
 	"strings"
 	"time"
+
+	"github.com/joomcode/errorx"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -69,41 +70,59 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 	}
 }
 
-func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam, requestOrigin string) (string, errors.AuhtErrResponse, error) {
+func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.AuthorizationRequestParam, requestOrigin string, bindError *errorx.Error) string {
+	if bindError != nil {
+		o.logger.Info(ctx, "error while binding to query", zap.Error(bindError))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             bindError.Message(),
+			"error_description": bindError.Error(),
+		})
+	}
+
 	if err := authRequestParm.Validate(); err != nil {
-		errRsp := errors.AuhtErrResponse{
-			Error:            "invalid_request",
-			ErrorDescription: strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
-		}
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		return "", errRsp, err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "invalid_request",
+			"error_description": strings.TrimSpace(strings.Split(err.Error(), ":")[1]),
+		})
 	}
+	redirectURI, err := url.Parse(authRequestParm.RedirectURI)
+	if err != nil {
+		o.logger.Info(ctx, "error parsing redirect uri", zap.Error(err))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "invalid_redirect_uri",
+			"error_description": err.Error(),
+		})
+	}
+
 	client, err := o.clientPersistence.GetClientByID(ctx, authRequestParm.ClientID)
 	if err != nil {
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid_client",
-			ErrorDescription: "client not found",
-		}, err
+		return utils.GenerateRedirectString(redirectURI, map[string]string{
+			"error":             "invalid_client",
+			"error_description": "client not found",
+		})
 	}
 
 	if !o.ContainsRedirectURL(client.RedirectURIs, authRequestParm.RedirectURI) {
 		err := errors.ErrInvalidUserInput.New("invalid redirect uri")
 		o.logger.Info(ctx, "invalid redirect uri", zap.Error(err))
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid_redirect_uri",
-			ErrorDescription: "invalid redirect uri",
-		}, err
+
+		return utils.GenerateRedirectString(redirectURI, map[string]string{
+			"error":             "invalid_redirect_uri",
+			"error_description": "invalid redirect uri",
+		})
 	}
 
 	scopes, err := o.scopePersistence.GetScopeNameOnly(ctx, strings.Split(authRequestParm.Scope, " ")...)
 	if err != nil || scopes == "" {
 		err := errors.ErrInvalidUserInput.New("invalid scope")
 		o.logger.Info(ctx, "invalid scope", zap.Error(err))
-		return "", errors.AuhtErrResponse{
-			Error:            "invalid_scope",
-			ErrorDescription: "invalid scope",
-		}, err
+
+		return utils.GenerateRedirectString(redirectURI, map[string]string{
+			"error":             "invalid_scope",
+			"error_description": "invalid scope",
+		})
 	}
 
 	consent := dto.Consent{
@@ -119,13 +138,20 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		RequestOrigin: requestOrigin,
 	}
 	if err := o.consentCache.SaveConsent(ctx, consent); err != nil {
-		return "", errors.AuhtErrResponse{
-			Error:            "server_error",
-			ErrorDescription: "failed to save consent",
-		}, err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":             "server_error",
+			"error_description": "failed to save consent",
+		})
+	}
+	prompt := "consent"
+	if authRequestParm.Prompt != "" {
+		prompt = authRequestParm.Prompt
 	}
 
-	return consent.ID.String(), errors.AuhtErrResponse{}, nil
+	return utils.GenerateRedirectString(o.urls.ConsentURL, map[string]string{
+		"consentId": consent.ID.String(),
+		"prompt":    prompt,
+	})
 }
 
 // ContainsRedirectURL
