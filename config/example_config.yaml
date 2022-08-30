@@ -26,6 +26,10 @@ server:
   oauth2:
     error_uri: http://front-end/oauth2/error
     consent_uri: http://front-end/oauth2/consent
+frontend:
+  error_url: https://www.google.com/
+  consent_url: https://www.google.com/
+  logout_url: https://www.google.com/
 private_key: privatekey.example.pem
 public_key: publickey.example.pem
 sms:
