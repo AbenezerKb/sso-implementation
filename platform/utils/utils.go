@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"net/url"
 	"sso/platform/logger"
 	"strings"
 	"time"
@@ -34,7 +35,7 @@ func GenerateRandomString(length int, includeSpecial bool) string {
 	}
 
 	randString := make([]byte, length)
-	io.ReadAtLeast(rand.Reader, randString, length)
+	_, _ = io.ReadAtLeast(rand.Reader, randString, length)
 	for i := 0; i < len(randString); i++ {
 		randString[i] = str[int(randString[i])%len(str)]
 	}
@@ -71,4 +72,13 @@ func CalculateSessionState(clientID, origin, opbs, salt string) string {
 	hash := crypto.SHA256.New()
 	hash.Write([]byte(fmt.Sprintf("%s %s %s %s", clientID, origin, opbs, salt)))
 	return fmt.Sprintf("%s.%s", base64.URLEncoding.EncodeToString(hash.Sum(nil)), salt)
+}
+
+func GenerateRedirectString(uri *url.URL, queries map[string]string) string {
+	query := uri.Query()
+	for k, v := range queries {
+		query.Set(k, v)
+	}
+	uri.RawQuery = query.Encode()
+	return uri.String()
 }
