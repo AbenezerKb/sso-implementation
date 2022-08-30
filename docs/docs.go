@@ -428,11 +428,13 @@ const docTemplate = `{
                         }
                     },
                     {
-                        "type": "string",
-                        "description": "failureReason",
-                        "name": "failureReason",
-                        "in": "query",
-                        "required": true
+                        "description": "failure_reason",
+                        "name": "failure_reason",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
                     }
                 ],
                 "responses": {
