@@ -116,5 +116,6 @@ func (l *LogoutRequest) Validate() error {
 }
 
 type ConsentResultRsp struct {
-	ConsentID string `json:"consent_id"`
+	ConsentID     string `json:"consent_id"`
+	FailureReason string `json:"failure_reason"`
 }

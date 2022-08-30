@@ -4,10 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"github.com/cucumber/godog"
-	"github.com/joomcode/errorx"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 	"net/http"
 	"net/url"
 	"sso/internal/constant/errors"
@@ -16,6 +12,11 @@ import (
 	"sso/platform/utils"
 	"sso/test"
 	"testing"
+
+	"github.com/cucumber/godog"
+	"github.com/joomcode/errorx"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 )
 
 type rejectConsentTest struct {
@@ -136,9 +137,10 @@ func (a *rejectConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog.
 }
 
 func (a *rejectConsentTest) iRequestConsentRejectionWithIdAndMessage(consentID string, message string) error {
-	//a.apiTest.Body = `{"consent_id":"` + consentID + `"}`
-	a.apiTest.SetQueryParam("consentId", consentID)
-	a.apiTest.SetQueryParam("failureReason", message)
+	a.apiTest.SetBodyMap(map[string]interface{}{
+		"consent_id":     consentID,
+		"failure_reason": message,
+	})
 	a.apiTest.AddCookie(http.Cookie{
 		Name:  "opbs",
 		Value: utils.GenerateNewOPBS(),
