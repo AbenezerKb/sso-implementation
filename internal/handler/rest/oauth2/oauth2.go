@@ -169,14 +169,21 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @param consentId query string true "consentId"
+// @param consent_id body string true "consent_id"
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/approveConsent [POST]
 // @Security	BearerAuth
 func (o *oauth2) ApproveConsent(ctx *gin.Context) {
-	consentId := ctx.Query("consentId")
+	var consentResultRsp = dto.ConsentResultRsp{}
+	err := ctx.ShouldBind(&consentResultRsp)
+	if err != nil {
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
 	requestCtx := ctx.Request.Context()
 	userIDString, ok := requestCtx.Value(constant.Context("x-user-id")).(string)
 	if !ok {
@@ -192,7 +199,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	if consentId == "" {
+	if consentResultRsp.ConsentID == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
 		_ = ctx.Error(err)
@@ -206,7 +213,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentId, userID, opbs.Value)
+	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -222,22 +229,29 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @param consentId query string true "consentId"
+// @param consent_id body string true "consent_id"
 // @param failureReason query string true "failureReason"
 // @success 	 200
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/rejectConsent [POST]
 func (o *oauth2) RejectConsent(ctx *gin.Context) {
-	consentId := ctx.Query("consentId")
+	var consentResultRsp = dto.ConsentResultRsp{}
+	err := ctx.ShouldBind(&consentResultRsp)
+	if err != nil {
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
 	failureReason := ctx.GetString("failureReason")
-	if consentId == "" {
+	if consentResultRsp.ConsentID == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
-	redirectURI, err := o.oauth2Module.RejectConsent(ctx.Request.Context(), consentId, failureReason)
+	redirectURI, err := o.oauth2Module.RejectConsent(ctx.Request.Context(), consentResultRsp.ConsentID, failureReason)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -264,7 +278,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	err := ctx.ShouldBind(&tokenParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
@@ -273,7 +287,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 	client, ok := context.Value(constant.Context("x-client")).(*dto.Client)
 	if !ok {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
@@ -312,7 +326,7 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 	err = ctx.ShouldBindQuery(&logoutReqParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Error(ctx, "invalid input", zap.Error(err))
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
 
 		errQuery.Set("error", "invalid request")
 		errQuery.Set("error_description", "no logedin user found")

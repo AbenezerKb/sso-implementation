@@ -139,7 +139,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
 	if !ok {
 		err := errors.ErrInvalidUserInput.New("invalid user id")
-		o.logger.Error(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		o.logger.Info(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
 		return dto.ConsentResponse{}, err
 	}
 
@@ -219,7 +219,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
 		return "", err
 	}
 
@@ -271,7 +271,7 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Error(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
+		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
 		return "", err
 	}
 
@@ -506,7 +506,7 @@ func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (
 	isValid, idToken := o.token.VerifyIdToken(jwt.SigningMethodPS512, logoutReqParam.IDTokenHint)
 	if !isValid {
 		err := errors.ErrInvalidUserInput.New("id_token is invalid")
-		o.logger.Error(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
+		o.logger.Info(ctx, "invalid id_token", zap.Error(err), zap.Any("id_token", logoutReqParam.IDTokenHint))
 
 		return "", errors.AuhtErrResponse{
 			Error:            "invalid request",
@@ -517,7 +517,7 @@ func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (
 	redirectURI, err := url.Parse(logoutReqParam.PostLogoutRedirectUri)
 	if err != nil {
 		err = errors.ErrInvalidUserInput.New("invalid post logout redirect uri")
-		o.logger.Error(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
+		o.logger.Info(ctx, "invalid post logout redirect uri", zap.String("redirect_uri", logoutReqParam.PostLogoutRedirectUri))
 
 		return "", errors.AuhtErrResponse{
 			Error:            "invalid post logout redirect uri",

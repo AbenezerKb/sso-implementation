@@ -426,11 +426,12 @@ paths:
       - application/json
       description: is used to approve consent.
       parameters:
-      - description: consentId
-        in: query
-        name: consentId
+      - description: consent_id
+        in: body
+        name: consent_id
         required: true
-        type: string
+        schema:
+          type: string
       produces:
       - application/json
       responses:
@@ -585,11 +586,12 @@ paths:
       - application/json
       description: is used to reject consent.
       parameters:
-      - description: consentId
-        in: query
-        name: consentId
+      - description: consent_id
+        in: body
+        name: consent_id
         required: true
-        type: string
+        schema:
+          type: string
       - description: failureReason
         in: query
         name: failureReason
