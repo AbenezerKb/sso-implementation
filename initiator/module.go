@@ -22,7 +22,7 @@ type Module struct {
 	scopeModule  module.ScopeMoudle
 }
 
-func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer) Module {
+func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
 
 	return Module{
 		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.Sms, enforcer),
@@ -54,7 +54,8 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 					RefreshTokenExpireTime: viper.GetDuration("server.client.refresh_token.expire_time"),
 				},
 			),
-			persistence.ScopePersistence),
+			persistence.ScopePersistence,
+			state.URLs),
 		scopeModule: scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
 	}
 }

@@ -81,8 +81,12 @@ func Initiate() {
 	platformLayer := InitPlatformLayer(log, viper.GetString("private_key"), viper.GetString("public_key"))
 	log.Info(context.Background(), "platform layer initialized")
 
+	log.Info(context.Background(), "initializing state")
+	state := InitState(log)
+	log.Info(context.Background(), "state initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log, enforcer)
+	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log, enforcer, state)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")

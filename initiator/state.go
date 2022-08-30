@@ -1,25 +1,18 @@
-package state
+package initiator
 
 import (
 	"context"
 	"github.com/spf13/viper"
 	"net/url"
+	"sso/internal/constant/state"
 	"sso/platform/logger"
 )
 
-const (
-	ConsentKey  = "consent:%v"
-	AuthCodeKey = "authcode:%v"
-	//ConsentURL  = "https://www.google.com/"
-	//ErrorURL    = "https://www.google.com/"
-)
-
-type URLs struct {
-	ErrorURL   *url.URL
-	ConsentURL *url.URL
+type State struct {
+	URLs state.URLs
 }
 
-func InitiateURLs(logger logger.Logger) URLs {
+func InitState(logger logger.Logger) State {
 	errorURLString := viper.GetString("frontend.error_url")
 	if errorURLString == "" {
 		logger.Fatal(context.Background(), "unable to read frontend.error_url in viper")
@@ -36,8 +29,10 @@ func InitiateURLs(logger logger.Logger) URLs {
 	if err != nil {
 		logger.Fatal(context.Background(), "unable to parse frontend.consent_url")
 	}
-	return URLs{
-		ErrorURL:   ErrorURL,
-		ConsentURL: ConsentURL,
+	return State{
+		URLs: state.URLs{
+			ErrorURL:   ErrorURL,
+			ConsentURL: ConsentURL,
+		},
 	}
 }

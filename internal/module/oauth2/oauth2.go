@@ -3,6 +3,7 @@ package oauth2
 import (
 	"context"
 	"fmt"
+	"github.com/joomcode/errorx"
 	"net/url"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -50,9 +51,10 @@ type oauth2 struct {
 	token             platform.Token
 	options           Options
 	scopePersistence  storage.ScopePersistence
+	urls              state.URLs
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options, scope storage.ScopePersistence) module.OAuth2Module {
+func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistence, oauthPersistence storage.OAuthPersistence, clientPersistence storage.ClientPersistence, consentCache storage.ConsentCache, authCodeCache storage.AuthCodeCache, token platform.Token, options Options, scope storage.ScopePersistence, urls state.URLs) module.OAuth2Module {
 	return &oauth2{
 		logger:            logger,
 		oauth2Persistence: oauth2Persistence,
@@ -63,6 +65,7 @@ func InitOAuth2(logger logger.Logger, oauth2Persistence storage.OAuth2Persistenc
 		token:             token,
 		options:           options,
 		scopePersistence:  scope,
+		urls:              urls,
 	}
 }
 
@@ -203,90 +206,95 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 	}, nil
 }
 
-func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string) (string, error) {
+func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uuid.UUID, opbs string, bindError *errorx.Error) string {
+	if bindError != nil {
+		o.logger.Info(ctx, "error while binding to query", zap.Error(bindError))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error": bindError.Message(),
+		})
+	}
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
 		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
-		return "", err
-	}
-
-	_, err = o.consentCache.ChangeStatus(ctx, true, consent)
-	if err != nil {
-		return "", err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":       "consent not found",
+			"description": err.Error(),
+		})
 	}
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
-		return "", err
+		o.logger.Error(ctx, "invalid redirectURI was found", zap.Error(err), zap.String("redirect_uri", consent.RedirectURI))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error": "invalid redirectURI was found",
+		})
 	}
 
-	query := redirectURI.Query()
-	query.Set("state", consent.State)
-
 	authCode := dto.AuthCode{
-		Code:        utils.GenerateTimeStampedRandomString(25, true),
+		Code:        utils.GenerateTimeStampedRandomString(25, false),
 		Scope:       consent.Scope,
 		RedirectURI: consent.RedirectURI,
 		ClientID:    consent.ClientID,
 		UserID:      userID,
+		State:       consent.State,
 	}
 	if err := o.authCodeCache.SaveAuthCode(ctx, authCode); err != nil {
-		return "", err
+		errx := errorx.Cast(err)
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":       errx.Message(),
+			"description": errx.Error(),
+		})
 	}
 
-	query.Set("code", authCode.Code)
+	var queries map[string]string
+	queries["code"] = authCode.Code
 	if consent.State != "" {
-		query.Set("state", consent.State)
+		queries["state"] = consent.State
 	}
-	if strings.Contains(consent.ResponseType, "id_token") {
-		user, err := o.oauthPersistence.GetUserByID(ctx, userID)
-		if err != nil {
-			return "", err
-		}
-		idToken, err := o.token.GenerateIdToken(ctx, user, consent.ClientID.String(), o.options.IDTokenExpireTime)
-		if err != nil {
-			return "", err
-		}
-		query.Set("id_token", idToken)
-	}
+
 	// calculate session state
 	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs, utils.GenerateRandomString(20, true))
-	query.Set("session_state", sessionState)
+	queries["session_state"] = sessionState
 
-	redirectURI.RawQuery = query.Encode()
-	return redirectURI.String(), nil
+	return utils.GenerateRedirectString(redirectURI, queries)
 }
 
-func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason string) (string, error) {
+func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason string, bindError *errorx.Error) string {
+	if bindError != nil {
+		o.logger.Info(ctx, "error while binding to query", zap.Error(bindError))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error": bindError.Message(),
+		})
+	}
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
 		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
-		return "", err
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error":       "consent not found",
+			"description": err.Error(),
+		})
 	}
 
 	redirectURI, err := url.Parse(consent.RedirectURI)
 	if err != nil {
-		o.logger.Info(ctx, "invalid redirectURI was found", zap.String("redirect_uri", consent.RedirectURI))
-		return "", err
+		o.logger.Error(ctx, "invalid redirectURI was found", zap.Error(err), zap.String("redirect_uri", consent.RedirectURI))
+		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
+			"error": "invalid redirectURI was found",
+		})
 	}
 
-	query := redirectURI.Query()
-	query.Set("state", consent.State)
+	var queries map[string]string
 	if failureReason == "" {
-		failureReason = "access_denied"
+		failureReason = "unknown error"
 	}
-	query.Set("error", failureReason)
+	queries["error"] = failureReason
 	if consent.State != "" {
-		query.Set("state", consent.State)
+		queries["state"] = consent.State
 	}
 
-	redirectURI.RawQuery = query.Encode()
-	return redirectURI.String(), nil
+	return utils.GenerateRedirectString(redirectURI, queries)
 }
 
 func (o *oauth2) Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error) {
@@ -492,7 +500,7 @@ func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest) (
 		return "", errRsp, err
 	}
 
-	logoutRedirectUri, err := url.Parse(state.LogoutURL)
+	logoutRedirectUri, err := url.Parse("logout url")
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "invalid logout uri")
 		o.logger.Error(ctx, "invalid logout uri", zap.Error(err))

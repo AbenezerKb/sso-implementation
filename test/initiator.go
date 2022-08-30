@@ -40,6 +40,7 @@ type TestInstance struct {
 	Logger        logger.Logger
 	Conn          *pgxpool.Pool
 	PlatformLayer initiator.PlatformLayer
+	CacheLayer    initiator.CacheLayer
 }
 
 func Initiate(path string) TestInstance {
@@ -92,8 +93,12 @@ func Initiate(path string) TestInstance {
 	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"))
 	log.Info(context.Background(), "platform layer initialized")
 
+	log.Info(context.Background(), "initializing state")
+	state := initiator.InitState(log)
+	log.Info(context.Background(), "state initialized")
+
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer)
+	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
@@ -125,6 +130,7 @@ func Initiate(path string) TestInstance {
 		Logger:        log,
 		Conn:          pgxConn,
 		PlatformLayer: platformLayer,
+		CacheLayer:    cacheLayer,
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {

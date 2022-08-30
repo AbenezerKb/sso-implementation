@@ -6,7 +6,6 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/state"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -20,29 +19,12 @@ import (
 type oauth2 struct {
 	logger       logger.Logger
 	oauth2Module module.OAuth2Module
-	options      Options
 }
 
-type Options struct {
-	ErrorURL   string
-	ConsentURL string
-}
-
-func SetOptions(options Options) Options {
-	if options.ErrorURL == "" {
-		options.ErrorURL = state.ErrorURL
-	}
-	if options.ConsentURL == "" {
-		options.ConsentURL = state.ConsentURL
-	}
-	return options
-}
-
-func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module, options Options) rest.OAuth2 {
+func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAuth2 {
 	return &oauth2{
 		logger:       logger,
 		oauth2Module: oauth2Module,
-		options:      options,
 	}
 }
 
@@ -62,11 +44,11 @@ func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module, options 
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/authorize [get]
 func (o *oauth2) Authorize(ctx *gin.Context) {
-	errorURL, err := url.Parse(o.options.ErrorURL)
+	errorURL, err := url.Parse("change this nati")
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "failed to parse error url")
 		_ = ctx.Error(err)
-		o.logger.Error(ctx, "error parsing error url", zap.Error(err), zap.String("error_url", o.options.ErrorURL))
+		o.logger.Error(ctx, "error parsing error url", zap.Error(err), zap.String("error_url", "change this nati"))
 		return
 	}
 	errQuery := errorURL.Query()
@@ -120,11 +102,11 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		return
 	}
 
-	consentURL, err := url.Parse(o.options.ConsentURL)
+	consentURL, err := url.Parse("update this nati")
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "failed to parse consent url")
 		_ = ctx.Error(err)
-		o.logger.Error(ctx, "error parsing consent url", zap.Error(err), zap.String("consent_url", o.options.ConsentURL))
+		o.logger.Error(ctx, "error parsing consent url", zap.Error(err), zap.String("consent_url", "update this nati"))
 		return
 	}
 	query := consentURL.Query()
@@ -189,38 +171,43 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	if !ok {
 		err := errors.ErrInternalServerError.New("no user_id was found")
 		o.logger.Error(ctx, "no user_id was found on gin context", zap.Error(err), zap.String("request-uri", ctx.Request.RequestURI))
-		_ = ctx.Error(err)
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
 		return
 	}
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "invalid user id")
 		o.logger.Error(ctx, "error while parsing x-user-id from request context", zap.Error(err), zap.String("x-user-id", userIDString))
-		_ = ctx.Error(err)
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
 		return
 	}
 	if consentResultRsp.ConsentID == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
-		_ = ctx.Error(err)
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, userID, "", err))
 		return
 	}
 
 	opbs, err := ctx.Request.Cookie("opbs")
 	if err != nil {
 		err := errors.ErrAuthError.Wrap(err, "user not logged in")
-		o.logger.Info(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
-		_ = ctx.Error(err)
-		return
-	}
-	redirectURI, err := o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value)
-	if err != nil {
-		_ = ctx.Error(err)
+		o.logger.Warn(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.ApproveConsent(ctx, consentResultRsp.ConsentID, userID, "", err))
 		return
 	}
 
 	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
-	ctx.Redirect(http.StatusFound, redirectURI)
+	ctx.Redirect(
+		http.StatusFound,
+		o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value, nil))
 }
 
 // RejectConsent is used to reject consent.
@@ -236,28 +223,20 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/rejectConsent [POST]
 func (o *oauth2) RejectConsent(ctx *gin.Context) {
-	var consentResultRsp = dto.ConsentResultRsp{}
-	err := ctx.ShouldBind(&consentResultRsp)
-	if err != nil {
-		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
-		return
-	}
-
-	failureReason := ctx.GetString("failureReason")
-	if consentResultRsp.ConsentID == "" {
+	consentId := ctx.Query("consentId")
+	failureReason := ctx.Query("failureReason")
+	if consentId == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
-		_ = ctx.Error(err)
-		return
-	}
-	redirectURI, err := o.oauth2Module.RejectConsent(ctx.Request.Context(), consentResultRsp.ConsentID, failureReason)
-	if err != nil {
-		_ = ctx.Error(err)
+		ctx.Redirect(
+			http.StatusFound,
+			o.oauth2Module.RejectConsent(ctx, consentId, "", err))
 		return
 	}
 
-	ctx.Redirect(http.StatusFound, redirectURI)
+	ctx.Redirect(
+		http.StatusFound,
+		o.oauth2Module.RejectConsent(ctx.Request.Context(), consentId, failureReason, nil))
 }
 
 // Token is used to exchange the authorization code for access token.
@@ -314,7 +293,7 @@ func (o *oauth2) Token(ctx *gin.Context) {
 // @Router       /oauth/logout [get]
 // @Security	BasicAuth
 func (o *oauth2) Logout(ctx *gin.Context) {
-	errRedirectUri, err := url.Parse(state.ErrorURL)
+	errRedirectUri, err := url.Parse("error url")
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "invalid error uri")
 		o.logger.Error(ctx, "invalid error uri", zap.Error(err))
