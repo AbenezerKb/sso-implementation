@@ -17,7 +17,7 @@ func InitState(logger logger.Logger) State {
 	if errorURLString == "" {
 		logger.Fatal(context.Background(), "unable to read frontend.error_url in viper")
 	}
-	ErrorURL, err := url.Parse(errorURLString)
+	errorURL, err := url.Parse(errorURLString)
 	if err != nil {
 		logger.Fatal(context.Background(), "unable to parse frontend.error_url")
 	}
@@ -25,14 +25,24 @@ func InitState(logger logger.Logger) State {
 	if consentURLString == "" {
 		logger.Fatal(context.Background(), "unable to read frontend.consent_url in viper")
 	}
-	ConsentURL, err := url.Parse(consentURLString)
+	consentURL, err := url.Parse(consentURLString)
 	if err != nil {
 		logger.Fatal(context.Background(), "unable to parse frontend.consent_url")
 	}
+
+	logoutURLString := viper.GetString("frontend.logout_url")
+	if consentURLString == "" {
+		logger.Fatal(context.Background(), "unable to read frontend.logout_url in viper")
+	}
+	logoutURL, err := url.Parse(logoutURLString)
+	if err != nil {
+		logger.Fatal(context.Background(), "unable to parse frontend.logout_url")
+	}
 	return State{
 		URLs: state.URLs{
-			ErrorURL:   ErrorURL,
-			ConsentURL: ConsentURL,
+			ErrorURL:   errorURL,
+			ConsentURL: consentURL,
+			LogoutURL:  logoutURL,
 		},
 	}
 }

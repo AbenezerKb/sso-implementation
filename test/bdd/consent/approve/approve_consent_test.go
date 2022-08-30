@@ -9,6 +9,7 @@ import (
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 	"net/http"
+	"net/url"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
@@ -134,8 +135,7 @@ func (a *approveConsentTest) iHaveAConsentWithTheFollowingDetails(consent *godog
 }
 
 func (a *approveConsentTest) iRequestConsentApprovalWithId(consentID string) error {
-	//a.apiTest.Body = `{"consent_id":"` + consentID + `"}`
-	a.apiTest.SetQueryParam("consentId", consentID)
+	a.apiTest.SetBodyValue("consent_id", consentID)
 	a.apiTest.AddCookie(http.Cookie{
 		Name:  "opbs",
 		Value: utils.GenerateNewOPBS(),
@@ -181,7 +181,7 @@ func (a *approveConsentTest) consentApprovalShouldFailWithMessage(message string
 		return err
 	}
 	queryParams := a.apiTest.GetRedirectURLQueryParams()
-	if err := a.apiTest.AssertEqual(queryParams["error"], message); err != nil {
+	if err := a.apiTest.AssertEqual(queryParams["error"], url.QueryEscape(message)); err != nil {
 		return err
 	}
 	return nil

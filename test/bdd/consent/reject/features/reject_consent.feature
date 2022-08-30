@@ -18,17 +18,17 @@ Feature: Reject consent
   @success
   Scenario Outline: Consent is rejected
     When I request consent rejection with id "48684fe2-43fa-46b8-ba6b-78cfc7196fb8" and message "<message>"
-    Then The consent should be rejected
+    Then The consent should be rejected with "<error>"
     Examples:
-      | message               |
-      |                       |
-      | login is required     |
-      | user rejected consent |
+      | message               | error                 |
+      |                       | unknown error         |
+      | login is required     | login is required     |
+      | user rejected consent | user rejected consent |
 
   @failure
   Scenario Outline: consent is not rejected correctly
-    When I request consent rejection with id "48684fe2-43fa-46b8-ba6b-78cfc7196fb8" and message "<message>"
+    When I request consent rejection with id "<consent_id>" and message "<message>"
     Then Consent rejection should fail with message "<error>"
     Examples:
-      | message           | error             |
-      | login is required | invalid consentId |
+      | consent_id                           | message           | error             |
+      | 48684fe2-43fa-46b8-ba6b-78cfc7196f33 | login is required | consent not found |

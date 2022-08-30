@@ -9,6 +9,7 @@ import (
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src/seed"
 	"net/http"
+	"net/url"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -146,7 +147,7 @@ func (a *rejectConsentTest) iRequestConsentRejectionWithIdAndMessage(consentID s
 	return nil
 }
 
-func (a *rejectConsentTest) theConsentShouldBeRejected() error {
+func (a *rejectConsentTest) theConsentShouldBeRejectedWith(message string) error {
 	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
 		return err
 	}
@@ -159,7 +160,7 @@ func (a *rejectConsentTest) theConsentShouldBeRejected() error {
 	if err := a.apiTest.AssertEqual(queryParams["state"], a.consent.State); err != nil {
 		return err
 	}
-	if err := a.apiTest.AssertEqual(queryParams["error"], "access_denied"); err != nil {
+	if err := a.apiTest.AssertEqual(queryParams["error"], url.QueryEscape(message)); err != nil {
 		return err
 	}
 	return nil
@@ -170,7 +171,7 @@ func (a *rejectConsentTest) consentRejectionShouldFailWithMessage(message string
 		return err
 	}
 	queryParams := a.apiTest.GetRedirectURLQueryParams()
-	if err := a.apiTest.AssertEqual(queryParams["error"], message); err != nil {
+	if err := a.apiTest.AssertEqual(queryParams["error"], url.QueryEscape(message)); err != nil {
 		return err
 	}
 	return nil
@@ -191,7 +192,7 @@ func (a *rejectConsentTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I am logged in with credentials$`, a.iAmLoggedInWithCredentials)
 	ctx.Step(`^I have a consent with the following details$`, a.iHaveAConsentWithTheFollowingDetails)
 	ctx.Step(`^I request consent rejection with id "([^"]*)" and message "([^"]*)"$`, a.iRequestConsentRejectionWithIdAndMessage)
-	ctx.Step(`^The consent should be rejected$`, a.theConsentShouldBeRejected)
+	ctx.Step(`^The consent should be rejected with "([^"]*)"$`, a.theConsentShouldBeRejectedWith)
 	ctx.Step(`^There are registered scopes with the following details$`, a.thereAreRegisteredScopesWithTheFollowingDetails)
 	ctx.Step(`^There is a client with the following details$`, a.thereIsAClientWithTheFollowingDetails)
 }

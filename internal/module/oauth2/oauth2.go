@@ -273,7 +273,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 		})
 	}
 
-	var queries map[string]string
+	queries := map[string]string{}
 	queries["code"] = authCode.Code
 	if consent.State != "" {
 		queries["state"] = consent.State
