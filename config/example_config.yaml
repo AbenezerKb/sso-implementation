@@ -41,10 +41,10 @@ sms:
     password: "%v is your Ride password. Please login and reset it."
 cors:
   origin:
-    - *
+    - "*"
   allow_credentials: true
   headers:
-    - *
+    - "*"
   methods:
     - GET
     - POST
