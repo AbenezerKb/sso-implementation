@@ -30,7 +30,7 @@ func TestRevokeClient(t *testing.T) {
 
 	r := &revokeClientTest{}
 	r.TestInstance = test.Initiate("../../../../")
-	r.apiTest.URL = "/v1/auth/revokeClient"
+	r.apiTest.URL = "/v1/oauth/revokeClient"
 	r.apiTest.Method = "POST"
 	r.apiTest.SetHeader("Content-Type", "application/json")
 	r.apiTest.InitializeServer(r.Server)
