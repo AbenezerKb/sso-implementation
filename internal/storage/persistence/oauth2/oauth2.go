@@ -186,3 +186,7 @@ func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.Refres
 		ExpiresAt:    refreshToken.ExpiresAt,
 	}, nil
 }
+
+func (o *oauth2) GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error) {
+	return nil, nil
+}
