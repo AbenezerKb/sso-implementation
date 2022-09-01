@@ -139,7 +139,7 @@ func (o *oauth2) RemoveRefreshToken(ctx context.Context, refresh_token string) e
 }
 
 func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error) {
-	refereshToken, err := o.db.CheckIfUserGrantedClient(ctx, db.CheckIfUserGrantedClientParams{
+	refereshToken, err := o.db.GetRefreshTokenByUserIDAndClientID(ctx, db.GetRefreshTokenByUserIDAndClientIDParams{
 		UserID:   userID,
 		ClientID: clientID,
 	})
