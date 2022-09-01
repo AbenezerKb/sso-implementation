@@ -22,6 +22,6 @@ Feature: Revoke client access
     When I request to revoke access to the client with id "<client_id>"
     Then My request fails with message "<message>"
     Examples:
-      | client_id                            | message                     |
-      | not-correct-id                       | invalid client_id           |
-      | 9fb7169c-735c-4638-bb24-7a01a345b0ac | no client access found with |
+      | client_id                            | message                |
+      | not-correct-id                       | invalid client_id      |
+      | 9fb7169c-735c-4638-bb24-7a01a345b0ac | no client access found |
