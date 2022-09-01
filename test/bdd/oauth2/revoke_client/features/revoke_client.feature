@@ -22,8 +22,9 @@ Feature: Revoke client access
     When I request to revoke access to the client with id "<client_id>"
     Then My request fails with field error "<message>"
     Examples:
-      | client_id                            | message                |
-      | not-correct-id                       | invalid client_id      |
+      | client_id      | message           |
+      | not-correct-id | invalid client_id |
+
   @failure
   Scenario Outline: I fail to revoke access to the client with valid request
     When I request to revoke access to the client with id "<client_id>"

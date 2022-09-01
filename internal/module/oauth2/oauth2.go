@@ -591,6 +591,10 @@ func (o *oauth2) RevokeClient(ctx context.Context, clientBody request_models.Rev
 	// check refresh token with client id and user id
 	refreshToken, err := o.oauth2Persistence.GetRefreshTokenOfClientByUserID(ctx, userID, clientID)
 	if err != nil {
+		if errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			err := errors.ErrInvalidUserInput.Wrap(err, "no client access found")
+			return err
+		}
 		return err
 	}
 

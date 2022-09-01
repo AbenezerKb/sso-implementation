@@ -146,7 +146,7 @@ func (r *revokeClientTest) myRequestFailsWithFieldError(message string) error {
 }
 
 func (r *revokeClientTest) myRequestFailsWithErrorMessage(message string) error {
-	if err := r.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
+	if err := r.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
 		return err
 	}
 	if err := r.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
