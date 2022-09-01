@@ -2,6 +2,7 @@ package update
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -9,14 +10,16 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
+	"github.com/dongri/phonenumber"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
 type updateUserTest struct {
 	test.TestInstance
-	User        db.User
-	NewUserData dto.User
-	apiTest     src.ApiTest
+	User          db.User
+	NewUserData   dto.User
+	apiTest       src.ApiTest
+	DublicateUser dto.User
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -41,7 +44,6 @@ func (u *updateUserTest) iAmLoggedInUserWithTheFollowingDetails(userDetails *god
 	if err != nil {
 		return err
 	}
-	u.apiTest.URL += u.User.ID.String()
 	u.apiTest.SetHeader("Authorization", "Bearer "+u.AccessToken)
 	return nil
 }
@@ -100,12 +102,37 @@ func (u *updateUserTest) myProfileShouldBeUpdated() error {
 	}
 
 	if u.NewUserData.Phone != "" {
-		if err := u.apiTest.AssertEqual(u.NewUserData.Phone, updatedUserData.Phone); err != nil {
+		newPhone := phonenumber.Parse(u.NewUserData.Phone, "ET")
+
+		if err := u.apiTest.AssertEqual(newPhone, updatedUserData.Phone); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+func (u *updateUserTest) thereIsUserWithFollowingDetails(dublicateUser *godog.Table) error {
+	body, err := u.apiTest.ReadRow(dublicateUser, nil, false)
+	if err != nil {
+		return err
+	}
+	if err := u.apiTest.UnmarshalJSONAt([]byte(body), "", &u.DublicateUser); err != nil {
+		return err
+	}
+
+	userData, err := u.DB.CreateUser(context.Background(), db.CreateUserParams{
+		FirstName:  u.DublicateUser.FirstName,
+		Phone:      u.DublicateUser.Phone,
+		Email:      sql.NullString{String: u.DublicateUser.Email, Valid: true},
+		MiddleName: u.DublicateUser.MiddleName,
+		LastName:   u.DublicateUser.LastName,
+	})
+	if err != nil {
+		return err
+	}
+	u.DublicateUser.ID = userData.ID
+	return nil
+
 }
 
 func (u *updateUserTest) theUpdateShouldFailWithMessage(message string) error {
@@ -115,14 +142,23 @@ func (u *updateUserTest) theUpdateShouldFailWithMessage(message string) error {
 	return u.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", message)
 }
 
+func (u *updateUserTest) theUpdateShouldFailWithErrorMessage(message string) error {
+
+	if err := u.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+		return err
+	}
+	return u.apiTest.AssertStringValueOnPathInResponse("error.message", message)
+}
+
 func (u *updateUserTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	u.apiTest.URL = "/v1/users/"
+	u.apiTest.URL = "/v1/users"
 	u.apiTest.Method = http.MethodPatch
 	u.apiTest.SetHeader("Content-Type", "application/json")
 	u.apiTest.InitializeServer(u.Server)
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = u.DB.DeleteUser(ctx, u.User.ID)
+		_, _ = u.DB.DeleteUser(ctx, u.DublicateUser.ID)
 
 		return ctx, nil
 	})
@@ -132,4 +168,7 @@ func (u *updateUserTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I update my profile$`, u.iUpdateMyProfile)
 	ctx.Step(`^my profile should be updated$`, u.myProfileShouldBeUpdated)
 	ctx.Step(`^The update should fail with message "([^"]*)"$`, u.theUpdateShouldFailWithMessage)
+	ctx.Step(`^there is user with following details:$`, u.thereIsUserWithFollowingDetails)
+	ctx.Step(`^The update should fail with error message "([^"]*)"$`, u.theUpdateShouldFailWithErrorMessage)
+
 }
