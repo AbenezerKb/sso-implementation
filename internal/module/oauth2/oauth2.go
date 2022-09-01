@@ -175,8 +175,6 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
-		o.logger.Info(ctx, "consent not found", zap.Error(err))
 		return dto.ConsentResponse{}, err
 	}
 
@@ -243,7 +241,6 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
 			"error":       "consent not found",
 			"description": err.Error(),
@@ -297,7 +294,6 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
 			"error":       "consent not found",
 			"description": err.Error(),
