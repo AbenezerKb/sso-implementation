@@ -26,16 +26,6 @@ func InitOAuth2(logger logger.Logger, db *db.Queries) storage.OAuth2Persistence 
 	}
 }
 
-func (o *oauth2) GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
-	return &dto.Client{
-		RedirectURIs: []string{"https://www.google.com/"},
-		Scopes:       "openid profile email",
-		Name:         "test",
-		Secret:       "test",
-		// ID:           "test",
-	}, nil
-}
-
 func (o *oauth2) GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error) {
 	namedScopes := []dto.Scope{}
 	for _, scope := range scopes {
