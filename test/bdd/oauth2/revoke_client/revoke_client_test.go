@@ -159,7 +159,7 @@ func (r *revokeClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		_, _ = r.DB.DeleteUser(ctx, r.user.ID)
 		_, _ = r.DB.DeleteClient(ctx, r.client.ID)
 		_ = r.DB.RemoveRefreshToken(ctx, r.refreshToken.RefreshToken)
-		_, _ = r.Conn.Exec(ctx, "delete from auth_history where true")
+		_, _ = r.Conn.Exec(ctx, "delete from auth_histories where true")
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, r.iAmLoggedInWithTheFollowingCredentials)
