@@ -29,6 +29,7 @@ type OAuth2Module interface {
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
+	UpdateProfile(ctx context.Context, user dto.User) (*dto.User, error)
 }
 
 type ClientModule interface {
