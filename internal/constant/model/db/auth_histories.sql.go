@@ -77,3 +77,28 @@ func (q *Queries) GetAuthHistory(ctx context.Context, code string) (AuthHistory,
 	)
 	return i, err
 }
+
+const getLastAuthHistory = `-- name: GetLastAuthHistory :one
+SELECT id, code, user_id, scope, status, redirect_uri, client_id, created_at FROM auth_histories WHERE user_id = $1 AND client_id = $2 ORDER BY created_at DESC LIMIT 1
+`
+
+type GetLastAuthHistoryParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	ClientID uuid.UUID `json:"client_id"`
+}
+
+func (q *Queries) GetLastAuthHistory(ctx context.Context, arg GetLastAuthHistoryParams) (AuthHistory, error) {
+	row := q.db.QueryRow(ctx, getLastAuthHistory, arg.UserID, arg.ClientID)
+	var i AuthHistory
+	err := row.Scan(
+		&i.ID,
+		&i.Code,
+		&i.UserID,
+		&i.Scope,
+		&i.Status,
+		&i.RedirectUri,
+		&i.ClientID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
