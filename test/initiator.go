@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -202,7 +203,7 @@ func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error 
 	return nil
 }
 
-func (t *TestInstance) AuthenticateWithParam(credentials db.CreateUserParams) (db.User, error) {
+func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, error) {
 	apiTest := src.ApiTest{
 		URL:    "/v1/login",
 		Method: http.MethodPost,
@@ -220,7 +221,17 @@ func (t *TestInstance) AuthenticateWithParam(credentials db.CreateUserParams) (d
 	if err != nil {
 		return db.User{}, err
 	}
-	user, err := t.DB.CreateUser(context.Background(), credentials)
+	user, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
+		FirstName:      credentials.FirstName,
+		MiddleName:     credentials.MiddleName,
+		LastName:       credentials.LastName,
+		Email:          sql.NullString{String: credentials.Email, Valid: true},
+		Phone:          credentials.Phone,
+		Password:       credentials.Password,
+		UserName:       credentials.UserName,
+		Gender:         credentials.Gender,
+		ProfilePicture: sql.NullString{String: credentials.ProfilePicture, Valid: true},
+	})
 	if err != nil {
 		return db.User{}, err
 	}

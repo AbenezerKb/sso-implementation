@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"sso/internal/constant/model/db"
+	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
 
@@ -14,7 +15,7 @@ import (
 type updateUserTest struct {
 	test.TestInstance
 	User        db.User
-	NewUserData db.User
+	NewUserData dto.User
 	apiTest     src.ApiTest
 }
 
@@ -30,7 +31,7 @@ func (u *updateUserTest) iAmLoggedInUserWithTheFollowingDetails(userDetails *god
 		return err
 	}
 
-	userValue := db.CreateUserParams{}
+	userValue := dto.User{}
 	err = u.apiTest.UnmarshalJSON([]byte(userData), &userValue)
 	if err != nil {
 		return err
@@ -74,8 +75,8 @@ func (u *updateUserTest) myProfileShouldBeUpdated() error {
 		return err
 	}
 
-	if u.NewUserData.Email.String != "" {
-		if err := u.apiTest.AssertEqual(u.NewUserData.Email.String, updatedUserData.Email.String); err != nil {
+	if u.NewUserData.Email != "" {
+		if err := u.apiTest.AssertEqual(u.NewUserData.Email, updatedUserData.Email.String); err != nil {
 			return err
 		}
 	}
@@ -115,7 +116,7 @@ func (u *updateUserTest) theUpdateShouldFailWithMessage(message string) error {
 }
 
 func (u *updateUserTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	u.apiTest.URL = "v1/users/"
+	u.apiTest.URL = "/v1/users/"
 	u.apiTest.Method = http.MethodPatch
 	u.apiTest.SetHeader("Content-Type", "application/json")
 	u.apiTest.InitializeServer(u.Server)
