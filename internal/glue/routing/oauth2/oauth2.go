@@ -63,6 +63,15 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "/revokeClient",
+			Handler: handler.RevokeClient,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(oauth2Group, oauth2Routes, enforcer)
 

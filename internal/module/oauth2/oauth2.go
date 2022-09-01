@@ -7,6 +7,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/state"
 	"sso/internal/module"
 	"sso/internal/storage"
@@ -174,8 +175,6 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		err = errors.ErrNoRecordFound.Wrap(err, "consent not found")
-		o.logger.Info(ctx, "consent not found", zap.Error(err))
 		return dto.ConsentResponse{}, err
 	}
 
@@ -242,7 +241,6 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
 			"error":       "consent not found",
 			"description": err.Error(),
@@ -296,7 +294,6 @@ func (o *oauth2) RejectConsent(ctx context.Context, consentID, failureReason str
 	// check if consent is valid
 	consent, err := o.consentCache.GetConsent(ctx, consentID)
 	if err != nil {
-		o.logger.Info(ctx, "consent not found", zap.Error(err), zap.Any("consent-id", consentID))
 		return utils.GenerateRedirectString(o.urls.ErrorURL, map[string]string{
 			"error":       "consent not found",
 			"description": err.Error(),
@@ -561,4 +558,60 @@ func (o *oauth2) Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, b
 		"user_id":                  idToken.Subject,
 	})
 
+}
+
+func (o *oauth2) RevokeClient(ctx context.Context, clientBody request_models.RevokeClientBody) error {
+	if err := clientBody.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid user input", zap.Error(err))
+		return err
+	}
+	userIDString, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Error(ctx, "expected to find x-user-id on context", zap.Error(err), zap.Any("user-id", userIDString))
+		return err
+	}
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		o.logger.Error(ctx, "unexpected parse error for user id in context", zap.Error(err), zap.String("user-id", userIDString))
+		return err
+	}
+	clientID, err := uuid.Parse(clientBody.ClientID)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid client_id")
+		o.logger.Info(ctx, "invalid client_id was provided to revoke client access", zap.Error(err), zap.Any("user-id", userID), zap.String("client-id", clientBody.ClientID))
+		return err
+	}
+	// check refresh token with client id and user id
+	refreshToken, err := o.oauth2Persistence.GetRefreshTokenOfClientByUserID(ctx, userID, clientID)
+	if err != nil {
+		if errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			err := errors.ErrInvalidUserInput.Wrap(err, "no client access found")
+			return err
+		}
+		return err
+	}
+
+	// delete the refresh token
+	err = o.oauth2Persistence.RemoveRefreshToken(ctx, refreshToken.RefreshToken)
+	if err != nil {
+		return err
+	}
+
+	// create an auth history
+	_, err = o.oauth2Persistence.AddAuthHistory(ctx, dto.AuthHistory{
+		Code:        refreshToken.Code,
+		UserID:      userID,
+		ClientID:    clientID,
+		Scope:       refreshToken.Scope,
+		Status:      constant.Revoke,
+		RedirectUri: refreshToken.RedirectUri,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

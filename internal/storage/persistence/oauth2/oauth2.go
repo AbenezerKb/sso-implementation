@@ -26,16 +26,6 @@ func InitOAuth2(logger logger.Logger, db *db.Queries) storage.OAuth2Persistence 
 	}
 }
 
-func (o *oauth2) GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
-	return &dto.Client{
-		RedirectURIs: []string{"https://www.google.com/"},
-		Scopes:       "openid profile email",
-		Name:         "test",
-		Secret:       "test",
-		// ID:           "test",
-	}, nil
-}
-
 func (o *oauth2) GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error) {
 	namedScopes := []dto.Scope{}
 	for _, scope := range scopes {
@@ -139,7 +129,7 @@ func (o *oauth2) RemoveRefreshToken(ctx context.Context, refresh_token string) e
 }
 
 func (o *oauth2) CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error) {
-	refereshToken, err := o.db.CheckIfUserGrantedClient(ctx, db.CheckIfUserGrantedClientParams{
+	refereshToken, err := o.db.GetRefreshTokenByUserIDAndClientID(ctx, db.GetRefreshTokenByUserIDAndClientIDParams{
 		UserID:   userID,
 		ClientID: clientID,
 	})
@@ -173,6 +163,33 @@ func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.Refres
 		}
 		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
 		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.RefreshToken{
+		ID:           refreshToken.ID,
+		Code:         refreshToken.Code,
+		RefreshToken: refreshToken.RefreshToken,
+		RedirectUri:  refreshToken.RedirectUri.String,
+		Scope:        refreshToken.Scope.String,
+		UserID:       refreshToken.UserID,
+		ClientID:     refreshToken.ClientID,
+		ExpiresAt:    refreshToken.ExpiresAt,
+	}, nil
+}
+
+func (o *oauth2) GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error) {
+	refreshToken, err := o.db.GetRefreshTokenByUserIDAndClientID(ctx, db.GetRefreshTokenByUserIDAndClientIDParams{
+		UserID:   userID,
+		ClientID: clientID,
+	})
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "refresh token not found", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not find refresh token", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
 		return nil, err
 	}
 	return &dto.RefreshToken{
