@@ -199,7 +199,7 @@ func (o *oauth2) GetRefreshTokenOfClientByUserID(ctx context.Context, userID, cl
 			return nil, err
 		}
 		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
-		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		o.logger.Error(ctx, "could not find refresh token", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
 		return nil, err
 	}
 	return &dto.RefreshToken{
