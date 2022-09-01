@@ -52,3 +52,23 @@ func (u *user) CreateUser(ctx *gin.Context) {
 	u.logger.Info(ctx, "created user")
 	constant.SuccessResponse(ctx, http.StatusCreated, createdUser, nil)
 }
+
+func (u *user) UpdateProfile(ctx *gin.Context) {
+	userParam := dto.User{}
+	err := ctx.ShouldBind(&userParam)
+	if err != nil {
+		u.logger.Info(ctx, "unable to bind user data", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+	requestCtx := ctx.Request.Context()
+
+	updatedUser, err := u.userModule.UpdateProfile(requestCtx, userParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	u.logger.Info(ctx, "user updated")
+	constant.SuccessResponse(ctx, http.StatusOK, updatedUser, nil)
+}
