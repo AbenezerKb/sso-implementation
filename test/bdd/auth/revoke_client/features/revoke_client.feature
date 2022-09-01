@@ -15,6 +15,7 @@ Feature: Revoke client access
   Scenario: I successfully revoke access to the client
     When I request to revoke access to the client
     Then The client should no longer have access to my data
+    And My action should be recorded
 
   @failure
   Scenario Outline: I fail to revoke access to the client

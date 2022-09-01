@@ -8,6 +8,7 @@ import (
 	"github.com/joomcode/errorx"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -113,7 +114,20 @@ func (r *revokeClientTest) theClientShouldNoLongerHaveAccessToMyData() error {
 	}
 	return nil
 }
-
+func (r *revokeClientTest) myActionShouldBeRecorded() error {
+	record, err := r.DB.GetLastAuthHistory(context.Background(), db.GetLastAuthHistoryParams{
+		UserID:   r.user.ID,
+		ClientID: r.client.ID,
+	})
+	if err != nil {
+		return err
+	}
+	// TODO: may be check the time the history was recorded
+	if err := r.apiTest.AssertEqual(record.Status, constant.Revoke); err != nil {
+		return err
+	}
+	return nil
+}
 func (r *revokeClientTest) iRequestToRevokeAccessToTheClientWithId(clientID string) error {
 	r.apiTest.SetHeader("Authorization", "Bearer "+r.AccessToken)
 	r.apiTest.SetBodyValue("client_id", clientID)
@@ -136,6 +150,7 @@ func (r *revokeClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		_, _ = r.DB.DeleteUser(ctx, r.user.ID)
 		_, _ = r.DB.DeleteClient(ctx, r.client.ID)
 		_ = r.DB.RemoveRefreshToken(ctx, r.refreshToken.RefreshToken)
+		_, _ = r.Conn.Exec(ctx, "delete from auth_history where true")
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, r.iAmLoggedInWithTheFollowingCredentials)
@@ -144,4 +159,5 @@ func (r *revokeClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I request to revoke access to the client with id "([^"]*)"$`, r.iRequestToRevokeAccessToTheClientWithId)
 	ctx.Step(`^My request fails with message "([^"]*)"$`, r.myRequestFailsWithMessage)
 	ctx.Step(`^The client should no longer have access to my data$`, r.theClientShouldNoLongerHaveAccessToMyData)
+	ctx.Step(`^My action should be recorded$`, r.myActionShouldBeRecorded)
 }
