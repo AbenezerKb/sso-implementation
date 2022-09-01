@@ -135,11 +135,21 @@ func (r *revokeClientTest) iRequestToRevokeAccessToTheClientWithId(clientID stri
 	return nil
 }
 
-func (r *revokeClientTest) myRequestFailsWithMessage(message string) error {
+func (r *revokeClientTest) myRequestFailsWithFieldError(message string) error {
 	if err := r.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
 		return err
 	}
 	if err := r.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", message); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *revokeClientTest) myRequestFailsWithErrorMessage(message string) error {
+	if err := r.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
+		return err
+	}
+	if err := r.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
 		return err
 	}
 	return nil
@@ -157,7 +167,8 @@ func (r *revokeClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I have given access to the following client$`, r.iHaveGivenAccessToTheFollowingClient)
 	ctx.Step(`^I request to revoke access to the client$`, r.iRequestToRevokeAccessToTheClient)
 	ctx.Step(`^I request to revoke access to the client with id "([^"]*)"$`, r.iRequestToRevokeAccessToTheClientWithId)
-	ctx.Step(`^My request fails with message "([^"]*)"$`, r.myRequestFailsWithMessage)
 	ctx.Step(`^The client should no longer have access to my data$`, r.theClientShouldNoLongerHaveAccessToMyData)
 	ctx.Step(`^My action should be recorded$`, r.myActionShouldBeRecorded)
+	ctx.Step(`^My request fails with field error "([^"]*)"$`, r.myRequestFailsWithFieldError)
+	ctx.Step(`^My request fails with error message "([^"]*)"$`, r.myRequestFailsWithErrorMessage)
 }

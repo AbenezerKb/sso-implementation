@@ -18,10 +18,16 @@ Feature: Revoke client access
     And My action should be recorded
 
   @failure
-  Scenario Outline: I fail to revoke access to the client
+  Scenario Outline: I fail to revoke access to the client with invalid request
     When I request to revoke access to the client with id "<client_id>"
-    Then My request fails with message "<message>"
+    Then My request fails with field error "<message>"
     Examples:
       | client_id                            | message                |
       | not-correct-id                       | invalid client_id      |
+  @failure
+  Scenario Outline: I fail to revoke access to the client with valid request
+    When I request to revoke access to the client with id "<client_id>"
+    Then My request fails with error message "<message>"
+    Examples:
+      | client_id                            | message                |
       | 9fb7169c-735c-4638-bb24-7a01a345b0ac | no client access found |
