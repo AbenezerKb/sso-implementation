@@ -462,6 +462,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/oauth/revokeClient": {
+            "post": {
+                "description": "It is used by the user in case he/she wants to revoke access for a certain client.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "revokes client access",
+                "parameters": [
+                    {
+                        "description": "revokeBody",
+                        "name": "revokeBody",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_models.RevokeClientBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/scopes": {
             "post": {
                 "security": [
@@ -1153,6 +1193,15 @@ const docTemplate = `{
                 },
                 "name": {
                     "description": "Name is the name of the field that caused the error.",
+                    "type": "string"
+                }
+            }
+        },
+        "request_models.RevokeClientBody": {
+            "type": "object",
+            "properties": {
+                "client_id": {
+                    "description": "ClientID is the id of the client to be revoked access of.\nIt is a required field",
                     "type": "string"
                 }
             }

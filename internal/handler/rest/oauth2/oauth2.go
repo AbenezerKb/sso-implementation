@@ -286,3 +286,17 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 		http.StatusFound,
 		o.oauth2Module.Logout(requestCtx, logoutReqParam, nil))
 }
+
+// RevokeClient revokes access of client for the logged-in user
+// @Summary      revokes client access
+// @Description  It is used by the user in case he/she wants to revoke access for a certain client.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param revokeBody body request_models.RevokeClientBody true "revokeBody"
+// @Success      200  {boolean} true
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /oauth/revokeClient [post]
+func (o *oauth2) RevokeClient(ctx *gin.Context) {
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
