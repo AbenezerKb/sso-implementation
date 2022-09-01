@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/cucumber/godog"
-	"github.com/joomcode/errorx"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
 	"sso/internal/constant"
-	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
@@ -109,8 +108,8 @@ func (r *revokeClientTest) theClientShouldNoLongerHaveAccessToMyData() error {
 		return err
 	}
 	_, err := r.DB.GetRefreshToken(context.Background(), r.refreshToken.RefreshToken)
-	if !errorx.IsOfType(err, errors.ErrNoRecordFound) {
-		return fmt.Errorf("refresh token was not removed")
+	if !sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+		return fmt.Errorf("got %v, expected %v", err, sqlcerr.ErrNoRows)
 	}
 	return nil
 }
