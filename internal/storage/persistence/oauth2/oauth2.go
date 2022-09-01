@@ -188,5 +188,28 @@ func (o *oauth2) GetRefreshToken(ctx context.Context, token string) (*dto.Refres
 }
 
 func (o *oauth2) GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error) {
-	return nil, nil
+	refreshToken, err := o.db.GetRefreshTokenByUserIDAndClientID(ctx, db.GetRefreshTokenByUserIDAndClientIDParams{
+		UserID:   userID,
+		ClientID: clientID,
+	})
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "refresh token not found", zap.Error(err), zap.Any("user-id", userID), zap.Any("client-id", clientID))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.RefreshToken{
+		ID:           refreshToken.ID,
+		Code:         refreshToken.Code,
+		RefreshToken: refreshToken.RefreshToken,
+		RedirectUri:  refreshToken.RedirectUri.String,
+		Scope:        refreshToken.Scope.String,
+		UserID:       refreshToken.UserID,
+		ClientID:     refreshToken.ClientID,
+		ExpiresAt:    refreshToken.ExpiresAt,
+	}, nil
 }
