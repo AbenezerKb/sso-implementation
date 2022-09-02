@@ -31,4 +31,9 @@ var (
 		Name:     "get a scope",
 		Category: "scope",
 	}
+	DeleteClient = Permission{
+		ID:       "delete_client",
+		Name:     "delete a client",
+		Category: "client",
+	}
 )

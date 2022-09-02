@@ -368,6 +368,35 @@ paths:
       summary: Create a client
       tags:
       - client
+  /clients/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete  client
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete  client
+      tags:
+      - client
   /login:
     post:
       consumes:

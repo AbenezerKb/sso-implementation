@@ -26,6 +26,7 @@ type User interface {
 
 type Client interface {
 	CreateClient(ctx *gin.Context)
+	DeleteClient(ctx *gin.Context)
 }
 
 type Scope interface {
