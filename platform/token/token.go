@@ -65,8 +65,8 @@ func (j *Jwt) GenerateAccessTokenForClient(ctx context.Context, userID, clientID
 	return token, nil
 }
 
-func (j *Jwt) GenerateRefreshToken(ctx context.Context) string {
-	return utils.GenerateRandomString(25, true)
+func (j *Jwt) GenerateRefreshToken(_ context.Context) string {
+	return utils.GenerateRandomString(25, false)
 }
 
 func (j *Jwt) GenerateIdToken(ctx context.Context, user *dto.User, clientId string, expiresAt time.Duration) (string, error) {
