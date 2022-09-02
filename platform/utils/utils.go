@@ -17,7 +17,7 @@ import (
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321"
-const specialBytes = `!@#$%^&*()_+-=;':"[]{},.<>`
+const specialBytes = `!@#$%^&*:.`
 
 func HashAndSalt(ctx context.Context, pwd []byte, logger logger.Logger) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
