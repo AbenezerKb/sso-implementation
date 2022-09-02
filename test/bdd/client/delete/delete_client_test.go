@@ -91,12 +91,18 @@ func (d *deleteClientTest) theClientShouldBeDeleted() error {
 }
 
 func (d *deleteClientTest) theDeleteShouldFailWithMessage(message string) error {
-	if err := d.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+	if err := d.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
 		return err
 	}
 	return d.apiTest.AssertStringValueOnPathInResponse("error.message", message)
 }
 
+func (d *deleteClientTest) theDeleteShouldFailWithErrorMessage(message string) error {
+	if err := d.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+		return err
+	}
+	return d.apiTest.AssertStringValueOnPathInResponse("error.message", message)
+}
 func (d *deleteClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	d.apiTest.URL = "/v1/clients/"
 	d.apiTest.Method = http.MethodDelete
@@ -112,8 +118,10 @@ func (d *deleteClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.Step(`^I am logged in as admin user$`, d.iAmLoggedInAsAdminUser)
 	ctx.Step(`^I delete the client$`, d.iDeleteTheClient)
-	ctx.Step(`^I delete the client with id <"([^"]*)">$`, d.iDeleteTheClientWithId)
 	ctx.Step(`^The client should be deleted$`, d.theClientShouldBeDeleted)
 	ctx.Step(`^The delete should fail with message "([^"]*)"$`, d.theDeleteShouldFailWithMessage)
 	ctx.Step(`^There is a client with the following details$`, d.thereIsAClientWithTheFollowingDetails)
+	ctx.Step(`^I delete the client with id "([^"]*)"$`, d.iDeleteTheClientWithId)
+	ctx.Step(`^The delete should fail with error message "([^"]*)"$`, d.theDeleteShouldFailWithErrorMessage)
+
 }
