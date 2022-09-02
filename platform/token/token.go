@@ -65,7 +65,7 @@ func (j *Jwt) GenerateAccessTokenForClient(ctx context.Context, userID, clientID
 	return token, nil
 }
 
-func (j *Jwt) GenerateRefreshToken(ctx context.Context) string {
+func (j *Jwt) GenerateRefreshToken(_ context.Context) string {
 	return utils.GenerateRandomString(25, false)
 }
 
