@@ -322,6 +322,14 @@ definitions:
         description: Name is the name of the field that caused the error.
         type: string
     type: object
+  request_models.RevokeClientBody:
+    properties:
+      client_id:
+        description: |-
+          ClientID is the id of the client to be revoked access of.
+          It is a required field
+        type: string
+    type: object
 host: 206.189.54.235:8000
 info:
   contact:
@@ -616,6 +624,33 @@ paths:
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: Consent Rejection.
+      tags:
+      - OAuth2
+  /oauth/revokeClient:
+    post:
+      consumes:
+      - application/json
+      description: It is used by the user in case he/she wants to revoke access for
+        a certain client.
+      parameters:
+      - description: revokeBody
+        in: body
+        name: revokeBody
+        required: true
+        schema:
+          $ref: '#/definitions/request_models.RevokeClientBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: revokes client access
       tags:
       - OAuth2
   /oauth/scopes:

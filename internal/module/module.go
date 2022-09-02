@@ -3,6 +3,7 @@ package module
 import (
 	"context"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 
 	"github.com/joomcode/errorx"
 
@@ -26,6 +27,7 @@ type OAuth2Module interface {
 	RejectConsent(ctx context.Context, consentID, failureReason string, bindError *errorx.Error) string
 	Token(ctx context.Context, client dto.Client, param dto.AccessTokenRequest) (*dto.TokenResponse, error)
 	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, bindError *errorx.Error) string
+	RevokeClient(ctx context.Context, clientBody request_models.RevokeClientBody) error
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)

@@ -13,17 +13,12 @@ import (
 	"github.com/google/uuid"
 )
 
-const checkIfUserGrantedClient = `-- name: CheckIfUserGrantedClient :one
-SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE user_id = $1 AND client_id = $2
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE refresh_token = $1
 `
 
-type CheckIfUserGrantedClientParams struct {
-	UserID   uuid.UUID `json:"user_id"`
-	ClientID uuid.UUID `json:"client_id"`
-}
-
-func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserGrantedClientParams) (RefreshToken, error) {
-	row := q.db.QueryRow(ctx, checkIfUserGrantedClient, arg.UserID, arg.ClientID)
+func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getRefreshToken, refreshToken)
 	var i RefreshToken
 	err := row.Scan(
 		&i.ID,
@@ -40,12 +35,17 @@ func (q *Queries) CheckIfUserGrantedClient(ctx context.Context, arg CheckIfUserG
 	return i, err
 }
 
-const getRefreshToken = `-- name: GetRefreshToken :one
-SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE refresh_token = $1
+const getRefreshTokenByUserIDAndClientID = `-- name: GetRefreshTokenByUserIDAndClientID :one
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE user_id = $1 AND client_id = $2
 `
 
-func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (RefreshToken, error) {
-	row := q.db.QueryRow(ctx, getRefreshToken, refreshToken)
+type GetRefreshTokenByUserIDAndClientIDParams struct {
+	UserID   uuid.UUID `json:"user_id"`
+	ClientID uuid.UUID `json:"client_id"`
+}
+
+func (q *Queries) GetRefreshTokenByUserIDAndClientID(ctx context.Context, arg GetRefreshTokenByUserIDAndClientIDParams) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, getRefreshTokenByUserIDAndClientID, arg.UserID, arg.ClientID)
 	var i RefreshToken
 	err := row.Scan(
 		&i.ID,

@@ -18,7 +18,7 @@ DELETE FROM refresh_tokens WHERE code = $1;
 -- name: RemoveRefreshToken :exec
 DELETE FROM refresh_tokens WHERE refresh_token = $1;
 
--- name: CheckIfUserGrantedClient :one
+-- name: GetRefreshTokenByUserIDAndClientID :one
 SELECT * FROM refresh_tokens WHERE user_id = $1 AND client_id = $2;
 
 -- name: GetRefreshToken :one

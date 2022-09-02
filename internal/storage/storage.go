@@ -35,7 +35,6 @@ type SessionCache interface {
 }
 
 type OAuth2Persistence interface {
-	GetClient(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	GetNamedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	AuthHistoryExists(ctx context.Context, code string) (bool, error)
 	PersistRefreshToken(ctx context.Context, param dto.RefreshToken) (*dto.RefreshToken, error)
@@ -44,6 +43,7 @@ type OAuth2Persistence interface {
 	AddAuthHistory(ctx context.Context, param dto.AuthHistory) (*dto.AuthHistory, error)
 	CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error)
 	GetRefreshToken(ctx context.Context, token string) (*dto.RefreshToken, error)
+	GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error)
 }
 
 type ConsentCache interface {

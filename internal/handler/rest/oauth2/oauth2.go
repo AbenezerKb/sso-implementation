@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -285,4 +286,31 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 	ctx.Redirect(
 		http.StatusFound,
 		o.oauth2Module.Logout(requestCtx, logoutReqParam, nil))
+}
+
+// RevokeClient revokes access of client for the logged-in user
+// @Summary      revokes client access
+// @Description  It is used by the user in case he/she wants to revoke access for a certain client.
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @param revokeBody body request_models.RevokeClientBody true "revokeBody"
+// @Success      200  {boolean} true
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /oauth/revokeClient [post]
+func (o *oauth2) RevokeClient(ctx *gin.Context) {
+	var revokeRequest request_models.RevokeClientBody
+	err := ctx.ShouldBind(&revokeRequest)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	err = o.oauth2Module.RevokeClient(ctx.Request.Context(), revokeRequest)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
