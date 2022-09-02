@@ -56,6 +56,18 @@ func (c *client) CreateClient(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusCreated, createdClient, nil)
 }
 
+// DeleteClient is a handler for deleting a client
+// @Summary      Delete  client
+// @Description  Delete  client
+// @Tags         client
+// @Accept       json
+// @Produce      json
+// @param id path string true "id"
+// @Success      204
+// @Failure      400  {object}  model.ErrorResponse
+// @Failure      404  {object}  model.ErrorResponse
+// @Router       /clients/{id} [delete]
+// @Security	BearerAuth
 func (c *client) DeleteClient(ctx *gin.Context) {
 	clientID := ctx.Param("id")
 
