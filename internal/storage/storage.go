@@ -55,6 +55,7 @@ type ConsentCache interface {
 type ClientPersistence interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
+	DeleteClientByID(ctx context.Context, id uuid.UUID) error
 }
 
 type AuthCodeCache interface {

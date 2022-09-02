@@ -78,3 +78,20 @@ func (c *clientPersistence) GetClientByID(ctx context.Context, id uuid.UUID) (*d
 	}, nil
 
 }
+
+func (c *clientPersistence) DeleteClientByID(ctx context.Context, id uuid.UUID) error {
+	_, err := c.db.DeleteClient(ctx, id)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "client not found")
+			c.logger.Info(ctx, "client not found", zap.Error(err), zap.Any("client-id", id))
+			return err
+		}
+		err = errors.ErrDBDelError.Wrap(err, "error deleting client")
+		c.logger.Error(ctx, "error deleting client", zap.Error(err), zap.Any("client-id", id))
+		return err
+
+	}
+
+	return nil
+}
