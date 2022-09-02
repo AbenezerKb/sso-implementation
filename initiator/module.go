@@ -25,7 +25,7 @@ type Module struct {
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
 
 	return Module{
-		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, platformLayer.Sms, enforcer),
+		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, persistence.UserPersistence, platformLayer.Sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,

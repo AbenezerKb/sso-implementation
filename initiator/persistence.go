@@ -7,6 +7,7 @@ import (
 	"sso/internal/storage/persistence/oauth"
 	"sso/internal/storage/persistence/oauth2"
 	"sso/internal/storage/persistence/scope"
+	"sso/internal/storage/persistence/user"
 	"sso/platform/logger"
 )
 
@@ -16,6 +17,7 @@ type Persistence struct {
 	OAuth2Persistence storage.OAuth2Persistence
 	ClientPersistence storage.ClientPersistence
 	ScopePersistence  storage.ScopePersistence
+	UserPersistence   storage.UserPersistence
 }
 
 func InitPersistence(db *db.Queries, log logger.Logger) Persistence {
@@ -24,5 +26,6 @@ func InitPersistence(db *db.Queries, log logger.Logger) Persistence {
 		ClientPersistence: client.InitClient(log.Named("client-persistence"), db),
 		OAuth2Persistence: oauth2.InitOAuth2(log.Named("oauth2-persistence"), db),
 		ScopePersistence:  scope.InitScopePersistence(log.Named("scope-persistence"), db),
+		UserPersistence:   user.InitUserPersistence(log.Named("user-persistence"), db),
 	}
 }

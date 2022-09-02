@@ -238,3 +238,63 @@ func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullStri
 	err := row.Scan(&status)
 	return status, err
 }
+
+const updateProfile = `-- name: UpdateProfile :one
+UPDATE users
+SET
+ first_name = coalesce($1, first_name),
+ middle_name = coalesce($2, middle_name),
+ last_name = coalesce($3, last_name),
+ email = coalesce($4, email),
+ phone = coalesce($5, phone),
+ user_name = coalesce($6, user_name),
+ password = coalesce($7, password),
+ gender = coalesce($8, gender),
+ profile_picture = coalesce($9)
+WHERE id = $10
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+type UpdateProfileParams struct {
+	FirstName      sql.NullString `json:"first_name"`
+	MiddleName     sql.NullString `json:"middle_name"`
+	LastName       sql.NullString `json:"last_name"`
+	Email          sql.NullString `json:"email"`
+	Phone          sql.NullString `json:"phone"`
+	UserName       sql.NullString `json:"user_name"`
+	Password       sql.NullString `json:"password"`
+	Gender         sql.NullString `json:"gender"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+	ID             uuid.UUID      `json:"id"`
+}
+
+func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateProfile,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Email,
+		arg.Phone,
+		arg.UserName,
+		arg.Password,
+		arg.Gender,
+		arg.ProfilePicture,
+		arg.ID,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}

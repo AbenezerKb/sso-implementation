@@ -2,6 +2,7 @@ package test
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -200,4 +201,48 @@ func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error 
 		}
 	}
 	return nil
+}
+
+func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, error) {
+	apiTest := src.ApiTest{
+		URL:    "/v1/login",
+		Method: http.MethodPost,
+	}
+
+	apiTest.InitializeServer(t.Server)
+	apiTest.SetHeader("Content-Type", "application/json")
+	apiTest.SetBodyMap(map[string]interface{}{
+		"password": credentials.Password,
+		"email":    credentials.Email,
+	})
+
+	var err error
+	credentials.Password, err = utils.HashAndSalt(context.Background(), []byte(credentials.Password), t.Logger)
+	if err != nil {
+		return db.User{}, err
+	}
+	user, err := t.DB.CreateUser(context.Background(), db.CreateUserParams{
+		FirstName:      credentials.FirstName,
+		MiddleName:     credentials.MiddleName,
+		LastName:       credentials.LastName,
+		Email:          sql.NullString{String: credentials.Email, Valid: true},
+		Phone:          credentials.Phone,
+		Password:       credentials.Password,
+		UserName:       credentials.UserName,
+		Gender:         credentials.Gender,
+		ProfilePicture: sql.NullString{String: credentials.ProfilePicture, Valid: true},
+	})
+	if err != nil {
+		return db.User{}, err
+	}
+
+	apiTest.SendRequest()
+	err = json.Unmarshal(apiTest.ResponseBody, &t.response)
+	if err != nil {
+		return db.User{}, err
+	}
+
+	t.AccessToken = t.response.Data.AccessToken
+	t.RefreshToken = t.response.Data.RefreshToken
+	return user, nil
 }

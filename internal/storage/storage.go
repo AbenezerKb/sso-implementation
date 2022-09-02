@@ -69,3 +69,7 @@ type ScopePersistence interface {
 	GetListedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error)
 }
+
+type UserPersistence interface {
+	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
+}
