@@ -53,6 +53,17 @@ func (u *user) CreateUser(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusCreated, createdUser, nil)
 }
 
+// UpdateProfile	 updates user's profile.
+// @Summary      update user profile.
+// @Description  update user profile.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @param user body dto.User true "user"
+// @Success      200  {object}  dto.User
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users [patch]
+// @Security	BearerAuth
 func (u *user) UpdateProfile(ctx *gin.Context) {
 	userParam := dto.User{}
 	err := ctx.ShouldBind(&userParam)

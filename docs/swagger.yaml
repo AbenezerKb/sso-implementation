@@ -834,6 +834,33 @@ paths:
       tags:
       - auth
   /users:
+    patch:
+      consumes:
+      - application/json
+      description: update user profile.
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile.
+      tags:
+      - user
     post:
       consumes:
       - application/json
