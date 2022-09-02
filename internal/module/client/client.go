@@ -41,3 +41,21 @@ func (c *clientModule) Create(ctx context.Context, clientParam dto.Client) (*dto
 func (c *clientModule) GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
 	return c.clientPersistence.GetClientByID(ctx, id)
 }
+
+func (c *clientModule) DeleteClientByID(ctx context.Context, id string) error {
+	clientID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "client not found")
+		c.logger.Info(ctx, "parse error", zap.Error(err), zap.String("client-id", id))
+		return err
+	}
+
+	// TODO: before deleting client we should de somthing about rf token issued to this client
+	// TODO: before deleting this client we should do somthing about the auth_histories of this client
+	err = c.clientPersistence.DeleteClientByID(ctx, clientID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
