@@ -16,6 +16,11 @@ var (
 		Name:     "create a user",
 		Category: "user",
 	}
+	GetUser = Permission{
+		ID:       "get_user",
+		Name:     "get a user",
+		Category: "user",
+	}
 	CreateClient = Permission{
 		ID:       "create_client",
 		Name:     "create a client",
