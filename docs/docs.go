@@ -236,7 +236,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "redirect response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RedirectResponse"
+                        },
                         "headers": {
                             "Location": {
                                 "type": "string",
@@ -485,7 +488,10 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "redirect response",
+                        "schema": {
+                            "$ref": "#/definitions/dto.RedirectResponse"
+                        },
                         "headers": {
                             "Location": {
                                 "type": "string",
@@ -1146,6 +1152,15 @@ const docTemplate = `{
                 },
                 "phone": {
                     "description": "Phone number of the user if for login with otp",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RedirectResponse": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "description": "Location is the url of the client or an error page of the front-end that must be navigated to",
                     "type": "string"
                 }
             }

@@ -150,30 +150,46 @@ func (a *rejectConsentTest) iRequestConsentRejectionWithIdAndMessage(consentID s
 }
 
 func (a *rejectConsentTest) theConsentShouldBeRejectedWith(message string) error {
-	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
+	if err := a.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
-	queryParams := a.apiTest.GetRedirectURLQueryParams()
-	_, err := a.TestInstance.CacheLayer.AuthCodeCacheLayer.GetAuthCode(context.Background(), queryParams["code"])
+	var data dto.RedirectResponse
+	if err := a.apiTest.UnmarshalResponseBodyPath("data", &data); err != nil {
+		return err
+	}
+	redirectURL, err := url.Parse(data.Location)
+	if err != nil {
+		return err
+	}
+	queryParams := redirectURL.Query()
+	_, err = a.TestInstance.CacheLayer.AuthCodeCacheLayer.GetAuthCode(context.Background(), queryParams.Get("code"))
 	if !errorx.IsOfType(err, errors.ErrNoRecordFound) {
 		return err
 	}
 
-	if err := a.apiTest.AssertEqual(queryParams["state"], a.consent.State); err != nil {
+	if err := a.apiTest.AssertEqual(queryParams.Get("state"), a.consent.State); err != nil {
 		return err
 	}
-	if err := a.apiTest.AssertEqual(queryParams["error"], url.QueryEscape(message)); err != nil {
+	if err := a.apiTest.AssertEqual(queryParams.Get("error"), message); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (a *rejectConsentTest) consentRejectionShouldFailWithMessage(message string) error {
-	if err := a.apiTest.AssertStatusCode(http.StatusFound); err != nil {
+	if err := a.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
-	queryParams := a.apiTest.GetRedirectURLQueryParams()
-	if err := a.apiTest.AssertEqual(queryParams["error"], url.QueryEscape(message)); err != nil {
+	var data dto.RedirectResponse
+	if err := a.apiTest.UnmarshalResponseBodyPath("data", &data); err != nil {
+		return err
+	}
+	redirectURL, err := url.Parse(data.Location)
+	if err != nil {
+		return err
+	}
+	queryParams := redirectURL.Query()
+	if err := a.apiTest.AssertEqual(queryParams.Get("error"), message); err != nil {
 		return err
 	}
 	return nil
