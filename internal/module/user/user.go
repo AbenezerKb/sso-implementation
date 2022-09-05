@@ -138,3 +138,15 @@ func (u *user) UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User
 
 	return updatedUser, nil
 }
+
+func (u *user) GetUserByID(ctx context.Context, id string) (*dto.User, error) {
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		u.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
+		return nil, err
+	}
+
+	return u.oauthPersistence.GetUserByID(ctx, userID)
+}
