@@ -83,3 +83,30 @@ func (u *user) UpdateProfile(ctx *gin.Context) {
 	u.logger.Info(ctx, "user updated")
 	constant.SuccessResponse(ctx, http.StatusOK, updatedUser, nil)
 }
+
+// GetUser	 get user details.
+// @Summary      get user details.
+// @Description  get user details.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @param id path string true "id"
+// @Success      200  {object}  dto.User
+// @Failure      400  {object}  model.ErrorResponse
+// @Failure      404  {object}  model.ErrorResponse
+// @Router       /users/{id} [get]
+// @Security	BearerAuth
+func (u *user) GetUser(ctx *gin.Context) {
+	userID := ctx.Param("id")
+
+	requestCtx := ctx.Request.Context()
+	user, err := u.userModule.GetUserByID(requestCtx, userID)
+
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	u.logger.Info(ctx, "user details fetched", zap.Any("user-id", userID))
+	constant.SuccessResponse(ctx, http.StatusOK, user, nil)
+}
