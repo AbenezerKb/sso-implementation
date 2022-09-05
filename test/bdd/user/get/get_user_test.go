@@ -93,8 +93,28 @@ func (g *getUserTest) iShouldSuccessfullyGetTheUser() error {
 		return err
 	}
 	getedUser := dto.User{}
-	err := g.apiTest.UnmarshalJSON([]byte(g.apiTest.ResponseBody), &getedUser)
+	err := g.apiTest.UnmarshalResponseBodyPath("data", &getedUser)
 	if err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(getedUser.Email, g.user.Email.String); err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(getedUser.FirstName, g.user.FirstName); err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(getedUser.LastName, g.user.LastName); err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(getedUser.Phone, g.user.Phone); err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(getedUser.ID, g.user.ID); err != nil {
 		return err
 	}
 
@@ -102,13 +122,6 @@ func (g *getUserTest) iShouldSuccessfullyGetTheUser() error {
 }
 
 func (g *getUserTest) thenIShouldGetErrorWithMessage(message string) error {
-	if err := g.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
-		return err
-	}
-	return g.apiTest.AssertStringValueOnPathInResponse("error.message", message)
-}
-
-func (g *getUserTest) thenIShouldGetUserNotFoundErrorMessage(message string) error {
 	if err := g.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
 		return err
 	}
@@ -134,5 +147,4 @@ func (g *getUserTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I should successfully get the user$`, g.iShouldSuccessfullyGetTheUser)
 	ctx.Step(`^Then I should get error with message "([^"]*)"$`, g.thenIShouldGetErrorWithMessage)
 	ctx.Step(`^there is user with the following details:$`, g.thereIsUserWithTheFollowingDetails)
-	ctx.Step(`^Then I should get user not found error message "([^"]*)"$`, g.thenIShouldGetUserNotFoundErrorMessage)
 }

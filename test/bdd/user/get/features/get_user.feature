@@ -18,21 +18,13 @@ Feature: Get User
         When I Get the user
         Then I should successfully get the user
     @failure
-    Scenario Outline: invalid input
+    Scenario Outline: user not found
         Given I have user with id "<id>"
         When I Get the user
         Then Then I should get error with message "<message>"
 
         Examples:
             | id                         | message        |
-            | kdjf-fjakk                 | invalid input  |
-    @failure
-    Scenario Outline: user not found
-        Given I have user with id "<id>"
-        When I Get the user
-        Then Then I should get user not found error message "<message>"
-
-        Examples:
-            | id                         | message        |
             | 3kjf0-kljkla0-afl30-afl-dk | user not found |
+            
 
