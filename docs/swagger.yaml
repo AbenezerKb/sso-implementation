@@ -165,6 +165,13 @@ definitions:
         description: Phone number of the user if for login with otp
         type: string
     type: object
+  dto.RedirectResponse:
+    properties:
+      location:
+        description: Location is the url of the client or an error page of the front-end
+          that must be navigated to
+        type: string
+    type: object
   dto.RegisterUser:
     properties:
       created_at:
@@ -473,11 +480,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: redirect response
           headers:
             Location:
               description: redirect_uri
               type: string
+          schema:
+            $ref: '#/definitions/dto.RedirectResponse'
         "400":
           description: invalid input
           headers:
@@ -639,11 +648,13 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: redirect response
           headers:
             Location:
               description: redirect_uri
               type: string
+          schema:
+            $ref: '#/definitions/dto.RedirectResponse'
         "400":
           description: invalid input
           headers:

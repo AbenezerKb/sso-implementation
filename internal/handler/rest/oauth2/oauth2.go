@@ -114,7 +114,7 @@ func (o *oauth2) GetConsentByID(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @param consent_id body string true "consent_id"
-// @success 	 200
+// @success 	 200 {object} dto.RedirectResponse "redirect response"
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/approveConsent [POST]
@@ -127,9 +127,10 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err),
+			}, nil)
 		return
 	}
 
@@ -137,26 +138,29 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	if !ok {
 		err := errors.ErrInternalServerError.New("no user_id was found")
 		o.logger.Error(ctx, "no user_id was found on gin context", zap.Error(err), zap.String("request-uri", ctx.Request.RequestURI))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err),
+			}, nil)
 		return
 	}
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
 		err := errors.ErrInternalServerError.Wrap(err, "invalid user id")
 		o.logger.Error(ctx, "error while parsing x-user-id from request context", zap.Error(err), zap.String("x-user-id", userIDString))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, uuid.UUID{}, "", err),
+			}, nil)
 		return
 	}
 	if consentResultRsp.ConsentID == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err),
+			}, nil)
 		return
 	}
 
@@ -164,16 +168,18 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 	if err != nil {
 		err := errors.ErrAuthError.Wrap(err, "user not logged in")
 		o.logger.Warn(ctx, "no opbs value was found while approving authorize request", zap.Error(err))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, "", err),
+			}, nil)
 		return
 	}
 
 	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
-	ctx.Redirect(
-		http.StatusFound,
-		o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value, nil))
+	constant.SuccessResponse(ctx, http.StatusOK,
+		dto.RedirectResponse{
+			Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value, nil),
+		}, nil)
 }
 
 // RejectConsent is used to reject consent.
@@ -184,7 +190,7 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 // @Produce      json
 // @param consent_id body string true "consent_id"
 // @param failure_reason body string true "failure_reason"
-// @success 	 200
+// @success 	 200 {object} dto.RedirectResponse "redirect response"
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Header       200,400            {string}  Location  "redirect_uri"
 // @Router       /oauth/rejectConsent [POST]
@@ -196,23 +202,26 @@ func (o *oauth2) RejectConsent(ctx *gin.Context) {
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, "", err),
+			}, nil)
 		return
 	}
 	if consentResultRsp.ConsentID == "" {
 		err := errors.ErrInvalidUserInput.New("invalid consentId")
 		o.logger.Info(ctx, "empty consent id", zap.Error(err))
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, "", err))
+		constant.SuccessResponse(ctx, http.StatusOK,
+			dto.RedirectResponse{
+				Location: o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, "", err),
+			}, nil)
 		return
 	}
 
-	ctx.Redirect(
-		http.StatusFound,
-		o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, consentResultRsp.FailureReason, nil))
+	constant.SuccessResponse(ctx, http.StatusOK,
+		dto.RedirectResponse{
+			Location: o.oauth2Module.RejectConsent(requestCtx, consentResultRsp.ConsentID, consentResultRsp.FailureReason, nil),
+		}, nil)
 }
 
 // Token is used to exchange the authorization code for access token.
