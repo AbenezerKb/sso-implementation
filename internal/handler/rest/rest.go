@@ -22,6 +22,7 @@ type OAuth2 interface {
 type User interface {
 	CreateUser(ctx *gin.Context)
 	UpdateProfile(ctx *gin.Context)
+	GetUser(ctx *gin.Context)
 }
 
 type Client interface {

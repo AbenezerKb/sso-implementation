@@ -917,6 +917,37 @@ paths:
       summary: create a new user.
       tags:
       - user
+  /users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get user details.
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get user details.
+      tags:
+      - user
 securityDefinitions:
   BasicAuth:
     type: basic

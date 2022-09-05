@@ -29,9 +29,9 @@ func InitRoute(group *gin.RouterGroup, client rest.Client, authMiddleware middle
 			Handler: client.DeleteClient,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
-				// authMiddleware.AccessControl(),
+				authMiddleware.AccessControl(),
 			},
-			// Permission: permissions.DeleteClient,
+			Permission: permissions.DeleteClient,
 		},
 	}
 	routing.RegisterRoutes(clients, clientRoutes, enforcer)
