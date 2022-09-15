@@ -14,5 +14,4 @@ Feature: Refresh Token
             | refresh_token            |
             | +toNc!tKC8q;,SXt7h%iu#aX |
         Then I should get a new access token
-        And The old refresh_token should be deleted
 
