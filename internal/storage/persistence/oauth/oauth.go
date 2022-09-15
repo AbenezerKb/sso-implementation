@@ -278,3 +278,24 @@ func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.Intern
 		CreatedAt:    refreshToken.CreatedAt,
 	}, nil
 }
+
+func (o *oauth) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (*dto.InternalRefreshToken, error) {
+	refreshToken, err := o.db.GetInternalRefreshTokenByUserID(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
+			o.logger.Info(ctx, "internal refresh token not found", zap.Error(err), zap.Any("internal-refresh-token", userID))
+			return nil, err
+		}
+		err = errors.ErrReadError.Wrap(err, "could not read refresh token")
+		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
+		return nil, err
+	}
+	return &dto.InternalRefreshToken{
+		ID:           refreshToken.ID,
+		Refreshtoken: refreshToken.Refreshtoken,
+		ExpiresAt:    refreshToken.ExpiresAt,
+		UserID:       refreshToken.UserID,
+		CreatedAt:    refreshToken.CreatedAt,
+	}, nil
+}

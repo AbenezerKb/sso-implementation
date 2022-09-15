@@ -30,6 +30,24 @@ func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshtoken stri
 	return i, err
 }
 
+const getInternalRefreshTokenByUserID = `-- name: GetInternalRefreshTokenByUserID :one
+SELECT id, refreshtoken, user_id, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE user_id = $1
+`
+
+func (q *Queries) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (Internalrefreshtoken, error) {
+	row := q.db.QueryRow(ctx, getInternalRefreshTokenByUserID, userID)
+	var i Internalrefreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.Refreshtoken,
+		&i.UserID,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const removeInternalRefreshToken = `-- name: RemoveInternalRefreshToken :exec
 DELETE FROM internalrefreshtokens WHERE refreshtoken =$1
 `

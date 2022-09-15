@@ -149,13 +149,24 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	refreshToken := o.token.GenerateRefreshToken(ctx)
+	rfToken, err := o.oauthPersistence.GetInternalRefreshTokenByUserID(ctx, user.ID)
 
-	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
-		Refreshtoken: refreshToken,
-		UserID:       user.ID,
-		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-	})
+	if err != nil || time.Now().After(rfToken.ExpiresAt) {
+		if time.Now().After(rfToken.ExpiresAt) {
+			if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, rfToken.Refreshtoken); err != nil {
+				return nil, err
+			}
+		}
+
+		rfToken.Refreshtoken = o.token.GenerateRefreshToken(ctx)
+
+		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+			Refreshtoken: rfToken.Refreshtoken,
+			UserID:       user.ID,
+			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+		})
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +178,7 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 
 	accessTokenResponse := dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		RefreshToken: rfToken.Refreshtoken,
 		IDToken:      idToken,
 		TokenType:    constant.BearerToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
