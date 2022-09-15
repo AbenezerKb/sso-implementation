@@ -2,9 +2,7 @@ package refreshtoken
 
 import (
 	"context"
-	"errors"
 	"net/http"
-	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
@@ -88,15 +86,6 @@ func (r *refreshSSOTokenTest) iShouldGetANewAccessToken() error {
 	return nil
 }
 
-func (r *refreshSSOTokenTest) theOldRefresh_tokenShouldBeDeleted() error {
-	_, err := r.DB.GetInternalRefreshToken(context.TODO(), r.refreshToken.Refreshtoken)
-
-	if !sqlcerr.Is(err, sqlcerr.ErrNoRows) {
-		return errors.New("old refresh token not deleted.")
-	}
-	return nil
-}
-
 func (r *refreshSSOTokenTest) thereIsARegeisteredUserOnTheSystem(user *godog.Table) error {
 	body, err := r.apiTest.ReadRow(user, nil, false)
 	if err != nil {
@@ -141,6 +130,5 @@ func (r *refreshSSOTokenTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I am logged in to the system and have a refresh token:$`, r.iAmLoggedInToTheSystemAndHaveARefreshToken)
 	ctx.Step(`^I refresh my access token using my refresh_token$`, r.iRefreshMyAccessTokenUsingMyRefresh_token)
 	ctx.Step(`^I should get a new access token$`, r.iShouldGetANewAccessToken)
-	ctx.Step(`^The old refresh_token should be deleted$`, r.theOldRefresh_tokenShouldBeDeleted)
 	ctx.Step(`^There is a regeistered user on the system:$`, r.thereIsARegeisteredUserOnTheSystem)
 }
