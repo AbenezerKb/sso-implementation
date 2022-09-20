@@ -38,7 +38,7 @@ func TestComposeFilterSQL(t *testing.T) {
 					},
 					{
 						ColumnField: "*",
-						Value:       `{"value":"hi" "columns":["name", "country", "address"]}`,
+						Value:       `{"value":"hi","columns":["name", "country", "address"]}`,
 					},
 				},
 				LinkOperator: "AND",
