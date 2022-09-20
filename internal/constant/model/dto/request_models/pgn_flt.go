@@ -42,8 +42,8 @@ type PgnFltQueryParams struct {
 	LinkOperator string `json:"linkOperator"`
 }
 
-// Get returns the FilterParam object this pgnFltQueryParams holds
-func (q *PgnFltQueryParams) toFilterParams() (FilterParams, error) {
+// ToFilterParams returns the FilterParam object this pgnFltQueryParams holds
+func (q *PgnFltQueryParams) ToFilterParams() (FilterParams, error) {
 	res := FilterParams{}
 	if q.Sort != "" {
 		sortString, err := url.QueryUnescape(q.Sort)
