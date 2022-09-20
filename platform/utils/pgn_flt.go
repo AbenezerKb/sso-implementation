@@ -12,7 +12,7 @@ import (
 
 func ComposeFilterSQL(ctx context.Context, f request_models.FilterParams, logger logger.Logger) string {
 	where := ""
-	q := "("
+	q := ""
 	f.LinkOperator = strings.ToUpper(f.LinkOperator)
 	for _, filter := range f.Filter {
 		if filter.ColumnField != "*" {
@@ -61,7 +61,7 @@ func ComposeFilterSQL(ctx context.Context, f request_models.FilterParams, logger
 	}
 
 	where = strings.TrimSuffix(where, " "+f.LinkOperator+" ")
-	q = strings.TrimSuffix(q, " OR ") + ")"
+	q = strings.TrimSuffix(q, " OR ")
 
 	sortBy := ""
 	for _, v := range f.Sort {
@@ -69,5 +69,12 @@ func ComposeFilterSQL(ctx context.Context, f request_models.FilterParams, logger
 	}
 	sortBy = strings.TrimSuffix(sortBy, ",")
 
-	return fmt.Sprintf("WHERE %s AND %s ORDER BY %s LIMIT %d OFFSET %d", where, q, sortBy, f.PerPage, f.Page*f.PerPage)
+	query := ""
+	if where != "" {
+		query += fmt.Sprintf("WHERE %s", where)
+	}
+	if q != "" {
+		query += fmt.Sprintf(" AND (%s)", q)
+	}
+	return fmt.Sprintf("%s ORDER BY %s LIMIT %d OFFSET %d", query, sortBy, f.PerPage, f.Page*f.PerPage)
 }
