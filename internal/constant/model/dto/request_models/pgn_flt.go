@@ -55,6 +55,18 @@ func (q *PgnFltQueryParams) ToFilterParams() (FilterParams, error) {
 		if err != nil {
 			return FilterParams{}, err
 		}
+		for k, v := range res.Sort {
+			if err := validation.Validate(v.Sort, validation.In(state.SortAsc, state.SortDesc)); err != nil {
+				res.Sort[k].Sort = state.SortDesc
+			}
+		}
+	} else {
+		res.Sort = []Sort{
+			{
+				Field: "created_at",
+				Sort:  state.SortDesc,
+			},
+		}
 	}
 	if q.Page < 0 {
 		res.Page = 0
