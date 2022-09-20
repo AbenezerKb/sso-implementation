@@ -35,11 +35,11 @@ type FilterSearch struct {
 	Value   string   `json:"value"`
 }
 type PgnFltQueryParams struct {
-	Sort         string `json:"sort"`
-	Filter       string `json:"filter"`
-	Page         int    `json:"page"`
-	PerPage      int    `json:"per_page"`
-	LinkOperator string `json:"linkOperator"`
+	Sort         string `json:"sort" form:"sort"`
+	Filter       string `json:"filter" form:"filter"`
+	Page         int    `json:"page" form:"page"`
+	PerPage      int    `json:"per_page" form:"per_page"`
+	LinkOperator string `json:"link_operator" form:"link_operator"`
 }
 
 // ToFilterParams returns the FilterParam object this pgnFltQueryParams holds
