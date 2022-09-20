@@ -13,6 +13,8 @@ const (
 	DefaultPageSize = 10
 	LinkOperatorAnd = "AND"
 	LinkOperatorOr  = "OR"
+	SortAsc         = "ASC"
+	SortDesc        = "DESC"
 )
 
 type URLs struct {
