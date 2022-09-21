@@ -348,6 +348,44 @@ info:
   version: "0.1"
 paths:
   /clients:
+    get:
+      consumes:
+      - application/json
+      description: returns all clients based on the filters and pagination given
+      parameters:
+      - in: query
+        name: filter
+        type: string
+      - in: query
+        name: link_operator
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Client'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns all clients that satisfy the given filters
+      tags:
+      - client
     post:
       consumes:
       - application/json

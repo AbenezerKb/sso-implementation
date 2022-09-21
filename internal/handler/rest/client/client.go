@@ -64,7 +64,7 @@ func (c *client) CreateClient(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @param filter query request_models.PgnFltQueryParams true "filter"
-// @Success      200  {object}  dto.Client
+// @Success      200  {object}  []dto.Client
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /clients [get]
 // @Security	BearerAuth
