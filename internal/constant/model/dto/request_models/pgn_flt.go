@@ -2,9 +2,12 @@ package request_models
 
 import (
 	"encoding/json"
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"net/url"
 	"sso/internal/constant/state"
+	"sso/platform/utils/collection"
+	"sso/platform/utils/reflect"
 	"strings"
 )
 
@@ -19,9 +22,6 @@ type FilterParams struct {
 	PerPage      int      `json:"per_page"`
 	Filter       []Filter `json:"filter"`
 	LinkOperator string   `json:"link_operator"`
-	Total        int      `json:"total"`
-	NoSort       bool     `json:"-"`
-	NoLimit      bool     `json:"-"`
 }
 
 type Filter struct {
@@ -42,8 +42,9 @@ type PgnFltQueryParams struct {
 	LinkOperator string `json:"link_operator" form:"link_operator"`
 }
 
-// ToFilterParams returns the FilterParam object this pgnFltQueryParams holds
-func (q *PgnFltQueryParams) ToFilterParams() (FilterParams, error) {
+// ToFilterParams returns the FilterParam object this pgnFltQueryParams holds.
+// model is the type of database model this filter is being applied to
+func (q *PgnFltQueryParams) ToFilterParams(model interface{}) (FilterParams, error) {
 	res := FilterParams{}
 	if q.Sort != "" {
 		sortString, err := url.QueryUnescape(q.Sort)
@@ -80,15 +81,20 @@ func (q *PgnFltQueryParams) ToFilterParams() (FilterParams, error) {
 		if err != nil {
 			return FilterParams{}, err
 		}
+		for _, filter := range filters {
+			if !collection.Contains[string](filter.ColumnField, reflect.GetJSONFieldNames(model)) {
+				return FilterParams{}, fmt.Errorf("invalid filter column %s", filter.ColumnField)
+			}
+		}
 	}
 
-	if q.PerPage <= 0 {
+	if q.PerPage == 0 {
 		res.PerPage = state.DefaultPageSize
 	} else {
 		res.PerPage = q.PerPage
 	}
 	q.LinkOperator = strings.ToUpper(q.LinkOperator)
-	if err := validation.Validate(q.LinkOperator, validation.In(state.LinkOperatorAnd, state.LinkOperatorOr)); err == nil {
+	if err := validation.Validate(q.LinkOperator, validation.Required, validation.In(state.LinkOperatorAnd, state.LinkOperatorOr)); err == nil {
 		res.LinkOperator = q.LinkOperator
 	} else {
 		res.LinkOperator = state.LinkOperatorOr
