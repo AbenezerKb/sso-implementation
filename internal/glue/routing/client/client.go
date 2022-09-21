@@ -1,6 +1,7 @@
 package client
 
 import (
+	"net/http"
 	"sso/internal/constant/permissions"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
@@ -32,6 +33,16 @@ func InitRoute(group *gin.RouterGroup, client rest.Client, authMiddleware middle
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.DeleteClient,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: client.GetAllClients,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllClients,
 		},
 	}
 	routing.RegisterRoutes(clients, clientRoutes, enforcer)

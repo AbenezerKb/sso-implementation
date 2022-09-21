@@ -2,7 +2,9 @@ package storage
 
 import (
 	"context"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 
 	"github.com/google/uuid"
 )
@@ -57,6 +59,7 @@ type ClientPersistence interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id uuid.UUID) error
+	GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error)
 }
 
 type AuthCodeCache interface {

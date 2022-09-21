@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -54,6 +55,36 @@ func (c *client) CreateClient(ctx *gin.Context) {
 
 	c.logger.Info(ctx, "created client")
 	constant.SuccessResponse(ctx, http.StatusCreated, createdClient, nil)
+}
+
+// GetAllClients returns all clients
+// @Summary      returns all clients that satisfy the given filters
+// @Description  returns all clients based on the filters and pagination given
+// @Tags         client
+// @Accept       json
+// @Produce      json
+// @param filter query request_models.PgnFltQueryParams true "filter"
+// @Success      200  {object}  []dto.Client
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /clients [get]
+// @Security	BearerAuth
+func (c *client) GetAllClients(ctx *gin.Context) {
+	var filtersParam request_models.PgnFltQueryParams
+	err := ctx.BindQuery(&filtersParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
+		c.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
+		_ = ctx.Error(err)
+		return
+	}
+
+	clients, metaData, err := c.clientModule.GetAllClients(ctx, filtersParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, clients, metaData)
 }
 
 // DeleteClient is a handler for deleting a client

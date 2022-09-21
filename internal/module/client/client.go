@@ -3,7 +3,9 @@ package client
 import (
 	"context"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
@@ -42,6 +44,15 @@ func (c *clientModule) GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Cl
 	return c.clientPersistence.GetClientByID(ctx, id)
 }
 
+func (c *clientModule) GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.Client{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		c.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return c.clientPersistence.GetAllClients(ctx, filters)
+}
 func (c *clientModule) DeleteClientByID(ctx context.Context, id string) error {
 	clientID, err := uuid.Parse(id)
 	if err != nil {
