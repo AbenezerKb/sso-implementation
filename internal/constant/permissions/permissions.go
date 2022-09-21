@@ -41,4 +41,9 @@ var (
 		Name:     "delete a client",
 		Category: "client",
 	}
+	GetAllClients = Permission{
+		ID:       "get_all_clients",
+		Name:     "get all clients",
+		Category: "client",
+	}
 )

@@ -4,8 +4,10 @@ import (
 	"context"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -94,4 +96,37 @@ func (c *clientPersistence) DeleteClientByID(ctx context.Context, id uuid.UUID) 
 	}
 
 	return nil
+}
+
+func (c *clientPersistence) GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error) {
+	clients, total, err := c.db.GetAllClients(ctx, utils.ComposeFilterSQL(ctx, filters, c.logger))
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no clients found")
+			c.logger.Info(ctx, "no clients were found", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading clients")
+			c.logger.Error(ctx, "error reading clients", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		}
+	}
+	clientsDTO := make([]dto.Client, len(clients))
+	for k, v := range clients {
+		clientsDTO[k] = dto.Client{
+			ID:           v.ID,
+			Name:         v.Name,
+			Status:       v.Status,
+			Secret:       v.Secret,
+			Scopes:       v.Scopes,
+			RedirectURIs: utils.StringToArray(v.RedirectUris),
+			ClientType:   v.ClientType,
+			LogoURL:      v.LogoUrl,
+		}
+	}
+	return clientsDTO, &model.MetaData{
+		FilterParams: filters,
+		Total:        total,
+		Extra:        nil,
+	}, nil
 }

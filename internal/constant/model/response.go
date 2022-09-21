@@ -1,5 +1,7 @@
 package model
 
+import "sso/internal/constant/model/dto/request_models"
+
 type Response struct {
 	// OK is only true if the request was successful.
 	OK bool `json:"ok"`
@@ -12,16 +14,11 @@ type Response struct {
 }
 
 type MetaData struct {
-	// PageNo is the page number of the response data.
-	PageNo int `json:"page_no,omitempty"`
-	// PageSize is the size of the page.
-	PageSize int `json:"page_size,omitempty"`
-	// TotalCount is the total count of data for the response.
-	TotalCount int `json:"total_count,omitempty"`
+	request_models.FilterParams
+	// Total is the total number of data without pagination
+	Total int `json:"total"`
 	// Extra contains other response specific data
 	Extra interface{} `json:"extra,omitempty"`
-	// Sort is the sort order of the response data.
-	Sort string `form:"sort" json:"sort,omitempty"`
 }
 
 type ErrorResponse struct {
