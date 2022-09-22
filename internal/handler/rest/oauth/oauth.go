@@ -157,16 +157,16 @@ func (o *oauth) Logout(ctx *gin.Context) {
 // @Success      200
 // @Failure      401  {object}  model.ErrorResponse "unauthorized"
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
-// @Router       /refreshtoken [post]
+// @Router       /refreshToken [get]
 func (o *oauth) RefreshToken(ctx *gin.Context) {
-	refreshTokenRequest := dto.InternalRefreshTokenRequestBody{}
-	if err := ctx.ShouldBind(&refreshTokenRequest); err != nil {
-		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+	refreshToken, err := ctx.Cookie("ab_fen")
+	if err != nil {
+		o.logger.Info(ctx, "no refresh token was found", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "no refresh token was found"))
 		return
 	}
 
-	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshTokenRequest)
+	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		_ = ctx.Error(err)
 		return

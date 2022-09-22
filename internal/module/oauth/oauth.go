@@ -249,14 +249,8 @@ func (o *oauth) Logout(ctx context.Context, param dto.InternalRefreshTokenReques
 	return nil
 }
 
-func (o *oauth) RefreshToken(ctx context.Context, param dto.InternalRefreshTokenRequestBody) (*dto.TokenResponse, error) {
-	if err := param.Validate(); err != nil {
-		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		o.logger.Info(ctx, "invalid input", zap.Error(err))
-		return nil, err
-	}
-
-	oldRefreshToken, err := o.oauthPersistence.GetInternalRefreshToken(ctx, param.RefreshToken)
+func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenResponse, error) {
+	oldRefreshToken, err := o.oauthPersistence.GetInternalRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
