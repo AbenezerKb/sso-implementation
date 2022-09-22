@@ -38,4 +38,5 @@ type Scope interface {
 
 type Profile interface {
 	UpdateProfile(ctx *gin.Context)
+	GetProfile(ctx *gin.Context)
 }
