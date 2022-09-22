@@ -1,6 +1,7 @@
 package get
 
 import (
+	"context"
 	"net/http"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -14,7 +15,6 @@ import (
 type getProfileTest struct {
 	test.TestInstance
 	apiTest src.ApiTest
-	User    dto.User
 	user    db.User
 }
 
@@ -90,7 +90,16 @@ func (g *getProfileTest) iShouldSuccessfullyGetMyProfile() error {
 }
 
 func (g *getProfileTest) InitializeScenario(ctx *godog.ScenarioContext) {
+	g.apiTest.URL = "/v1/profile"
+	g.apiTest.Method = http.MethodGet
+	g.apiTest.SetHeader("Content-Type", "application/json")
+	g.apiTest.InitializeServer(g.Server)
 
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		_, _ = g.DB.DeleteUser(ctx, g.user.ID)
+
+		return ctx, nil
+	})
 	ctx.Step(`^I am logged in user with the following details$`, g.iAmLoggedInUserWithTheFollowingDetails)
 	ctx.Step(`^I request to get my profile$`, g.iRequestToGetMyProfile)
 	ctx.Step(`^I should successfully get my profile$`, g.iShouldSuccessfullyGetMyProfile)
