@@ -1,6 +1,3 @@
--- name: GetAllUsers :many
-SELECT * FROM users;
-
 -- name: GetUserByPhone :one
 SELECT * FROM users WHERE phone = $1;
 
