@@ -95,6 +95,9 @@ func (c *getClientsTest) iShouldGetTheListOfClientsThatPassMyPreferences() error
 	var responseClients []dto.Client
 	var metaData model.MetaData
 
+	if err := c.apiTest.AssertStatusCode(http.StatusOK); err != nil {
+		return err
+	}
 	err := c.apiTest.UnmarshalResponseBodyPath("meta_data", &metaData)
 	if err != nil {
 		return err
@@ -131,6 +134,9 @@ func (c *getClientsTest) iShouldGetTheListOfClientsThatPassMyPreferences() error
 }
 
 func (c *getClientsTest) iShouldGetErrorMessage(message string) error {
+	if err := c.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+		return err
+	}
 	if err := c.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
 		return err
 	}
