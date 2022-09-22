@@ -53,36 +53,36 @@ func (g *getProfileTest) iShouldSuccessfullyGetMyProfile() error {
 	if err := g.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
-	updatedUser := dto.User{}
-	err := g.apiTest.UnmarshalResponseBodyPath("data", &updatedUser)
+	fetchedUser := dto.User{}
+	err := g.apiTest.UnmarshalResponseBodyPath("data", &fetchedUser)
 	if err != nil {
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(updatedUser.Email, g.user.Email.String); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedUser.Email, g.user.Email.String); err != nil {
 		return err
 	}
-	if err := g.apiTest.AssertEqual(updatedUser.FirstName, g.user.FirstName); err != nil {
-		return err
-	}
-
-	if err := g.apiTest.AssertEqual(updatedUser.LastName, g.user.LastName); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedUser.FirstName, g.user.FirstName); err != nil {
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(updatedUser.Phone, g.user.Phone); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedUser.LastName, g.user.LastName); err != nil {
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(updatedUser.ID, g.user.ID); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedUser.Phone, g.user.Phone); err != nil {
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(updatedUser.CreatedAt, g.user.CreatedAt); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedUser.ID, g.user.ID); err != nil {
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(updatedUser.Gender, g.user.Gender); err != nil {
+	if equal := fetchedUser.CreatedAt.Equal(g.user.CreatedAt); !equal {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(fetchedUser.Gender, g.user.Gender); err != nil {
 		return err
 	}
 
