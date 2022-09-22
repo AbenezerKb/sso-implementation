@@ -1,6 +1,7 @@
 package user
 
 import (
+	"net/http"
 	"sso/internal/constant/permissions"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
@@ -40,6 +41,16 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.GetUser,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: handler.GetAllUsers,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllUsers,
 		},
 	}
 	routing.RegisterRoutes(users, userRoutes, enforcer)
