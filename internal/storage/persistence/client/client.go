@@ -122,6 +122,7 @@ func (c *clientPersistence) GetAllClients(ctx context.Context, filters request_m
 			RedirectURIs: utils.StringToArray(v.RedirectUris),
 			ClientType:   v.ClientType,
 			LogoURL:      v.LogoUrl,
+			CreatedAt:    v.CreatedAt,
 		}
 	}
 	return clientsDTO, &model.MetaData{
