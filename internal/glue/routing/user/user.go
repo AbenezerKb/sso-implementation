@@ -25,14 +25,6 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 			Permission: permissions.CreateUser,
 		},
 		{
-			Method:  "PATCH",
-			Path:    "",
-			Handler: handler.UpdateProfile,
-			Middlewares: []gin.HandlerFunc{
-				authMiddleware.Authentication(),
-			},
-		},
-		{
 			Method:  "GET",
 			Path:    "/:id",
 			Handler: handler.GetUser,

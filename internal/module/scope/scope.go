@@ -16,7 +16,7 @@ type scopeModule struct {
 	scopePersistence storage.ScopePersistence
 }
 
-func InitScope(logger logger.Logger, scopePersistence storage.ScopePersistence) module.ScopeMoudle {
+func InitScope(logger logger.Logger, scopePersistence storage.ScopePersistence) module.ScopeModule {
 	return &scopeModule{
 		logger:           logger,
 		scopePersistence: scopePersistence,

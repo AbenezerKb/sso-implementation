@@ -16,10 +16,10 @@ import (
 
 type scope struct {
 	logger      logger.Logger
-	scopeModule module.ScopeMoudle
+	scopeModule module.ScopeModule
 }
 
-func InitScope(logger logger.Logger, scopeModule module.ScopeMoudle) rest.Scope {
+func InitScope(logger logger.Logger, scopeModule module.ScopeModule) rest.Scope {
 	return &scope{
 		logger:      logger,
 		scopeModule: scopeModule,

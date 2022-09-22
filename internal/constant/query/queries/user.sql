@@ -32,17 +32,3 @@ DELETE FROM users WHERE id = $1 RETURNING *;
 -- name: GetUserById :one
 SELECT * FROM users WHERE id = $1;
 
--- name: UpdateProfile :one
-UPDATE users
-SET
- first_name = coalesce(sqlc.narg('first_name'), first_name),
- middle_name = coalesce(sqlc.narg('middle_name'), middle_name),
- last_name = coalesce(sqlc.narg('last_name'), last_name),
- email = coalesce(sqlc.narg('email'), email),
- phone = coalesce(sqlc.narg('phone'), phone),
- user_name = coalesce(sqlc.narg('user_name'), user_name),
- password = coalesce(sqlc.narg('password'), password),
- gender = coalesce(sqlc.narg('gender'), gender),
- profile_picture = coalesce(sqlc.narg('profile_picture'))
-WHERE id = sqlc.arg('id')
-RETURNING *;

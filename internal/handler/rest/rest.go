@@ -21,7 +21,6 @@ type OAuth2 interface {
 }
 type User interface {
 	CreateUser(ctx *gin.Context)
-	UpdateProfile(ctx *gin.Context)
 	GetUser(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 }
@@ -35,4 +34,8 @@ type Client interface {
 type Scope interface {
 	GetScope(ctx *gin.Context)
 	CreateScope(ctx *gin.Context)
+}
+
+type Profile interface {
+	UpdateProfile(ctx *gin.Context)
 }

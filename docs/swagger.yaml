@@ -950,33 +950,6 @@ paths:
       summary: returns all users that satisfy the given filters
       tags:
       - user
-    patch:
-      consumes:
-      - application/json
-      description: update user profile.
-      parameters:
-      - description: user
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.User'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: update user profile.
-      tags:
-      - user
     post:
       consumes:
       - application/json
@@ -1004,6 +977,33 @@ paths:
       summary: create a new user.
       tags:
       - user
+    put:
+      consumes:
+      - application/json
+      description: update user profile.
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile.
+      tags:
+      - profile
   /users/{id}:
     get:
       consumes:
