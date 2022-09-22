@@ -131,7 +131,7 @@ func (c *getUsersTest) iShouldGetTheListOfUsersThatPassMyPreferences() error {
 	}
 	for _, v := range responseUsers {
 		found := false
-		for _, v2 := range c.users {
+		for _, v2 := range append(c.users, c.Admin) {
 			if v.ID.String() == v2.ID.String() {
 				found = true
 				continue
