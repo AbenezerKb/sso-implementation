@@ -8,6 +8,7 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -48,5 +49,26 @@ func (p *profilePersistence) UpdateProfile(ctx context.Context, userParam dto.Us
 		UserName:       user.UserName,
 		Gender:         user.Gender,
 		ProfilePicture: user.ProfilePicture.String,
+	}, nil
+}
+
+func (p *profilePersistence) GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error) {
+	user, err := p.db.GetUserById(ctx, userID)
+	if err != nil {
+		err = errors.ErrReadError.Wrap(err, "could not reade user profile")
+		p.logger.Error(ctx, "unable to reade user profile", zap.Error(err), zap.Any("user-id", userID))
+		return nil, err
+	}
+	return &dto.User{
+		ID:             user.ID,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName,
+		LastName:       user.MiddleName,
+		Email:          user.Email.String,
+		Phone:          user.Phone,
+		UserName:       user.UserName,
+		Gender:         user.Gender,
+		ProfilePicture: user.ProfilePicture.String,
+		CreatedAt:      user.CreatedAt,
 	}, nil
 }

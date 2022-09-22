@@ -34,24 +34,47 @@ func Init(logger logger.Logger, profileModule module.ProfileModule) rest.Profile
 // @param user body dto.User true "user"
 // @Success      200  {object}  dto.User
 // @Failure      400  {object}  model.ErrorResponse
-// @Router       /users [put]
+// @Router       /profile [put]
 // @Security	BearerAuth
-func (u *profile) UpdateProfile(ctx *gin.Context) {
+func (p *profile) UpdateProfile(ctx *gin.Context) {
 	userParam := dto.User{}
 	err := ctx.ShouldBind(&userParam)
 	if err != nil {
-		u.logger.Info(ctx, "unable to bind user data", zap.Error(err))
+		p.logger.Info(ctx, "unable to bind user data", zap.Error(err))
 		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
 		return
 	}
 	requestCtx := ctx.Request.Context()
 
-	updatedUser, err := u.profileModule.UpdateProfile(requestCtx, userParam)
+	updatedUser, err := p.profileModule.UpdateProfile(requestCtx, userParam)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	u.logger.Info(ctx, "user profile updated", zap.Any("user", userParam))
+	p.logger.Info(ctx, "user profile updated", zap.Any("user", userParam))
 	constant.SuccessResponse(ctx, http.StatusOK, updatedUser, nil)
+}
+
+// UpdateProfile	 get's user's profile.
+// @Summary      get's user profile.
+// @Description  get's user profile.
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.User
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile [get]
+// @Security	BearerAuth
+func (p *profile) GetProfile(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+
+	user, err := p.profileModule.GetProfile(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	p.logger.Info(ctx, "user profile fetched", zap.Any("user", user))
+	constant.SuccessResponse(ctx, http.StatusOK, user, nil)
 }

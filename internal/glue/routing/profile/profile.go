@@ -21,6 +21,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.Profile, authMiddleware mid
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  "GET",
+			Path:    "",
+			Handler: handler.GetProfile,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(profile, profileRoutes, enforcer)
 }
