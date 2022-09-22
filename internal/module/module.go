@@ -34,6 +34,7 @@ type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
 	UpdateProfile(ctx context.Context, user dto.User) (*dto.User, error)
 	GetUserByID(ctx context.Context, id string) (*dto.User, error)
+	GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error)
 }
 
 type ClientModule interface {
