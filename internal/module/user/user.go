@@ -4,7 +4,9 @@ import (
 	"context"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -91,4 +93,14 @@ func (u *user) GetUserByID(ctx context.Context, id string) (*dto.User, error) {
 	}
 
 	return u.oauthPersistence.GetUserByID(ctx, userID)
+}
+
+func (u *user) GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.User{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		u.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return u.userPersistence.GetAllUsers(ctx, filters)
 }

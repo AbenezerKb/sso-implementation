@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -78,4 +79,34 @@ func (u *user) GetUser(ctx *gin.Context) {
 
 	u.logger.Info(ctx, "user details fetched", zap.Any("user-id", userID))
 	constant.SuccessResponse(ctx, http.StatusOK, user, nil)
+}
+
+// GetAllUsers returns all users
+// @Summary      returns all users that satisfy the given filters
+// @Description  returns all users based on the filters and pagination given
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @param filter query request_models.PgnFltQueryParams true "filter"
+// @Success      200  {object}  []dto.User
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users [get]
+// @Security	BearerAuth
+func (u *user) GetAllUsers(ctx *gin.Context) {
+	var filtersParam request_models.PgnFltQueryParams
+	err := ctx.BindQuery(&filtersParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
+		u.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
+		_ = ctx.Error(err)
+		return
+	}
+
+	users, metaData, err := u.userModule.GetAllUsers(ctx, filtersParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, users, metaData)
 }

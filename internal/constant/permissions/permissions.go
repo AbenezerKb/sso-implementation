@@ -46,4 +46,9 @@ var (
 		Name:     "get all clients",
 		Category: "client",
 	}
+	GetAllUsers = Permission{
+		ID:       "get_all_users",
+		Name:     "get all users",
+		Category: "user",
+	}
 )

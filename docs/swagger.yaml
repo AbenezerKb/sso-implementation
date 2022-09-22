@@ -912,6 +912,44 @@ paths:
       tags:
       - auth
   /users:
+    get:
+      consumes:
+      - application/json
+      description: returns all users based on the filters and pagination given
+      parameters:
+      - in: query
+        name: filter
+        type: string
+      - in: query
+        name: link_operator
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns all users that satisfy the given filters
+      tags:
+      - user
     post:
       consumes:
       - application/json
