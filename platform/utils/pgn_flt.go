@@ -77,7 +77,11 @@ func ComposeFilterSQL(ctx context.Context, f request_models.FilterParams, logger
 	}
 	// search filter
 	if q != "" {
-		query += fmt.Sprintf(" AND (%s)", q)
+		if where != "" {
+			query += fmt.Sprintf(" AND (%s)", q)
+		} else {
+			query += fmt.Sprintf("WHERE %s", q)
+		}
 	}
 	// sort
 	query += fmt.Sprintf(" ORDER BY %s", sortBy)
