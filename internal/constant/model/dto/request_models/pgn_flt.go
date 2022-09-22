@@ -82,8 +82,10 @@ func (q *PgnFltQueryParams) ToFilterParams(model interface{}) (FilterParams, err
 			return FilterParams{}, err
 		}
 		for _, filter := range filters {
-			if !collection.Contains[string](filter.ColumnField, reflect.GetJSONFieldNames(model)) {
-				return FilterParams{}, fmt.Errorf("invalid filter column %s", filter.ColumnField)
+			if filter.ColumnField != "*" {
+				if !collection.Contains[string](filter.ColumnField, reflect.GetJSONFieldNames(model)) {
+					return FilterParams{}, fmt.Errorf("invalid filter column %s", filter.ColumnField)
+				}
 			}
 		}
 	}
