@@ -81,4 +81,5 @@ type UserPersistence interface {
 
 type ProfilePersistence interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
+	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
 }
