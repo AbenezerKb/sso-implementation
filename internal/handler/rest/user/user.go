@@ -53,37 +53,6 @@ func (u *user) CreateUser(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusCreated, createdUser, nil)
 }
 
-// UpdateProfile	 updates user's profile.
-// @Summary      update user profile.
-// @Description  update user profile.
-// @Tags         user
-// @Accept       json
-// @Produce      json
-// @param user body dto.User true "user"
-// @Success      200  {object}  dto.User
-// @Failure      400  {object}  model.ErrorResponse
-// @Router       /users [patch]
-// @Security	BearerAuth
-func (u *user) UpdateProfile(ctx *gin.Context) {
-	userParam := dto.User{}
-	err := ctx.ShouldBind(&userParam)
-	if err != nil {
-		u.logger.Info(ctx, "unable to bind user data", zap.Error(err))
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
-		return
-	}
-	requestCtx := ctx.Request.Context()
-
-	updatedUser, err := u.userModule.UpdateProfile(requestCtx, userParam)
-	if err != nil {
-		_ = ctx.Error(err)
-		return
-	}
-
-	u.logger.Info(ctx, "user updated")
-	constant.SuccessResponse(ctx, http.StatusOK, updatedUser, nil)
-}
-
 // GetUser	 get user details.
 // @Summary      get user details.
 // @Description  get user details.
