@@ -83,7 +83,7 @@ func (o *oauth) Login(ctx *gin.Context) {
 
 	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	ctx.SetCookie("access_token", loginRsp.AccessToken, 3600, "/", "", false, true)
-	ctx.SetCookie("refresh_token", loginRsp.RefreshToken, 12000, "/", "", false, true)
+	ctx.SetCookie("ab_fen", loginRsp.RefreshToken, 12000, "/", "", false, true)
 	o.logger.Info(ctx, "user logged in")
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
