@@ -43,7 +43,7 @@ type ClientModule interface {
 	GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
 }
 
-type ScopeMoudle interface {
+type ScopeModule interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
 }

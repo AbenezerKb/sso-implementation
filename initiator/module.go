@@ -19,7 +19,7 @@ type Module struct {
 	OAuth2Module module.OAuth2Module
 	userModule   module.UserModule
 	clientModule module.ClientModule
-	scopeModule  module.ScopeMoudle
+	scopeModule  module.ScopeModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
