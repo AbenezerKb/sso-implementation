@@ -5,6 +5,7 @@ import (
 	"sso/internal/module/client"
 	"sso/internal/module/oauth"
 	"sso/internal/module/oauth2"
+	"sso/internal/module/profile"
 	"sso/internal/module/scope"
 	"sso/internal/module/user"
 	"sso/platform/logger"
@@ -20,6 +21,7 @@ type Module struct {
 	userModule   module.UserModule
 	clientModule module.ClientModule
 	scopeModule  module.ScopeModule
+	profile      module.ProfileModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
@@ -57,5 +59,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			persistence.ScopePersistence,
 			state.URLs),
 		scopeModule: scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
+		profile:     profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
 	}
 }

@@ -32,7 +32,6 @@ type OAuth2Module interface {
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
-	UpdateProfile(ctx context.Context, user dto.User) (*dto.User, error)
 	GetUserByID(ctx context.Context, id string) (*dto.User, error)
 }
 
@@ -46,4 +45,8 @@ type ClientModule interface {
 type ScopeModule interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
+}
+
+type ProfileModule interface {
+	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 }
