@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -33,6 +34,8 @@ type Client struct {
 	// Status is the current status of the client.
 	// It is set to active by default.
 	Status string `json:"status"`
+	// CreatedAt is the time this client was created at
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (c Client) ValidateClient() error {

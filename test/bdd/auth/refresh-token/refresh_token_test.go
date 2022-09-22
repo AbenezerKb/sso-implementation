@@ -8,6 +8,7 @@ import (
 	"sso/platform/utils"
 	"sso/test"
 	"testing"
+	"time"
 
 	"github.com/cucumber/godog"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
@@ -39,7 +40,7 @@ func (r *refreshSSOTokenTest) iAmLoggedInToTheSystemAndHaveARefreshToken(interna
 	if err != nil {
 		return err
 	}
-	if err := r.apiTest.UnmarshalJSONAt([]byte(body), "", &r.refreshToken); err != nil {
+	if err := r.apiTest.UnmarshalJSON([]byte(body), &r.refreshToken); err != nil {
 		return err
 	}
 	rfData, err := r.DB.SaveInternalRefreshToken(context.Background(), db.SaveInternalRefreshTokenParams{
@@ -54,12 +55,19 @@ func (r *refreshSSOTokenTest) iAmLoggedInToTheSystemAndHaveARefreshToken(interna
 	return nil
 }
 
-func (r *refreshSSOTokenTest) iRefreshMyAccessTokenUsingMyRefresh_token(rfParam *godog.Table) error {
-	body, err := r.apiTest.ReadRow(rfParam, nil, false)
+func (r *refreshSSOTokenTest) iRefreshMyAccessTokenUsingMyRefreshToken(rfParam *godog.Table) error {
+	refreshToken, err := r.apiTest.ReadCellString(rfParam, "refresh_token")
 	if err != nil {
 		return err
 	}
-	r.apiTest.Body = body
+	r.apiTest.AddCookie(http.Cookie{
+		Name:     "ab_fen",
+		Value:    refreshToken,
+		Path:     "/",
+		Expires:  time.Now().Add(5 * time.Minute),
+		MaxAge:   3600,
+		HttpOnly: true,
+	})
 
 	r.apiTest.SetHeader("Content-Type", "application/json")
 	r.apiTest.SendRequest()
@@ -86,7 +94,7 @@ func (r *refreshSSOTokenTest) iShouldGetANewAccessToken() error {
 	return nil
 }
 
-func (r *refreshSSOTokenTest) thereIsARegeisteredUserOnTheSystem(user *godog.Table) error {
+func (r *refreshSSOTokenTest) thereIsARegisteredUserOnTheSystem(user *godog.Table) error {
 	body, err := r.apiTest.ReadRow(user, nil, false)
 	if err != nil {
 		return err
@@ -115,8 +123,8 @@ func (r *refreshSSOTokenTest) thereIsARegeisteredUserOnTheSystem(user *godog.Tab
 
 func (r *refreshSSOTokenTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-		r.apiTest.URL = "/v1/refreshtoken"
-		r.apiTest.Method = http.MethodPost
+		r.apiTest.URL = "/v1/refreshToken"
+		r.apiTest.Method = http.MethodGet
 		r.apiTest.SetHeader("Content-Type", "application/json")
 
 		return ctx, nil
@@ -128,7 +136,7 @@ func (r *refreshSSOTokenTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in to the system and have a refresh token:$`, r.iAmLoggedInToTheSystemAndHaveARefreshToken)
-	ctx.Step(`^I refresh my access token using my refresh_token$`, r.iRefreshMyAccessTokenUsingMyRefresh_token)
+	ctx.Step(`^I refresh my access token using my refresh token$`, r.iRefreshMyAccessTokenUsingMyRefreshToken)
 	ctx.Step(`^I should get a new access token$`, r.iShouldGetANewAccessToken)
-	ctx.Step(`^There is a regeistered user on the system:$`, r.thereIsARegeisteredUserOnTheSystem)
+	ctx.Step(`^There is a registered user on the system:$`, r.thereIsARegisteredUserOnTheSystem)
 }

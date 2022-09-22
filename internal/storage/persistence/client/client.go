@@ -117,11 +117,11 @@ func (c *clientPersistence) GetAllClients(ctx context.Context, filters request_m
 			ID:           v.ID,
 			Name:         v.Name,
 			Status:       v.Status,
-			Secret:       v.Secret,
 			Scopes:       v.Scopes,
 			RedirectURIs: utils.StringToArray(v.RedirectUris),
 			ClientType:   v.ClientType,
 			LogoURL:      v.LogoUrl,
+			CreatedAt:    v.CreatedAt,
 		}
 	}
 	return clientsDTO, &model.MetaData{

@@ -905,8 +905,8 @@ paths:
       summary: update user profile.
       tags:
       - profile
-  /refreshtoken:
-    post:
+  /refreshToken:
+    get:
       consumes:
       - application/json
       description: refresh access token.

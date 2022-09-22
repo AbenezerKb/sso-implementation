@@ -889,8 +889,8 @@ const docTemplate = `{
                 }
             }
         },
-        "/refreshtoken": {
-            "post": {
+        "/refreshToken": {
+            "get": {
                 "description": "refresh access token.",
                 "consumes": [
                     "application/json"
