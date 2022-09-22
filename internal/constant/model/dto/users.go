@@ -132,3 +132,13 @@ func (u User) ValidateUpdateProfile() error {
 		validation.Field(&u.Gender, validation.Required.Error("gender is required")),
 	)
 }
+
+type UpdateUserStatus struct {
+	Status string `json:"status"`
+}
+
+func (u UpdateUserStatus) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In("ACTIVE", "PENDING", "INACTIVE")),
+	)
+}
