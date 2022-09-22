@@ -857,6 +857,54 @@ paths:
       summary: Request otp.
       tags:
       - auth
+  /profile:
+    get:
+      consumes:
+      - application/json
+      description: get's user profile.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get's user profile.
+      tags:
+      - profile
+    put:
+      consumes:
+      - application/json
+      description: update user profile.
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile.
+      tags:
+      - profile
   /refreshtoken:
     post:
       consumes:
@@ -977,33 +1025,6 @@ paths:
       summary: create a new user.
       tags:
       - user
-    put:
-      consumes:
-      - application/json
-      description: update user profile.
-      parameters:
-      - description: user
-        in: body
-        name: user
-        required: true
-        schema:
-          $ref: '#/definitions/dto.User'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.User'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/model.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: update user profile.
-      tags:
-      - profile
   /users/{id}:
     get:
       consumes:
