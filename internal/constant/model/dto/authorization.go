@@ -119,3 +119,11 @@ type ConsentResultRsp struct {
 	ConsentID     string `json:"consent_id"`
 	FailureReason string `json:"failure_reason"`
 }
+
+type AuthorizedClientsResponse struct {
+	Client
+	AuthGivenAt   time.Time `json:"created_at"`
+	AuthUpdatedAt time.Time `json:"updated_at"`
+	AuthExpiresAt time.Time `json:"expires_at"`
+	AuthScopes    string    `json:"auth_scopes"`
+}
