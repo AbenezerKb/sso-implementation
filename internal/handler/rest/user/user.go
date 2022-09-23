@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -109,4 +110,38 @@ func (u *user) GetAllUsers(ctx *gin.Context) {
 	}
 
 	constant.SuccessResponse(ctx, http.StatusOK, users, metaData)
+}
+
+// UpdateUserStatus updates user status
+// @Summary      changes user status
+// @Description  changes user status to ACTIVE or INACTIVE
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @param user body dto.CreateUser true "user"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users/{id}/status [patch]
+// @Security	BearerAuth
+func (u *user) UpdateUserStatus(ctx *gin.Context) {
+	userID := ctx.Param("id")
+	updateUserStatusParam := dto.UpdateUserStatus{}
+	err := ctx.ShouldBindJSON(&updateUserStatusParam)
+	fmt.Println(ctx.Request.Body)
+
+	if err != nil {
+		u.logger.Info(ctx, "unable to bind user data", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+	requestCtx := ctx.Request.Context()
+
+	err = u.userModule.UpdateUserStatus(requestCtx, updateUserStatusParam, userID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	u.logger.Info(ctx, "user status changed", zap.Any("user-id", userID), zap.Any("to-status", updateUserStatusParam))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
