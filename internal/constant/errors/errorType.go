@@ -91,6 +91,7 @@ var (
 	ErrWriteError          = errorx.NewType(dbError, "could not write to db")
 	ErrReadError           = errorx.NewType(dbError, "could not read from db")
 	ErrDBDelError          = errorx.NewType(dbError, "could not delete record")
+	ErrUpdateError         = errorx.NewType(dbError, "could not update db")
 	ErrDataExists          = errorx.NewType(duplicate, "data already exists")
 	ErrCacheSetError       = errorx.NewType(cacheError, "could not set cache")
 	ErrCacheGetError       = errorx.NewType(cacheError, "could not get cache")
