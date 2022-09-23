@@ -7,6 +7,7 @@ import (
 	"log"
 	sms2 "sso/mocks/platform/sms"
 	"sso/platform"
+	kafka_consumer "sso/platform/kafka"
 	"sso/platform/logger"
 	"sso/platform/sms"
 	"sso/platform/token"
@@ -19,9 +20,11 @@ import (
 type PlatformLayer struct {
 	Sms   platform.SMSClient
 	Token platform.Token
+	Kafka platform.Kafka
 }
 
 func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
+
 	return PlatformLayer{
 		Sms: sms.InitSMS(
 			platform.SMSConfig{
@@ -41,6 +44,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
+		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.url"), logger),
 	}
 }
 

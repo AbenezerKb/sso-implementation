@@ -83,6 +83,7 @@ var (
 	cacheError   = errorx.NewNamespace("cache error")
 	serverError  = errorx.NewNamespace("server error")
 	AccessDenied = errorx.RegisterTrait("You are not authorized to perform the action")
+	kafkaError   = errorx.NewNamespace("kafka error")
 )
 
 var (
@@ -102,4 +103,6 @@ var (
 	ErrSMSSend             = errorx.NewType(serverError, "couldn't send sms")
 	ErrAuthError           = errorx.NewType(unauthorized, "you are not authorized.")
 	ErrAcessError          = errorx.NewType(errorx.CommonErrors, "Unauthorized", AccessDenied)
+	ErrKafkaRead           = errorx.NewType(kafkaError, "could not read from kafka")
+	ErrKafkaInvalidEvent   = errorx.NewType(kafkaError, "invalid kafka event")
 )

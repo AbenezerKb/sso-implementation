@@ -3,6 +3,7 @@ package platform
 import (
 	"context"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -33,4 +34,9 @@ type Token interface {
 	GenerateIdToken(ctx context.Context, user *dto.User, clientId string, expiresAt time.Duration) (string, error)
 	VerifyToken(signingMethod jwt.SigningMethod, token string) (bool, *jwt.RegisteredClaims)
 	VerifyIdToken(signingMethod jwt.SigningMethod, token string) (bool, *dto.IDTokenPayload)
+}
+
+type Kafka interface {
+	ReadMessage() (*request_models.MinRideEvent, error)
+	Close() error
 }
