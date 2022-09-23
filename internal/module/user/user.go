@@ -104,3 +104,25 @@ func (u *user) GetAllUsers(ctx context.Context, filtersQuery request_models.PgnF
 	}
 	return u.userPersistence.GetAllUsers(ctx, filters)
 }
+
+func (u *user) UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, id string) error {
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		u.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
+		return err
+	}
+
+	if err := updateUserStatusParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	err = u.userPersistence.UpdateUserStatus(ctx, updateUserStatusParam, userID)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
