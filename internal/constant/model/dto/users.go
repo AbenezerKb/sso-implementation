@@ -114,16 +114,6 @@ func validatePhone(phone interface{}) error {
 	return nil
 }
 
-func validatePhoneForUpdate(phone interface{}) error {
-	if phone == "" {
-		return nil
-	}
-	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")
-	if str == "" {
-		return fmt.Errorf("invalid phone number")
-	}
-	return nil
-}
 func (u User) ValidateUpdateProfile() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.FirstName, validation.Required.Error("first name is required")),
