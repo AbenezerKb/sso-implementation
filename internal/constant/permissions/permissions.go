@@ -51,4 +51,9 @@ var (
 		Name:     "get all users",
 		Category: "user",
 	}
+	UpdateUser = Permission{
+		ID:       "update_user",
+		Name:     "update a user",
+		Category: "user",
+	}
 )
