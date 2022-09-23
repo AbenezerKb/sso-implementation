@@ -44,6 +44,16 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 			},
 			Permission: permissions.GetAllUsers,
 		},
+		{
+			Method:  http.MethodPatch,
+			Path:    "/:id/status",
+			Handler: handler.UpdateUserStatus,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.UpdateUser,
+		},
 	}
 	routing.RegisterRoutes(users, userRoutes, enforcer)
 }

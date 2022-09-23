@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"database/sql"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
@@ -12,6 +13,7 @@ import (
 	"sso/platform/logger"
 	"sso/platform/utils"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -59,4 +61,18 @@ func (u *userPersistence) GetAllUsers(ctx context.Context, filters request_model
 		Total:        total,
 		Extra:        nil,
 	}, nil
+}
+
+func (u *userPersistence) UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID uuid.UUID) error {
+	_, err := u.db.UpdateUser(ctx, db.UpdateUserParams{
+		Status: sql.NullString{String: updateUserStatusParam.Status, Valid: true},
+		ID:     userID,
+	})
+
+	if err != nil {
+		err = errors.ErrUpdateError.Wrap(err, "error updating users")
+		u.logger.Error(ctx, "error updating user's status", zap.Error(err), zap.Any("user-param", updateUserStatusParam))
+		return err
+	}
+	return nil
 }

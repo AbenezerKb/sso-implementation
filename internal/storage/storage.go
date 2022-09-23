@@ -77,6 +77,7 @@ type ScopePersistence interface {
 
 type UserPersistence interface {
 	GetAllUsers(ctx context.Context, filters request_models.FilterParams) ([]dto.User, *model.MetaData, error)
+	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID uuid.UUID) error
 }
 
 type ProfilePersistence interface {

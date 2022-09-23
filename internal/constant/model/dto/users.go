@@ -114,21 +114,21 @@ func validatePhone(phone interface{}) error {
 	return nil
 }
 
-func validatePhoneForUpdate(phone interface{}) error {
-	if phone == "" {
-		return nil
-	}
-	str := phonenumber.Parse(fmt.Sprintf("%v", phone), "ET")
-	if str == "" {
-		return fmt.Errorf("invalid phone number")
-	}
-	return nil
-}
 func (u User) ValidateUpdateProfile() error {
 	return validation.ValidateStruct(&u,
 		validation.Field(&u.FirstName, validation.Required.Error("first name is required")),
 		validation.Field(&u.MiddleName, validation.Required.Error("middle name is required")),
 		validation.Field(&u.LastName, validation.Required.Error("last name is required")),
 		validation.Field(&u.Gender, validation.Required.Error("gender is required")),
+	)
+}
+
+type UpdateUserStatus struct {
+	Status string `json:"status"`
+}
+
+func (u UpdateUserStatus) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In("ACTIVE", "PENDING", "INACTIVE")),
 	)
 }

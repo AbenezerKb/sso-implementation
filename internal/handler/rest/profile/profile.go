@@ -56,7 +56,7 @@ func (p *profile) UpdateProfile(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, updatedUser, nil)
 }
 
-// UpdateProfile	 get's user's profile.
+// GetProfile	 get's user's profile.
 // @Summary      get's user profile.
 // @Description  get's user profile.
 // @Tags         profile
