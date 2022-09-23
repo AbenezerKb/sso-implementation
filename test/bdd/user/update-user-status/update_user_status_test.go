@@ -23,11 +23,6 @@ type updateUserStatusTest struct {
 func TestUpdateUserStatus(t *testing.T) {
 	u := updateUserStatusTest{}
 	u.TestInstance = test.Initiate("../../../../")
-
-	u.apiTest.URL = "/v1/users/"
-	u.apiTest.Method = http.MethodPatch
-	u.apiTest.InitializeServer(u.Server)
-
 	u.apiTest.InitializeTest(t, "update user status", "features/update_user_status.feature", u.InitializeScenario)
 }
 
@@ -52,7 +47,9 @@ func (u *updateUserStatusTest) iAmLoggedInAsAdminUser(adminCredential *godog.Tab
 }
 
 func (u *updateUserStatusTest) iUpdateTheUsersStatusTo(status string) error {
-	u.apiTest.SetBodyValue("status", status)
+	u.apiTest.SetBodyMap(map[string]interface{}{
+		"status": status,
+	})
 	u.apiTest.SendRequest()
 	return nil
 }
@@ -66,7 +63,7 @@ func (u *updateUserStatusTest) theUserStatusShouldUpdateTo(status string) error 
 		return err
 	}
 
-	if err := u.apiTest.AssertEqual(updatedUserData.Status, status); err != nil {
+	if err := u.apiTest.AssertEqual(updatedUserData.Status.String, status); err != nil {
 		return err
 	}
 	return nil
@@ -82,6 +79,13 @@ func (u *updateUserStatusTest) thenIShouldGetErrorWithMessage(message string) er
 func (u *updateUserStatusTest) thereIsUserWithId(userID string) error {
 	u.apiTest.URL += userID + "/status"
 	return nil
+}
+
+func (u *updateUserStatusTest) thenIShouldGetUserNotFoundErrorWithMessage(message string) error {
+	if err := u.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
+		return err
+	}
+	return u.apiTest.AssertStringValueOnPathInResponse("error.message", message)
 }
 
 func (u *updateUserStatusTest) thereIsUserWithTheFollowingDetails(userDetails *godog.Table) error {
@@ -112,10 +116,21 @@ func (u *updateUserStatusTest) thereIsUserWithTheFollowingDetails(userDetails *g
 
 func (u *updateUserStatusTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
+	u.apiTest.URL = "/v1/users/"
+	u.apiTest.Method = http.MethodPatch
+	u.apiTest.InitializeServer(u.Server)
+
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		_, _ = u.DB.DeleteUser(ctx, u.user.ID)
+		_, _ = u.DB.DeleteUser(ctx, u.Admin.ID)
+		return ctx, nil
+	})
+
 	ctx.Step(`^I am logged in as admin user$`, u.iAmLoggedInAsAdminUser)
 	ctx.Step(`^I update the user\'s status to "([^"]*)"$`, u.iUpdateTheUsersStatusTo)
 	ctx.Step(`^the user status should update to "([^"]*)"$`, u.theUserStatusShouldUpdateTo)
 	ctx.Step(`^Then I should get error with message "([^"]*)"$`, u.thenIShouldGetErrorWithMessage)
 	ctx.Step(`^there is user with id "([^"]*)"$`, u.thereIsUserWithId)
 	ctx.Step(`^there is user with the following details:$`, u.thereIsUserWithTheFollowingDetails)
+	ctx.Step(`^Then I should get user not found error with message "([^"]*)"$`, u.thenIShouldGetUserNotFoundErrorWithMessage)
 }

@@ -25,7 +25,7 @@ Feature: update User Status
     Scenario Outline: Failed User Status Update
         Given there is user with id "<id>"
         When I update the user's status to "<status>"
-        Then Then I should get error with message "<message>"
+        Then Then I should get user not found error with message "<message>"
 
         Examples:
             | id                         | message        |
@@ -39,6 +39,6 @@ Feature: update User Status
         Then Then I should get error with message "<message>"
 
         Examples:
-            | first_name | middle_name | last_name | phone        | email           | password | status   | message            |
-            | testuser1  | testuser1   | testuser1 | 251925252525 | test1@gmail.com | 123456   | INACTIVE | invalid status     |
-            | testuser1  | testuser1   | testuser1 | 251925252525 | test1@gmail.com | 123456   |          | status is required |
+            | first_name | middle_name | last_name | phone        | email           | password | status    | message               |
+            | testuser1  | testuser1   | testuser1 | 251925252525 | test1@gmail.com | 123456   | INACTIVED | must be a valid value |
+            | testuser1  | testuser1   | testuser1 | 251925252525 | test1@gmail.com | 123456   |           | status is required    |
