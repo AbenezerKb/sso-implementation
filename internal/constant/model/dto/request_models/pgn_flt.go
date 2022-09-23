@@ -56,8 +56,9 @@ func (q *PgnFltQueryParams) ToFilterParams(model interface{}) (FilterParams, err
 		if err != nil {
 			return FilterParams{}, err
 		}
-		for k, v := range res.Sort {
-			if err := validation.Validate(v.Sort, validation.In(state.SortAsc, state.SortDesc)); err != nil {
+		for k := range res.Sort {
+			res.Sort[k].Sort = strings.ToUpper(res.Sort[k].Sort)
+			if err := validation.Validate(res.Sort[k].Sort, validation.In(state.SortAsc, state.SortDesc)); err != nil {
 				res.Sort[k].Sort = state.SortDesc
 			}
 		}
