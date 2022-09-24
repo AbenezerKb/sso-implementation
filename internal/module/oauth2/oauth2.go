@@ -615,3 +615,21 @@ func (o *oauth2) RevokeClient(ctx context.Context, clientBody request_models.Rev
 
 	return nil
 }
+
+func (o *oauth2) GetAuthorizedClients(ctx context.Context) ([]dto.AuthorizedClientsResponse, error) {
+	userIDString, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Warn(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", userIDString))
+		return nil, err
+	}
+
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		o.logger.Warn(ctx, "parse error", zap.Error(err), zap.String("user-id", userIDString))
+		return nil, err
+	}
+
+	return o.oauth2Persistence.GetAuthorizedClients(ctx, userID)
+}
