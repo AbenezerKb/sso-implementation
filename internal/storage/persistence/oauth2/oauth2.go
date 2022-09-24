@@ -2,6 +2,8 @@ package oauth2
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
@@ -9,9 +11,6 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
-
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 type oauth2 struct {
@@ -202,4 +201,35 @@ func (o *oauth2) GetRefreshTokenOfClientByUserID(ctx context.Context, userID, cl
 		ClientID:     refreshToken.ClientID,
 		ExpiresAt:    refreshToken.ExpiresAt,
 	}, nil
+}
+
+func (o *oauth2) GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]dto.AuthorizedClientsResponse, error) {
+	authorizedClients, err := o.db.GetAuthorizedClientsForUser(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no authorized clients found")
+			o.logger.Info(ctx, "no authorized clients were found", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading authorized clients")
+			o.logger.Error(ctx, "error reading authorized clients", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		}
+	}
+	authorizedClientsDTO := make([]dto.AuthorizedClientsResponse, len(authorizedClients))
+	for k, v := range authorizedClients {
+		authorizedClientsDTO[k] = dto.AuthorizedClientsResponse{
+			Client: dto.Client{
+				ID:         v.ID,
+				Name:       v.Name,
+				ClientType: v.ClientType,
+				LogoURL:    v.LogoUrl,
+			},
+			AuthGivenAt:   v.CreatedAt,
+			AuthUpdatedAt: v.UpdatedAt,
+			AuthExpiresAt: v.ExpiresAt,
+			AuthScopes:    v.Scope.String,
+		}
+	}
+	return authorizedClientsDTO, nil
 }
