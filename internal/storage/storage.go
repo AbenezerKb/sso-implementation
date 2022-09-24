@@ -47,6 +47,7 @@ type OAuth2Persistence interface {
 	CheckIfUserGrantedClient(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (bool, dto.RefreshToken, error)
 	GetRefreshToken(ctx context.Context, token string) (*dto.RefreshToken, error)
 	GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error)
+	GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]dto.AuthorizedClientsResponse, error)
 }
 
 type ConsentCache interface {

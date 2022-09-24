@@ -13,8 +13,64 @@ import (
 	"github.com/google/uuid"
 )
 
+const getAuthorizedClientsForUser = `-- name: GetAuthorizedClientsForUser :many
+SELECT refresh_tokens.scope,
+       refresh_tokens.expires_at,
+       refresh_tokens.created_at,
+       refresh_tokens.updated_at,
+       clients.id,
+       clients.name,
+       clients.client_type,
+       clients.logo_url
+FROM refresh_tokens
+         JOIN clients ON refresh_tokens.client_id = clients.id
+WHERE user_id = $1 AND refresh_tokens.scope NOT ILIKE 'openid'
+`
+
+type GetAuthorizedClientsForUserRow struct {
+	Scope      sql.NullString `json:"scope"`
+	ExpiresAt  time.Time      `json:"expires_at"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	ID         uuid.UUID      `json:"id"`
+	Name       string         `json:"name"`
+	ClientType string         `json:"client_type"`
+	LogoUrl    string         `json:"logo_url"`
+}
+
+func (q *Queries) GetAuthorizedClientsForUser(ctx context.Context, userID uuid.UUID) ([]GetAuthorizedClientsForUserRow, error) {
+	rows, err := q.db.Query(ctx, getAuthorizedClientsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAuthorizedClientsForUserRow
+	for rows.Next() {
+		var i GetAuthorizedClientsForUserRow
+		if err := rows.Scan(
+			&i.Scope,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID,
+			&i.Name,
+			&i.ClientType,
+			&i.LogoUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRefreshToken = `-- name: GetRefreshToken :one
-SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE refresh_token = $1
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
+FROM refresh_tokens
+WHERE refresh_token = $1
 `
 
 func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (RefreshToken, error) {
@@ -36,7 +92,10 @@ func (q *Queries) GetRefreshToken(ctx context.Context, refreshToken string) (Ref
 }
 
 const getRefreshTokenByUserIDAndClientID = `-- name: GetRefreshTokenByUserIDAndClientID :one
-SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at FROM refresh_tokens WHERE user_id = $1 AND client_id = $2
+SELECT id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
+FROM refresh_tokens
+WHERE user_id = $1
+  AND client_id = $2
 `
 
 type GetRefreshTokenByUserIDAndClientIDParams struct {
@@ -63,7 +122,9 @@ func (q *Queries) GetRefreshTokenByUserIDAndClientID(ctx context.Context, arg Ge
 }
 
 const removeRefreshToken = `-- name: RemoveRefreshToken :exec
-DELETE FROM refresh_tokens WHERE refresh_token = $1
+DELETE
+FROM refresh_tokens
+WHERE refresh_token = $1
 `
 
 func (q *Queries) RemoveRefreshToken(ctx context.Context, refreshToken string) error {
@@ -72,7 +133,9 @@ func (q *Queries) RemoveRefreshToken(ctx context.Context, refreshToken string) e
 }
 
 const removeRefreshTokenByCode = `-- name: RemoveRefreshTokenByCode :exec
-DELETE FROM refresh_tokens WHERE code = $1
+DELETE
+FROM refresh_tokens
+WHERE code = $1
 `
 
 func (q *Queries) RemoveRefreshTokenByCode(ctx context.Context, code string) error {
@@ -81,17 +144,14 @@ func (q *Queries) RemoveRefreshTokenByCode(ctx context.Context, code string) err
 }
 
 const saveRefreshToken = `-- name: SaveRefreshToken :one
-INSERT INTO refresh_tokens (
-    expires_at,
-    user_id,
-    scope,
-    redirect_uri,
-    client_id,
-    refresh_token,
-    code
-) VALUES (
-    $1, $2, $3, $4, $5,$6,$7
-)
+INSERT INTO refresh_tokens (expires_at,
+                            user_id,
+                            scope,
+                            redirect_uri,
+                            client_id,
+                            refresh_token,
+                            code)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
 `
 

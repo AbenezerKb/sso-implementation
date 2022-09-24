@@ -323,3 +323,22 @@ func (o *oauth2) RevokeClient(ctx *gin.Context) {
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// GetAuthorizedClients returns all authorized clients
+// @Summary      returns all authorized clients
+// @Description  It returns all clients that have resource access other than openid for the logged in user
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @Success      200  {object} dto.AuthorizedClientsResponse
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /oauth/authorizedClients [get]
+func (o *oauth2) GetAuthorizedClients(ctx *gin.Context) {
+	authorizedClients, err := o.oauth2Module.GetAuthorizedClients(ctx.Request.Context())
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, authorizedClients, nil)
+}
