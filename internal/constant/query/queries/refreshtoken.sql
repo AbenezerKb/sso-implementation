@@ -41,4 +41,4 @@ SELECT refresh_tokens.scope,
        clients.logo_url
 FROM refresh_tokens
          JOIN clients ON refresh_tokens.client_id = clients.id
-WHERE user_id = $1;
+WHERE user_id = $1 AND refresh_tokens.scope NOT ILIKE 'openid';
