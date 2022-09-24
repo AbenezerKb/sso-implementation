@@ -26,7 +26,7 @@ type GetAuthorizedClientsTest struct {
 
 func TestGetAuthorizedClients(t *testing.T) {
 	c := GetAuthorizedClientsTest{}
-	c.apiTest.URL = "/v1/oauth/getAuthorizedClients"
+	c.apiTest.URL = "/v1/oauth/authorizedClients"
 	c.apiTest.Method = http.MethodGet
 	c.TestInstance = test.Initiate("../../../../")
 	c.apiTest.InitializeServer(c.Server)
@@ -56,7 +56,7 @@ func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients
 	}
 	var authorizationData []struct {
 		Client        db.CreateClientParams
-		GrantedScopes string
+		GrantedScopes string `json:"granted_scopes"`
 	}
 	err = g.apiTest.UnmarshalJSON([]byte(authorizationJSON), &authorizationData)
 	if err != nil {
@@ -92,40 +92,18 @@ func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) iRequestToGetAuthorizedClientsWithTheFollowingFilter(filter *godog.Table) error {
-	filterJSON, err := g.apiTest.ReadRows(filter, nil, false)
-	if err != nil {
-		return err
-	}
-	var filterData request_models.Filter
-	err = g.apiTest.UnmarshalJSONAt([]byte(filterJSON), "0", &filterData)
-	if err != nil {
-		return err
-	}
-	g.filters = append(g.filters, filterData)
-
-	g.apiTest.SetQueryParam("filter", filterJSON)
+func (g *GetAuthorizedClientsTest) iRequestToGetAuthorizedClients() error {
 	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
 	g.apiTest.SendRequest()
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) iShouldGetErrorMessage(message string) error {
-	if err := g.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
-		return err
-	}
-	if err := g.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (g *GetAuthorizedClientsTest) iShouldGetTheListOfAuthorizedClientsThatPassMyFilter() error {
+func (g *GetAuthorizedClientsTest) iShouldGetTheListOfAuthorizedClients() error {
 	if err := g.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
 	var authClientsResponse []dto.AuthorizedClientsResponse
-	err := g.apiTest.UnmarshalResponseBodyPath("data", authClientsResponse)
+	err := g.apiTest.UnmarshalResponseBodyPath("data", &authClientsResponse)
 	if err != nil {
 		return err
 	}
@@ -158,7 +136,6 @@ func (g *GetAuthorizedClientsTest) InitializeScenario(ctx *godog.ScenarioContext
 	})
 	ctx.Step(`^I am logged in as the following user$`, g.iAmLoggedInAsTheFollowingUser)
 	ctx.Step(`^I have given authorization for the following clients$`, g.iHaveGivenAuthorizationForTheFollowingClients)
-	ctx.Step(`^I request to get authorized clients with the following filter$`, g.iRequestToGetAuthorizedClientsWithTheFollowingFilter)
-	ctx.Step(`^I should get error message "([^"]*)"$`, g.iShouldGetErrorMessage)
-	ctx.Step(`^I should get the list of authorized clients that pass my filter$`, g.iShouldGetTheListOfAuthorizedClientsThatPassMyFilter)
+	ctx.Step(`^I request to get authorized clients$`, g.iRequestToGetAuthorizedClients)
+	ctx.Step(`^I should get the list of authorized clients$`, g.iShouldGetTheListOfAuthorizedClients)
 }

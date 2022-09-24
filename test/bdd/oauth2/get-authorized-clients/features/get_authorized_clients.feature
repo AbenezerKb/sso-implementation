@@ -13,20 +13,6 @@ Feature: Get Authorized Clients
       | clientTwo | public       | https://facebook.com | profile email openid | https://www.google.com | email openid   |
 
   @success
-  Scenario Outline: I get authorized clients
-    When I request to get authorized clients with the following filter
-      | column_field   | operatorValue    | value   |
-      | <column_field> | <operator_value> | <value> |
-    Then I should get the list of authorized clients that pass my filter
-    Examples:
-      | column_field | operator_value | value |
-      | scope        | contains       |       |
-
-  Scenario Outline: I fail to get all the clients due to invalid request
-    When I request to get authorized clients with the following filter
-      | column_field   | operatorValue    | value   |
-      | <column_field> | <operator_value> | <value> |
-    Then I should get error message "<message>"
-    Examples:
-      | column_field  | operator_value | value  | message              |
-      | invalid_field | is             | openid | invalid filter param |
+  Scenario: I get authorized clients
+    When I request to get authorized clients
+    Then I should get the list of authorized clients
