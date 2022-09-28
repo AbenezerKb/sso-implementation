@@ -19,6 +19,7 @@ type OAuth2 interface {
 	Logout(ctx *gin.Context)
 	RevokeClient(ctx *gin.Context)
 	GetAuthorizedClients(ctx *gin.Context)
+	GetOpenIDAuthorizedClients(ctx *gin.Context)
 }
 type User interface {
 	CreateUser(ctx *gin.Context)
