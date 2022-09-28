@@ -113,10 +113,11 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *g
 			return err
 		}
 
-		_, err = p.KafkaConn.WriteMessages(kafka.Message{
+		msgWriten, err := p.KafkaConn.WriteMessages(kafka.Message{
 			Key:   []byte(p.StreamedEvents[i].Event),
 			Value: msg,
 		})
+		p.Logger.Info(context.Background(), "kafka message's", zap.Int("written", msgWriten))
 		if err != nil {
 			return err
 		}
@@ -127,11 +128,13 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *g
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 
-	t := time.NewTicker(1 * time.Second)
+	t := time.NewTicker(200 * time.Millisecond)
 	wg := new(sync.WaitGroup)
+	//sleep so that topic will be created
+	time.Sleep(time.Second * 10)
 
 	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
+		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*1))
 
 		msg, err := p.PlatformLayer.Kafka.ReadMessage(ctx)
 		if err != nil {
