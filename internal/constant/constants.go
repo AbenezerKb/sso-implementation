@@ -10,6 +10,9 @@ const (
 	User        = "user"
 	BearerToken = "Bearer"
 	OpenID      = "openid"
+	UPDATE      = "UPDATE"
+	CREATE      = "CREATE"
+	PROMOTE     = "PROMOTE"
 )
 
 const (
