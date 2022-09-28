@@ -41,4 +41,19 @@ SELECT refresh_tokens.scope,
        clients.logo_url
 FROM refresh_tokens
          JOIN clients ON refresh_tokens.client_id = clients.id
-WHERE user_id = $1 AND refresh_tokens.scope NOT ILIKE 'openid';
+WHERE user_id = $1
+  AND refresh_tokens.scope NOT ILIKE 'openid';
+
+-- name: GetOpenIDAuthorizedClientsForUser :many
+SELECT refresh_tokens.scope,
+       refresh_tokens.expires_at,
+       refresh_tokens.created_at,
+       refresh_tokens.updated_at,
+       clients.id,
+       clients.name,
+       clients.client_type,
+       clients.logo_url
+FROM refresh_tokens
+         JOIN clients ON refresh_tokens.client_id = clients.id
+WHERE user_id = $1
+  AND refresh_tokens.scope ILIKE 'openid';
