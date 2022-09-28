@@ -392,6 +392,38 @@
                 }
             }
         },
+        "/oauth/authorizedClients": {
+            "get": {
+                "description": "It returns all clients that have resource access other than openid for the logged in user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "returns all authorized clients",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.AuthorizedClientsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/consent/{id}": {
             "get": {
                 "security": [
@@ -1120,6 +1152,51 @@
                     }
                 }
             }
+        },
+        "/users/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "changes user status to ACTIVE or INACTIVE",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "changes user status",
+                "parameters": [
+                    {
+                        "description": "user",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1144,11 +1221,71 @@
                 }
             }
         },
+        "dto.AuthorizedClientsResponse": {
+            "type": "object",
+            "properties": {
+                "auth_scopes": {
+                    "description": "AuthScopes is the scopes this authorization is given access to",
+                    "type": "string"
+                },
+                "client_type": {
+                    "description": "ClientType is the type of the client.\nIt can be either confidential or public.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "AuthGivenAt is the time this client is given authorization at",
+                    "type": "string"
+                },
+                "expires_at": {
+                    "description": "AuthExpiresAt is the time this authorization expires at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the client.\nIt is automatically generated when the client is registered.",
+                    "type": "string"
+                },
+                "logo_url": {
+                    "description": "LogoURL is the URL of the client's logo.\nIt must be a valid URL.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of the client that will be displayed to the user.",
+                    "type": "string"
+                },
+                "redirect_uris": {
+                    "description": "RedirectURIs is the list of redirect URIs of the client.\nEach redirect URI must be a valid URL and must use HTTPS.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "scopes": {
+                    "description": "Scopes is the list of default scopes of the client if one is not provided.",
+                    "type": "string"
+                },
+                "secret": {
+                    "description": "Secret is the secret the client uses to authenticate itself.\nIt is automatically generated when the client is registered.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the current status of the client.\nIt is set to active by default.",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "AuthUpdatedAt is the time this authorization is last updated at",
+                    "type": "string"
+                }
+            }
+        },
         "dto.Client": {
             "type": "object",
             "properties": {
                 "client_type": {
                     "description": "ClientType is the type of the client.\nIt can be either confidential or public.",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt is the time this client was created at",
                     "type": "string"
                 },
                 "id": {
@@ -1501,11 +1638,89 @@
                 }
             }
         },
+        "model.MetaData": {
+            "type": "object",
+            "properties": {
+                "extra": {
+                    "description": "Extra contains other response specific data"
+                },
+                "filter": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request_models.Filter"
+                    }
+                },
+                "link_operator": {
+                    "type": "string"
+                },
+                "page": {
+                    "type": "integer"
+                },
+                "per_page": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/request_models.Sort"
+                    }
+                },
+                "total": {
+                    "description": "Total is the total number of data without pagination",
+                    "type": "integer"
+                }
+            }
+        },
+        "model.Response": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Data contains the actual data of the response."
+                },
+                "error": {
+                    "description": "Error contains the error detail if the request was not successful.",
+                    "$ref": "#/definitions/model.ErrorResponse"
+                },
+                "meta_data": {
+                    "description": "MetaData contains additional data like filtering, pagination, etc.",
+                    "$ref": "#/definitions/model.MetaData"
+                },
+                "ok": {
+                    "description": "OK is only true if the request was successful.",
+                    "type": "boolean"
+                }
+            }
+        },
+        "request_models.Filter": {
+            "type": "object",
+            "properties": {
+                "column_field": {
+                    "type": "string"
+                },
+                "operator_value": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "string"
+                }
+            }
+        },
         "request_models.RevokeClientBody": {
             "type": "object",
             "properties": {
                 "client_id": {
                     "description": "ClientID is the id of the client to be revoked access of.\nIt is a required field",
+                    "type": "string"
+                }
+            }
+        },
+        "request_models.Sort": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "sort": {
                     "type": "string"
                 }
             }

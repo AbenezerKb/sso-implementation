@@ -330,7 +330,7 @@ func (o *oauth2) RevokeClient(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @Success      200  {object} dto.AuthorizedClientsResponse
+// @Success      200  {object} []dto.AuthorizedClientsResponse
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /oauth/authorizedClients [get]
 func (o *oauth2) GetAuthorizedClients(ctx *gin.Context) {
