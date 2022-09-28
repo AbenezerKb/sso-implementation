@@ -25,6 +25,7 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, log logger.Logger) plat
 	kafkaClient := kafkaClient{
 		kafkaURL: kafkaURL,
 		topic:    topic,
+		groupID:  groupID,
 		log:      log,
 	}
 	kafkaReader := kafkaClient.getKafkaReader()
@@ -45,21 +46,16 @@ func (k *kafkaClient) Close() error {
 	return k.kafkaReader.Close()
 }
 
-func (k *kafkaClient) ReadMessage() (*request_models.MinRideEvent, error) {
+func (k *kafkaClient) ReadMessage(ctx context.Context) (*request_models.MinRideEvent, error) {
 	var rsp request_models.MinRideEvent
-	msg, err := k.kafkaReader.ReadMessage(context.Background())
+	msg, err := k.kafkaReader.ReadMessage(ctx)
 	if err != nil {
 		err = errors.ErrKafkaRead.Wrap(err, "couldn't read kafka event")
-		k.log.Fatal(context.Background(), "couldn't read message from kafka", zap.Error(err))
+		k.log.Debug(context.Background(), "couldn't read message from kafka", zap.Error(err))
 		return nil, err
 	}
 
-	err = json.Unmarshal(msg.Key, &rsp.Event)
-	if err != nil {
-		err = errors.ErrKafkaInvalidEvent.Wrap(err, "couldn't unmarshal kafka key")
-		k.log.Error(context.Background(), "couldn't unmarshal kafka key", zap.Any("key", msg.Key))
-		return nil, err
-	}
+	rsp.Event = string(msg.Key)
 
 	err = json.Unmarshal(msg.Value, &rsp.Driver)
 	if err != nil {
