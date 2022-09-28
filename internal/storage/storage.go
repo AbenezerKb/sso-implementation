@@ -84,3 +84,9 @@ type ProfilePersistence interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
 }
+
+type MiniRidePersistence interface {
+	UpdateUser(ctx context.Context, updateUserParam *request_models.Driver) error
+	CreateUser(ctx context.Context, createUserParam *request_models.Driver) (*dto.User, error)
+	SwapPhones(ctx context.Context, newPhone, oldPhone string) error
+}
