@@ -56,6 +56,13 @@ type RefreshToken struct {
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
+type ResourceServer struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Scope struct {
 	ID                 uuid.UUID      `json:"id"`
 	Name               string         `json:"name"`
