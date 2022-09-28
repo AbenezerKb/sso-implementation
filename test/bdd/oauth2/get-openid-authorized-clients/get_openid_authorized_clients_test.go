@@ -1,4 +1,4 @@
-package get_authorized_clients
+package get_openid_authorized_clients
 
 import (
 	"context"
@@ -11,11 +11,12 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/test"
+	"strings"
 	"testing"
 	"time"
 )
 
-type GetAuthorizedClientsTest struct {
+type GetOpenIDAuthorizedClientsTest struct {
 	test.TestInstance
 	apiTest           src.ApiTest
 	user              db.User
@@ -25,15 +26,15 @@ type GetAuthorizedClientsTest struct {
 }
 
 func TestGetAuthorizedClients(t *testing.T) {
-	c := GetAuthorizedClientsTest{}
-	c.apiTest.URL = "/v1/oauth/authorizedClients"
+	c := GetOpenIDAuthorizedClientsTest{}
+	c.apiTest.URL = "/v1/oauth/openIDAuthorizedClients"
 	c.apiTest.Method = http.MethodGet
 	c.TestInstance = test.Initiate("../../../../")
 	c.apiTest.InitializeServer(c.Server)
-	c.apiTest.InitializeTest(t, "get authorized clients test", "features/get_authorized_clients.feature", c.InitializeScenario)
+	c.apiTest.InitializeTest(t, "get openid authorized clients test", "features/get_openid_authorized_clients.feature", c.InitializeScenario)
 }
 
-func (g *GetAuthorizedClientsTest) iAmLoggedInAsTheFollowingUser(userCredentials *godog.Table) error {
+func (g *GetOpenIDAuthorizedClientsTest) iAmLoggedInAsTheFollowingUser(userCredentials *godog.Table) error {
 	var err error
 	g.user, err = g.Authenticate(userCredentials)
 	if err != nil {
@@ -42,7 +43,7 @@ func (g *GetAuthorizedClientsTest) iAmLoggedInAsTheFollowingUser(userCredentials
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients(clients *godog.Table) error {
+func (g *GetOpenIDAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients(clients *godog.Table) error {
 	// register clients
 	authorizationJSON, err := g.apiTest.ReadRows(clients, []src.Type{
 		{
@@ -85,7 +86,7 @@ func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients
 		if err != nil {
 			return err
 		}
-		if refreshToken.Scope.String != "openid" {
+		if strings.Contains(refreshToken.Scope.String, "openid") {
 			g.clients = append(g.clients, client)
 		}
 		g.authRefreshTokens = append(g.authRefreshTokens, refreshToken)
@@ -94,13 +95,13 @@ func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) iRequestToGetAuthorizedClients() error {
+func (g *GetOpenIDAuthorizedClientsTest) iRequestToGetOpenidAuthorizedClients() error {
 	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
 	g.apiTest.SendRequest()
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) iShouldGetTheListOfAuthorizedClients() error {
+func (g *GetOpenIDAuthorizedClientsTest) iShouldGetTheListOfOpenidAuthorizedClients() error {
 	if err := g.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
@@ -127,7 +128,7 @@ func (g *GetAuthorizedClientsTest) iShouldGetTheListOfAuthorizedClients() error 
 	return nil
 }
 
-func (g *GetAuthorizedClientsTest) InitializeScenario(ctx *godog.ScenarioContext) {
+func (g *GetOpenIDAuthorizedClientsTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		for _, v := range g.clients {
 			_, _ = g.DB.DeleteClient(ctx, v.ID)
@@ -140,6 +141,6 @@ func (g *GetAuthorizedClientsTest) InitializeScenario(ctx *godog.ScenarioContext
 	})
 	ctx.Step(`^I am logged in as the following user$`, g.iAmLoggedInAsTheFollowingUser)
 	ctx.Step(`^I have given authorization for the following clients$`, g.iHaveGivenAuthorizationForTheFollowingClients)
-	ctx.Step(`^I request to get authorized clients$`, g.iRequestToGetAuthorizedClients)
-	ctx.Step(`^I should get the list of authorized clients$`, g.iShouldGetTheListOfAuthorizedClients)
+	ctx.Step(`^I request to get openid authorized clients$`, g.iRequestToGetOpenidAuthorizedClients)
+	ctx.Step(`^I should get the list of openid authorized clients$`, g.iShouldGetTheListOfOpenidAuthorizedClients)
 }

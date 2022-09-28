@@ -30,6 +30,7 @@ type OAuth2Module interface {
 	Logout(ctx context.Context, logoutReqParam dto.LogoutRequest, bindError *errorx.Error) string
 	RevokeClient(ctx context.Context, clientBody request_models.RevokeClientBody) error
 	GetAuthorizedClients(ctx context.Context) ([]dto.AuthorizedClientsResponse, error)
+	GetOpenIDAuthorizedClients(ctx context.Context) ([]dto.AuthorizedClientsResponse, error)
 }
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)

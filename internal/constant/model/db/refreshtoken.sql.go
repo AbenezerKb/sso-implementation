@@ -24,7 +24,8 @@ SELECT refresh_tokens.scope,
        clients.logo_url
 FROM refresh_tokens
          JOIN clients ON refresh_tokens.client_id = clients.id
-WHERE user_id = $1 AND refresh_tokens.scope NOT ILIKE 'openid'
+WHERE user_id = $1
+  AND refresh_tokens.scope NOT ILIKE 'openid'
 `
 
 type GetAuthorizedClientsForUserRow struct {
@@ -47,6 +48,61 @@ func (q *Queries) GetAuthorizedClientsForUser(ctx context.Context, userID uuid.U
 	var items []GetAuthorizedClientsForUserRow
 	for rows.Next() {
 		var i GetAuthorizedClientsForUserRow
+		if err := rows.Scan(
+			&i.Scope,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID,
+			&i.Name,
+			&i.ClientType,
+			&i.LogoUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getOpenIDAuthorizedClientsForUser = `-- name: GetOpenIDAuthorizedClientsForUser :many
+SELECT refresh_tokens.scope,
+       refresh_tokens.expires_at,
+       refresh_tokens.created_at,
+       refresh_tokens.updated_at,
+       clients.id,
+       clients.name,
+       clients.client_type,
+       clients.logo_url
+FROM refresh_tokens
+         JOIN clients ON refresh_tokens.client_id = clients.id
+WHERE user_id = $1
+  AND refresh_tokens.scope ILIKE '%openid%'
+`
+
+type GetOpenIDAuthorizedClientsForUserRow struct {
+	Scope      sql.NullString `json:"scope"`
+	ExpiresAt  time.Time      `json:"expires_at"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	ID         uuid.UUID      `json:"id"`
+	Name       string         `json:"name"`
+	ClientType string         `json:"client_type"`
+	LogoUrl    string         `json:"logo_url"`
+}
+
+func (q *Queries) GetOpenIDAuthorizedClientsForUser(ctx context.Context, userID uuid.UUID) ([]GetOpenIDAuthorizedClientsForUserRow, error) {
+	rows, err := q.db.Query(ctx, getOpenIDAuthorizedClientsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetOpenIDAuthorizedClientsForUserRow
+	for rows.Next() {
+		var i GetOpenIDAuthorizedClientsForUserRow
 		if err := rows.Scan(
 			&i.Scope,
 			&i.ExpiresAt,

@@ -1,7 +1,7 @@
-Feature: Get Authorized Clients
+Feature: Get OpenID Authorized Clients
   As a user,
-  I want to get all authorized clients with authorization data
-  So that I can view details of each client authorization
+  I want to get all clients that are logged in with my SSO account,
+  So that I can view details of each client.
 
   Background:
     Given I am logged in as the following user
@@ -14,6 +14,6 @@ Feature: Get Authorized Clients
       | clientThree | confidential | https://yahoo.com    | openid               | https://www.google.com | openid         |
 
   @success
-  Scenario: I get authorized clients
-    When I request to get authorized clients
-    Then I should get the list of authorized clients
+  Scenario: I get openid authorized clients
+    When I request to get openid authorized clients
+    Then I should get the list of openid authorized clients

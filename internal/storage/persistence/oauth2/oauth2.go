@@ -233,3 +233,34 @@ func (o *oauth2) GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]
 	}
 	return authorizedClientsDTO, nil
 }
+
+func (o *oauth2) GetOpenIDAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]dto.AuthorizedClientsResponse, error) {
+	authorizedClients, err := o.db.GetOpenIDAuthorizedClientsForUser(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no openid authorized clients found")
+			o.logger.Info(ctx, "no openid authorized clients were found", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading openid authorized clients")
+			o.logger.Error(ctx, "error reading openid authorized clients", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		}
+	}
+	authorizedClientsDTO := make([]dto.AuthorizedClientsResponse, len(authorizedClients))
+	for k, v := range authorizedClients {
+		authorizedClientsDTO[k] = dto.AuthorizedClientsResponse{
+			Client: dto.Client{
+				ID:         v.ID,
+				Name:       v.Name,
+				ClientType: v.ClientType,
+				LogoURL:    v.LogoUrl,
+			},
+			AuthGivenAt:   v.CreatedAt,
+			AuthUpdatedAt: v.UpdatedAt,
+			AuthExpiresAt: v.ExpiresAt,
+			AuthScopes:    v.Scope.String,
+		}
+	}
+	return authorizedClientsDTO, nil
+}

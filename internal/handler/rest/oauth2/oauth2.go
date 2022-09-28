@@ -330,11 +330,30 @@ func (o *oauth2) RevokeClient(ctx *gin.Context) {
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
-// @Success      200  {object} dto.AuthorizedClientsResponse
+// @Success      200  {object} []dto.AuthorizedClientsResponse
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /oauth/authorizedClients [get]
 func (o *oauth2) GetAuthorizedClients(ctx *gin.Context) {
 	authorizedClients, err := o.oauth2Module.GetAuthorizedClients(ctx.Request.Context())
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, authorizedClients, nil)
+}
+
+// GetOpenIDAuthorizedClients returns all only-openid authorized clients
+// @Summary      returns all only-openid authorized clients
+// @Description  It returns all clients that have only openid access for the logged-in user
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @Success      200  {object} []dto.AuthorizedClientsResponse
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /oauth/openIDAuthorizedClients [get]
+func (o *oauth2) GetOpenIDAuthorizedClients(ctx *gin.Context) {
+	authorizedClients, err := o.oauth2Module.GetOpenIDAuthorizedClients(ctx.Request.Context())
 	if err != nil {
 		_ = ctx.Error(err)
 		return
