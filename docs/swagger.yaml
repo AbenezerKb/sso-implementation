@@ -798,6 +798,28 @@ paths:
       summary: rp-logout.
       tags:
       - OAuth2
+  /oauth/openIDAuthorizedClients:
+    get:
+      consumes:
+      - application/json
+      description: It returns all clients that have only openid access for the logged-in
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AuthorizedClientsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: returns all only-openid authorized clients
+      tags:
+      - OAuth2
   /oauth/rejectConsent:
     post:
       consumes:

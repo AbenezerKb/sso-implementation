@@ -540,6 +540,38 @@
                 }
             }
         },
+        "/oauth/openIDAuthorizedClients": {
+            "get": {
+                "description": "It returns all clients that have only openid access for the logged-in user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "returns all only-openid authorized clients",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.AuthorizedClientsResponse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/oauth/rejectConsent": {
             "post": {
                 "description": "is used to reject consent.",

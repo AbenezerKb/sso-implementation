@@ -343,9 +343,9 @@ func (o *oauth2) GetAuthorizedClients(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, authorizedClients, nil)
 }
 
-// GetOpenIDAuthorizedClients returns all openid authorized clients
-// @Summary      returns all openid authorized clients
-// @Description  It returns all clients that have openid access for the logged in user
+// GetOpenIDAuthorizedClients returns all only-openid authorized clients
+// @Summary      returns all only-openid authorized clients
+// @Description  It returns all clients that have only openid access for the logged-in user
 // @Tags         OAuth2
 // @Accept       json
 // @Produce      json
