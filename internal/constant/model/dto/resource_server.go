@@ -16,4 +16,6 @@ type ResourceServer struct {
 	CreatedAt time.Time `json:"created_at"`
 	// UpdatedAt is the time this resource server is updated at
 	UpdatedAt time.Time `json:"updated_at"`
+	// Scopes is the scopes of this resource server
+	Scopes []Scope `json:"scopes,omitempty"`
 }
