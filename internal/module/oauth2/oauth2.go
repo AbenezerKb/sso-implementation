@@ -649,5 +649,5 @@ func (o *oauth2) GetOpenIDAuthorizedClients(ctx context.Context) ([]dto.Authoriz
 		return nil, err
 	}
 
-	return o.oauth2Persistence.GetAuthorizedClients(ctx, userID)
+	return o.oauth2Persistence.GetOpenIDAuthorizedClients(ctx, userID)
 }
