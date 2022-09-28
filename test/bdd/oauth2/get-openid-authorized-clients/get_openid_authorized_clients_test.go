@@ -11,6 +11,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/test"
+	"strings"
 	"testing"
 	"time"
 )
@@ -26,7 +27,7 @@ type GetOpenIDAuthorizedClientsTest struct {
 
 func TestGetAuthorizedClients(t *testing.T) {
 	c := GetOpenIDAuthorizedClientsTest{}
-	c.apiTest.URL = "/v1/oauth/openidAuthorizedClients"
+	c.apiTest.URL = "/v1/oauth/openIDAuthorizedClients"
 	c.apiTest.Method = http.MethodGet
 	c.TestInstance = test.Initiate("../../../../")
 	c.apiTest.InitializeServer(c.Server)
@@ -85,7 +86,9 @@ func (g *GetOpenIDAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingC
 		if err != nil {
 			return err
 		}
-		g.clients = append(g.clients, client)
+		if strings.Contains(refreshToken.Scope.String, "openid") {
+			g.clients = append(g.clients, client)
+		}
 		g.authRefreshTokens = append(g.authRefreshTokens, refreshToken)
 	}
 
@@ -107,7 +110,9 @@ func (g *GetOpenIDAuthorizedClientsTest) iShouldGetTheListOfOpenidAuthorizedClie
 	if err != nil {
 		return err
 	}
-
+	if err := g.apiTest.AssertEqual(len(authClientsResponse), len(g.clients)); err != nil {
+		return err
+	}
 	for _, client := range authClientsResponse {
 		found := false
 		for _, v := range g.clients {
