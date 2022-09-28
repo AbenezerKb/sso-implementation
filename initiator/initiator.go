@@ -65,7 +65,7 @@ func Initiate() {
 	log.Info(context.Background(), "casbin enforcer initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := InitPersistence(db.New(pgxConn), log)
+	persistence := InitPersistence(db.New(pgxConn), db.NewPhoneSwap(pgxConn), log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
