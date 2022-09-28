@@ -80,7 +80,7 @@ SELECT refresh_tokens.scope,
 FROM refresh_tokens
          JOIN clients ON refresh_tokens.client_id = clients.id
 WHERE user_id = $1
-  AND refresh_tokens.scope ILIKE 'openid'
+  AND refresh_tokens.scope ILIKE '%openid%'
 `
 
 type GetOpenIDAuthorizedClientsForUserRow struct {
