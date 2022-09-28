@@ -14,6 +14,7 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"sso/platform/utils"
+	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
@@ -44,6 +45,7 @@ type TestInstance struct {
 	PlatformLayer initiator.PlatformLayer
 	CacheLayer    initiator.CacheLayer
 	KafkaConn     *kafka.Conn
+	KafkaReader   *kafka.Reader
 }
 
 func Initiate(path string) TestInstance {
@@ -124,6 +126,8 @@ func Initiate(path string) TestInstance {
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
 	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
+
+	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -135,6 +139,7 @@ func Initiate(path string) TestInstance {
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
 		KafkaConn:     kafkaConn,
+		KafkaReader:   kafkaReader,
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
@@ -256,4 +261,13 @@ func kafkaConn(address, topic string) *kafka.Conn {
 	}
 
 	return KafkaConn
+}
+
+func kafkaReader(address, topic, groupID string) *kafka.Reader {
+	brokers := strings.Split(address, ",")
+	return kafka.NewReader(kafka.ReaderConfig{
+		Brokers: brokers,
+		Topic:   topic,
+		GroupID: groupID,
+	})
 }

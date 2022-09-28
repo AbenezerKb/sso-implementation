@@ -117,7 +117,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *g
 			Key:   []byte(p.StreamedEvents[i].Event),
 			Value: msg,
 		})
-		p.Logger.Info(context.Background(), "kafka message's", zap.Int("written", msgWriten))
+		p.Logger.Info(context.Background(), "kafka message", zap.Int("written", msgWriten))
 		if err != nil {
 			return err
 		}
@@ -128,21 +128,37 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *g
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 
-	t := time.NewTicker(200 * time.Millisecond)
+	t := time.NewTicker(1 * time.Second)
 	wg := new(sync.WaitGroup)
-	//sleep so that topic will be created
-	time.Sleep(time.Second * 15)
+	// time.Sleep(time.Hour * 1)
+	// time.Sleep(time.Second * 1)
+
+	defer func() {
+		err := p.KafkaReader.Close()
+		if err != nil {
+			return
+		}
+	}()
 
 	for range t.C {
 		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
 
-		msg, err := p.PlatformLayer.Kafka.ReadMessage(ctx)
+		msg, err := p.KafkaReader.ReadMessage(ctx)
 		if err != nil {
 			p.Logger.Info(context.Background(), "error in kafka read message", zap.Error(err))
 			break
 		}
+
+		var rsp request_models.MinRideEvent
+
+		rsp.Event = string(msg.Key)
+
+		err = json.Unmarshal(msg.Value, &rsp.Driver)
+		if err != nil {
+			return err
+		}
 		wg.Add(1)
-		go p.Module.Mini_rideModule.ProcessEvents(ctx, msg, wg)
+		go p.Module.Mini_rideModule.ProcessEvents(context.Background(), &rsp, wg)
 	}
 
 	wg.Wait()
