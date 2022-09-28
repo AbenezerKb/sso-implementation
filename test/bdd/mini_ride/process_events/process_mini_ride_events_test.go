@@ -131,10 +131,10 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	t := time.NewTicker(200 * time.Millisecond)
 	wg := new(sync.WaitGroup)
 	//sleep so that topic will be created
-	time.Sleep(time.Second * 10)
+	time.Sleep(time.Second * 15)
 
 	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*3))
+		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
 
 		msg, err := p.PlatformLayer.Kafka.ReadMessage(ctx)
 		if err != nil {
