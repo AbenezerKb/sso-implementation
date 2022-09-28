@@ -47,3 +47,37 @@ SET
  profile_picture = coalesce(sqlc.narg('profile_picture'))
 WHERE id = sqlc.arg('id')
 RETURNING *;
+
+
+-- name: UpdateUserByID :one
+UPDATE users
+SET
+ first_name = $2,
+ middle_name = $3,
+ last_name = $4,
+ status = $5,
+ phone = $6,
+ profile_picture = $7
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdatePhone :exec
+UPDATE users
+SET phone = sqlc.arg('new_phone') WHERE phone = sqlc.arg('old_phone');
+
+-- name: CreateUserWithID :one
+INSERT INTO users (
+    id,
+    first_name,
+    middle_name,
+    last_name,
+    email,
+    user_name,
+    phone,
+    password,
+    gender,
+    profile_picture
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+)
+RETURNING *;
