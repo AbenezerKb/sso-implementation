@@ -8,9 +8,10 @@ Feature: Get Authorized Clients
       | email          | password     |
       | user@gmail.com | userPassword |
     And I have given authorization for the following clients
-      | name      | client_type  | redirect_uris        | scopes               | logo_url               | granted_scopes |
-      | clientOne | confidential | https://google.com   | profile email        | https://www.google.com | profile email  |
-      | clientTwo | public       | https://facebook.com | profile email openid | https://www.google.com | email openid   |
+      | name        | client_type  | redirect_uris        | scopes               | logo_url               | granted_scopes |
+      | clientOne   | confidential | https://google.com   | profile email        | https://www.google.com | profile email  |
+      | clientTwo   | public       | https://facebook.com | profile email openid | https://www.google.com | email openid   |
+      | clientThree | confidential | https://yahoo.com    | openid               | https://www.google.com | openid         |
 
   @success
   Scenario: I get authorized clients

@@ -85,7 +85,9 @@ func (g *GetAuthorizedClientsTest) iHaveGivenAuthorizationForTheFollowingClients
 		if err != nil {
 			return err
 		}
-		g.clients = append(g.clients, client)
+		if refreshToken.Scope.String != "openid" {
+			g.clients = append(g.clients, client)
+		}
 		g.authRefreshTokens = append(g.authRefreshTokens, refreshToken)
 	}
 
@@ -107,7 +109,9 @@ func (g *GetAuthorizedClientsTest) iShouldGetTheListOfAuthorizedClients() error 
 	if err != nil {
 		return err
 	}
-
+	if err := g.apiTest.AssertEqual(len(authClientsResponse), len(g.clients)); err != nil {
+		return err
+	}
 	for _, client := range authClientsResponse {
 		found := false
 		for _, v := range g.clients {
