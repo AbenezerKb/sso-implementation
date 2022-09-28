@@ -134,7 +134,7 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	time.Sleep(time.Second * 10)
 
 	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*1))
+		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*3))
 
 		msg, err := p.PlatformLayer.Kafka.ReadMessage(ctx)
 		if err != nil {
