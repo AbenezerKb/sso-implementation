@@ -63,6 +63,7 @@ func (k *kafkaClient) ReadMessage(ctx context.Context) (*request_models.MinRideE
 		k.log.Error(context.Background(), "couldn't unmarshal kafka value", zap.Any("value", msg.Value))
 		return nil, err
 	}
+	k.log.Info(ctx, "successFully read message from kafka", zap.Any("msg", rsp))
 
 	return &rsp, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
@@ -16,6 +15,7 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/segmentio/kafka-go"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
+	"go.uber.org/zap"
 )
 
 type processMiniRideEventsTest struct {
@@ -131,11 +131,11 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	wg := new(sync.WaitGroup)
 
 	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*2))
+		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
 
 		msg, err := p.PlatformLayer.Kafka.ReadMessage(ctx)
 		if err != nil {
-			fmt.Println("error in kafka read message")
+			p.Logger.Info(context.Background(), "error in kafka read message", zap.Error(err))
 			break
 		}
 		wg.Add(1)
