@@ -130,5 +130,5 @@ type AuthorizedClientsResponse struct {
 	// AuthExpiresAt is the time this authorization expires at
 	AuthExpiresAt time.Time `json:"expires_at"`
 	// AuthScopes is the scopes this authorization is given access to
-	AuthScopes string `json:"auth_scopes"`
+	AuthScopes []Scope `json:"auth_scopes,omitempty"`
 }
