@@ -8,3 +8,8 @@ DELETE
 FROM resource_servers
 WHERE id = $1
 RETURNING *;
+
+-- name: GetResourceServerByName :one
+SELECT *
+FROM resource_servers
+WHERE name = $1;

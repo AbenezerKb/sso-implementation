@@ -47,3 +47,21 @@ func (q *Queries) DeleteResourceServer(ctx context.Context, id uuid.UUID) (Resou
 	)
 	return i, err
 }
+
+const getResourceServerByName = `-- name: GetResourceServerByName :one
+SELECT id, name, created_at, updated_at
+FROM resource_servers
+WHERE name = $1
+`
+
+func (q *Queries) GetResourceServerByName(ctx context.Context, name string) (ResourceServer, error) {
+	row := q.db.QueryRow(ctx, getResourceServerByName, name)
+	var i ResourceServer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
