@@ -258,6 +258,7 @@ func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, err
 func kafkaConn(address, topic string) *kafka.Conn {
 	KafkaConn, err := kafka.DialLeader(context.Background(), "tcp", address, topic, 0)
 	if err != nil {
+		fmt.Println(err)
 	}
 
 	return KafkaConn
@@ -266,8 +267,9 @@ func kafkaConn(address, topic string) *kafka.Conn {
 func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	brokers := strings.Split(address, ",")
 	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers: brokers,
-		Topic:   topic,
-		GroupID: groupID,
+		Brokers:     brokers,
+		Topic:       topic,
+		Partition:   0,
+		StartOffset: kafka.LastOffset,
 	})
 }
