@@ -128,6 +128,11 @@ func Initiate(path string) TestInstance {
 	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
 
 	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
+	var dialer kafka.Dialer
+	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
+	lastOffset, _ := conn.ReadLastOffset()
+	kafkaReader.SetOffset(lastOffset)
+
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -260,16 +265,15 @@ func kafkaConn(address, topic string) *kafka.Conn {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	return KafkaConn
 }
 
 func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	brokers := strings.Split(address, ",")
-	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     brokers,
-		Topic:       topic,
-		Partition:   0,
-		StartOffset: kafka.LastOffset,
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   brokers,
+		Topic:     topic,
+		Partition: 0,
 	})
+	return reader
 }

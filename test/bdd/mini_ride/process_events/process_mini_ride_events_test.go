@@ -136,6 +136,7 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	defer func() {
 		err := p.KafkaReader.Close()
 		if err != nil {
+			p.Logger.Info(context.Background(), "error closing")
 			return
 		}
 	}()
@@ -148,6 +149,8 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 			p.Logger.Info(context.Background(), "error in kafka read message", zap.Error(err))
 			break
 		}
+
+		p.Logger.Info(context.Background(), "offset", zap.Any("offsets's", p.KafkaReader.Offset()))
 
 		var rsp request_models.MinRideEvent
 
