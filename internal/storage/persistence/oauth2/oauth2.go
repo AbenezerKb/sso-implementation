@@ -218,6 +218,29 @@ func (o *oauth2) GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]
 	}
 	authorizedClientsDTO := make([]dto.AuthorizedClientsResponse, len(authorizedClients))
 	for k, v := range authorizedClients {
+		var scopes []dto.Scope
+		for _, s := range utils.StringToArray(v.Scope.String) {
+			if s == "openid" {
+				continue
+			}
+			scope, err := o.db.GetScope(ctx, s)
+			if err != nil {
+				if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+					err := errors.ErrNoRecordFound.Wrap(err, "scope doesn't exist")
+					o.logger.Error(ctx, "scope row for given scope was not found", zap.Error(err), zap.Any("user-id", userID), zap.String("scope", s))
+					continue
+				} else {
+					err = errors.ErrReadError.Wrap(err, "error reading scope")
+					o.logger.Error(ctx, "error encountered while reading scope for authorized client", zap.Error(err), zap.Any("user-id", userID), zap.String("scope", s))
+					return nil, err
+				}
+			}
+			scopes = append(scopes, dto.Scope{
+				Name:               scope.Name,
+				Description:        scope.Description,
+				ResourceServerName: scope.ResourceServerName.String,
+			})
+		}
 		authorizedClientsDTO[k] = dto.AuthorizedClientsResponse{
 			Client: dto.Client{
 				ID:         v.ID,
@@ -228,7 +251,7 @@ func (o *oauth2) GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]
 			AuthGivenAt:   v.CreatedAt,
 			AuthUpdatedAt: v.UpdatedAt,
 			AuthExpiresAt: v.ExpiresAt,
-			AuthScopes:    v.Scope.String,
+			AuthScopes:    scopes,
 		}
 	}
 	return authorizedClientsDTO, nil
@@ -259,7 +282,6 @@ func (o *oauth2) GetOpenIDAuthorizedClients(ctx context.Context, userID uuid.UUI
 			AuthGivenAt:   v.CreatedAt,
 			AuthUpdatedAt: v.UpdatedAt,
 			AuthExpiresAt: v.ExpiresAt,
-			AuthScopes:    v.Scope.String,
 		}
 	}
 	return authorizedClientsDTO, nil
