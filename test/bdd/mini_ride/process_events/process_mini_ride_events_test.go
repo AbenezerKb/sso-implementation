@@ -113,11 +113,10 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *g
 			return err
 		}
 
-		msgWriten, err := p.KafkaConn.WriteMessages(kafka.Message{
+		_, err = p.KafkaConn.WriteMessages(kafka.Message{
 			Key:   []byte(p.StreamedEvents[i].Event),
 			Value: msg,
 		})
-		p.Logger.Info(context.Background(), "kafka message", zap.Int("written", msgWriten))
 		if err != nil {
 			return err
 		}
@@ -130,8 +129,6 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 
 	t := time.NewTicker(1 * time.Second)
 	wg := new(sync.WaitGroup)
-	// time.Sleep(time.Hour * 1)
-	// time.Sleep(time.Second * 1)
 
 	defer func() {
 		err := p.KafkaReader.Close()
@@ -142,7 +139,7 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	}()
 
 	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*10))
+		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
 
 		msg, err := p.KafkaReader.ReadMessage(ctx)
 		if err != nil {
@@ -150,12 +147,8 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 			break
 		}
 
-		p.Logger.Info(context.Background(), "offset", zap.Any("offsets's", p.KafkaReader.Offset()))
-
 		var rsp request_models.MinRideEvent
-
 		rsp.Event = string(msg.Key)
-
 		err = json.Unmarshal(msg.Value, &rsp.Driver)
 		if err != nil {
 			return err

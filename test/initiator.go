@@ -128,10 +128,7 @@ func Initiate(path string) TestInstance {
 	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
 
 	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
-	var dialer kafka.Dialer
-	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
-	lastOffset, _ := conn.ReadLastOffset()
-	kafkaReader.SetOffset(lastOffset)
+	AddOffset(kafkaConn, kafkaReader)
 
 	return TestInstance{
 		Server:        server,
@@ -276,4 +273,11 @@ func kafkaReader(address, topic, groupID string) *kafka.Reader {
 		Partition: 0,
 	})
 	return reader
+}
+
+func AddOffset(kafkaConn *kafka.Conn, reader *kafka.Reader) {
+	var dialer kafka.Dialer
+	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
+	lastOffset, _ := conn.ReadLastOffset()
+	reader.SetOffset(lastOffset)
 }
