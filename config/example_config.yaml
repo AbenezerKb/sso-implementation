@@ -54,5 +54,5 @@ cors:
     - PATCH
 kafka:
   topic: example-topic
-  url: localhost:9092
+  url: kafka:9092
   group_id: test
