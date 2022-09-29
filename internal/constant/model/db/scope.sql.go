@@ -75,3 +75,36 @@ func (q *Queries) GetScope(ctx context.Context, name string) (Scope, error) {
 	)
 	return i, err
 }
+
+const getScopesByResourceServerName = `-- name: GetScopesByResourceServerName :many
+SELECT id, name, description, resource_server_id, resource_server_name, status
+FROM scopes
+WHERE resource_server_name = $1
+`
+
+func (q *Queries) GetScopesByResourceServerName(ctx context.Context, resourceServerName sql.NullString) ([]Scope, error) {
+	rows, err := q.db.Query(ctx, getScopesByResourceServerName, resourceServerName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Scope
+	for rows.Next() {
+		var i Scope
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.ResourceServerID,
+			&i.ResourceServerName,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
