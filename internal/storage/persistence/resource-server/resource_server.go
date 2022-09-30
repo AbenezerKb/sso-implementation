@@ -5,18 +5,18 @@ import (
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
-	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
 )
 
 type resourceServerPersistence struct {
 	logger logger.Logger
-	db     *db.Queries
+	db     *persistencedb.PersistenceDB
 }
 
-func InitResourceServerPersistence(logger logger.Logger, db *db.Queries) storage.ResourceServerPersistence {
+func InitResourceServerPersistence(logger logger.Logger, db *persistencedb.PersistenceDB) storage.ResourceServerPersistence {
 	return &resourceServerPersistence{
 		logger: logger,
 		db:     db,
