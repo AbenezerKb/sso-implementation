@@ -24,19 +24,14 @@ func InitResourceServerPersistence(logger logger.Logger, db *persistencedb.Persi
 }
 
 func (r *resourceServerPersistence) CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error) {
-	resourceServer, err := r.db.CreateResourceServer(ctx, server.Name)
+	resourceServer, err := r.db.CreateResourceServerWithTX(ctx, server)
 	if err != nil {
 		err = errors.ErrWriteError.Wrap(err, "could not create resource server")
 		r.logger.Error(ctx, "unable to create resource server", zap.Error(err), zap.Any("server", server))
 		return dto.ResourceServer{}, err
 	}
-	return dto.ResourceServer{
-		ID:        resourceServer.ID,
-		Name:      resourceServer.Name,
-		CreatedAt: resourceServer.CreatedAt,
-		UpdatedAt: resourceServer.UpdatedAt,
-		Scopes:    nil,
-	}, nil
+
+	return resourceServer, nil
 }
 
 func (r *resourceServerPersistence) GetResourceServerByName(ctx context.Context, name string) (dto.ResourceServer, error) {
