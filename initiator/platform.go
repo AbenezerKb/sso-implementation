@@ -44,7 +44,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.url"), logger),
+		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
 	}
 }
 
@@ -57,6 +57,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
+		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
 	}
 }
 

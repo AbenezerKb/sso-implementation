@@ -4,6 +4,7 @@ import (
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/internal/storage/persistence/client"
+	"sso/internal/storage/persistence/mini_ride"
 	"sso/internal/storage/persistence/oauth"
 	"sso/internal/storage/persistence/oauth2"
 	"sso/internal/storage/persistence/profile"
@@ -22,6 +23,7 @@ type Persistence struct {
 	UserPersistence           storage.UserPersistence
 	ProfilePersistence        storage.ProfilePersistence
 	ResourceServerPersistence storage.ResourceServerPersistence
+	MiniRidePersistence       storage.MiniRidePersistence
 }
 
 func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persistence {
@@ -33,5 +35,6 @@ func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persiste
 		UserPersistence:           user.InitUserPersistence(log.Named("user-persistence"), db.Queries),
 		ProfilePersistence:        profile.InitProfilePersistence(log.Named("profile-persistence"), db.Queries),
 		ResourceServerPersistence: resource_server.InitResourceServerPersistence(log.Named("resource-server-persistence"), &db),
+		MiniRidePersistence:       mini_ride.InitMiniRidePersistence(log.Named("mini-ride-persistence"), &db),
 	}
 }

@@ -91,3 +91,9 @@ type ResourceServerPersistence interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
 	GetResourceServerByName(ctx context.Context, name string) (dto.ResourceServer, error)
 }
+
+type MiniRidePersistence interface {
+	UpdateUser(ctx context.Context, updateUserParam *request_models.Driver) error
+	CreateUser(ctx context.Context, createUserParam *request_models.Driver) (*dto.User, error)
+	SwapPhones(ctx context.Context, newPhone, oldPhone string) error
+}
