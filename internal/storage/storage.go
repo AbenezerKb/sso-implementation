@@ -89,4 +89,5 @@ type ProfilePersistence interface {
 
 type ResourceServerPersistence interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
+	GetResourceServerByName(ctx context.Context, name string) (dto.ResourceServer, error)
 }
