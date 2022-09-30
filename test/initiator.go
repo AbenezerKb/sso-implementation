@@ -79,7 +79,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := initiator.InitPersistence(persistencedb.New(db.New(pgxConn), pgxConn), log)
+	persistence := initiator.InitPersistence(persistencedb.New(pgxConn), log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")

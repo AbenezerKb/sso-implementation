@@ -10,9 +10,9 @@ type PersistenceDB struct {
 	pool *pgxpool.Pool
 }
 
-func New(db *db.Queries, pool *pgxpool.Pool) PersistenceDB {
+func New(pool *pgxpool.Pool) PersistenceDB {
 	return PersistenceDB{
-		Queries: db,
+		Queries: db.New(pool),
 		pool:    pool,
 	}
 }

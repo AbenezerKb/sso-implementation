@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
@@ -66,7 +65,7 @@ func Initiate() {
 	log.Info(context.Background(), "casbin enforcer initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := InitPersistence(persistencedb.New(db.New(pgxConn), pgxConn), log)
+	persistence := InitPersistence(persistencedb.New(pgxConn), log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
