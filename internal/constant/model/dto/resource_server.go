@@ -1,6 +1,7 @@
 package dto
 
 import (
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"time"
 )
@@ -18,4 +19,11 @@ type ResourceServer struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// Scopes is the scopes of this resource server
 	Scopes []Scope `json:"scopes,omitempty"`
+}
+
+func (r ResourceServer) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.Name, validation.Required.Error("name is required")),
+		validation.Field(&r.Scopes),
+	)
 }
