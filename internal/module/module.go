@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sync"
 
 	"github.com/joomcode/errorx"
 
@@ -54,4 +55,9 @@ type ScopeModule interface {
 type ProfileModule interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context) (*dto.User, error)
+}
+
+type MiniRideModule interface {
+	ListenMiniRideEvent(ctx context.Context)
+	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
 }

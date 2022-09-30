@@ -71,6 +71,68 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const createUserWithID = `-- name: CreateUserWithID :one
+INSERT INTO users (
+    id,
+    first_name,
+    middle_name,
+    last_name,
+    email,
+    user_name,
+    phone,
+    password,
+    gender,
+    profile_picture
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
+)
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+type CreateUserWithIDParams struct {
+	ID             uuid.UUID      `json:"id"`
+	FirstName      string         `json:"first_name"`
+	MiddleName     string         `json:"middle_name"`
+	LastName       string         `json:"last_name"`
+	Email          sql.NullString `json:"email"`
+	UserName       string         `json:"user_name"`
+	Phone          string         `json:"phone"`
+	Password       string         `json:"password"`
+	Gender         string         `json:"gender"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+}
+
+func (q *Queries) CreateUserWithID(ctx context.Context, arg CreateUserWithIDParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUserWithID,
+		arg.ID,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Email,
+		arg.UserName,
+		arg.Phone,
+		arg.Password,
+		arg.Gender,
+		arg.ProfilePicture,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users WHERE id = $1 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
@@ -202,6 +264,21 @@ func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullStri
 	return status, err
 }
 
+const updatePhone = `-- name: UpdatePhone :exec
+UPDATE users
+SET phone = $1 WHERE phone = $2
+`
+
+type UpdatePhoneParams struct {
+	NewPhone string `json:"new_phone"`
+	OldPhone string `json:"old_phone"`
+}
+
+func (q *Queries) UpdatePhone(ctx context.Context, arg UpdatePhoneParams) error {
+	_, err := q.db.Exec(ctx, updatePhone, arg.NewPhone, arg.OldPhone)
+	return err
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET
@@ -246,6 +323,57 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		arg.Status,
 		arg.ProfilePicture,
 		arg.ID,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateUserByID = `-- name: UpdateUserByID :one
+UPDATE users
+SET
+ first_name = $2,
+ middle_name = $3,
+ last_name = $4,
+ status = $5,
+ phone = $6,
+ profile_picture = $7
+WHERE id = $1
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+type UpdateUserByIDParams struct {
+	ID             uuid.UUID      `json:"id"`
+	FirstName      string         `json:"first_name"`
+	MiddleName     string         `json:"middle_name"`
+	LastName       string         `json:"last_name"`
+	Status         sql.NullString `json:"status"`
+	Phone          string         `json:"phone"`
+	ProfilePicture sql.NullString `json:"profile_picture"`
+}
+
+func (q *Queries) UpdateUserByID(ctx context.Context, arg UpdateUserByIDParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserByID,
+		arg.ID,
+		arg.FirstName,
+		arg.MiddleName,
+		arg.LastName,
+		arg.Status,
+		arg.Phone,
+		arg.ProfilePicture,
 	)
 	var i User
 	err := row.Scan(

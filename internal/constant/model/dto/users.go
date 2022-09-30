@@ -35,7 +35,7 @@ type User struct {
 	Gender string `json:"gender,omitempty"`
 	// Status is the status of the user.
 	// It is set to active by default after successful registration.
-	Status string `json:"-"`
+	Status string `json:"status,omitempty"`
 	// ProfilePicture is the profile picture of the user.
 	// It is set on a separate setProfilePicture endpoint.
 	ProfilePicture string `json:"profile_picture,omitempty"`

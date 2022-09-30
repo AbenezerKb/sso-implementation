@@ -1,8 +1,9 @@
 package persistencedb
 
 import (
-	"github.com/jackc/pgx/v4/pgxpool"
 	"sso/internal/constant/model/db"
+
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 type PersistenceDB struct {

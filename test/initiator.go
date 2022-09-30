@@ -15,8 +15,10 @@ import (
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"sso/platform/utils"
+	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -43,6 +45,8 @@ type TestInstance struct {
 	Conn          *pgxpool.Pool
 	PlatformLayer initiator.PlatformLayer
 	CacheLayer    initiator.CacheLayer
+	KafkaConn     *kafka.Conn
+	KafkaReader   *kafka.Reader
 }
 
 func Initiate(path string) TestInstance {
@@ -100,7 +104,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "state initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state)
+	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
@@ -122,6 +126,10 @@ func Initiate(path string) TestInstance {
 	v1 := server.Group("/v1")
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
+	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
+
+	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
+	AddOffset(kafkaConn, kafkaReader)
 
 	return TestInstance{
 		Server:        server,
@@ -133,6 +141,8 @@ func Initiate(path string) TestInstance {
 		Conn:          pgxConn,
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
+		KafkaConn:     kafkaConn,
+		KafkaReader:   kafkaReader,
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
@@ -246,4 +256,29 @@ func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, err
 	t.AccessToken = t.response.Data.AccessToken
 	t.RefreshToken = t.response.Data.RefreshToken
 	return user, nil
+}
+
+func kafkaConn(address, topic string) *kafka.Conn {
+	KafkaConn, err := kafka.DialLeader(context.Background(), "tcp", address, topic, 0)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return KafkaConn
+}
+
+func kafkaReader(address, topic, groupID string) *kafka.Reader {
+	brokers := strings.Split(address, ",")
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   brokers,
+		Topic:     topic,
+		Partition: 0,
+	})
+	return reader
+}
+
+func AddOffset(kafkaConn *kafka.Conn, reader *kafka.Reader) {
+	var dialer kafka.Dialer
+	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
+	lastOffset, _ := conn.ReadLastOffset()
+	reader.SetOffset(lastOffset)
 }

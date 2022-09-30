@@ -37,6 +37,6 @@ type Token interface {
 }
 
 type Kafka interface {
-	ReadMessage() (*request_models.MinRideEvent, error)
+	ReadMessage(ctx context.Context) (*request_models.MinRideEvent, error)
 	Close() error
 }
