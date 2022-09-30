@@ -119,3 +119,16 @@ type ConsentResultRsp struct {
 	ConsentID     string `json:"consent_id"`
 	FailureReason string `json:"failure_reason"`
 }
+
+// AuthorizedClientsResponse holds client data and access details for authorized client
+type AuthorizedClientsResponse struct {
+	Client
+	// AuthGivenAt is the time this client is given authorization at
+	AuthGivenAt time.Time `json:"created_at"`
+	// AuthUpdatedAt is the time this authorization is last updated at
+	AuthUpdatedAt time.Time `json:"updated_at"`
+	// AuthExpiresAt is the time this authorization expires at
+	AuthExpiresAt time.Time `json:"expires_at"`
+	// AuthScopes is the scopes this authorization is given access to
+	AuthScopes []Scope `json:"auth_scopes,omitempty"`
+}

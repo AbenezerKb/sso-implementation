@@ -19,12 +19,71 @@ definitions:
           it's used to refresh the access token.
         type: string
     type: object
+  dto.AuthorizedClientsResponse:
+    properties:
+      auth_scopes:
+        description: AuthScopes is the scopes this authorization is given access to
+        type: string
+      client_type:
+        description: |-
+          ClientType is the type of the client.
+          It can be either confidential or public.
+        type: string
+      created_at:
+        description: AuthGivenAt is the time this client is given authorization at
+        type: string
+      expires_at:
+        description: AuthExpiresAt is the time this authorization expires at
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the client.
+          It is automatically generated when the client is registered.
+        type: string
+      logo_url:
+        description: |-
+          LogoURL is the URL of the client's logo.
+          It must be a valid URL.
+        type: string
+      name:
+        description: Name is the name of the client that will be displayed to the
+          user.
+        type: string
+      redirect_uris:
+        description: |-
+          RedirectURIs is the list of redirect URIs of the client.
+          Each redirect URI must be a valid URL and must use HTTPS.
+        items:
+          type: string
+        type: array
+      scopes:
+        description: Scopes is the list of default scopes of the client if one is
+          not provided.
+        type: string
+      secret:
+        description: |-
+          Secret is the secret the client uses to authenticate itself.
+          It is automatically generated when the client is registered.
+        type: string
+      status:
+        description: |-
+          Status is the current status of the client.
+          It is set to active by default.
+        type: string
+      updated_at:
+        description: AuthUpdatedAt is the time this authorization is last updated
+          at
+        type: string
+    type: object
   dto.Client:
     properties:
       client_type:
         description: |-
           ClientType is the type of the client.
           It can be either confidential or public.
+        type: string
+      created_at:
+        description: CreatedAt is the time this client was created at
         type: string
       id:
         description: |-
@@ -329,12 +388,65 @@ definitions:
         description: Name is the name of the field that caused the error.
         type: string
     type: object
+  model.MetaData:
+    properties:
+      extra:
+        description: Extra contains other response specific data
+      filter:
+        items:
+          $ref: '#/definitions/request_models.Filter'
+        type: array
+      link_operator:
+        type: string
+      page:
+        type: integer
+      per_page:
+        type: integer
+      sort:
+        items:
+          $ref: '#/definitions/request_models.Sort'
+        type: array
+      total:
+        description: Total is the total number of data without pagination
+        type: integer
+    type: object
+  model.Response:
+    properties:
+      data:
+        description: Data contains the actual data of the response.
+      error:
+        $ref: '#/definitions/model.ErrorResponse'
+        description: Error contains the error detail if the request was not successful.
+      meta_data:
+        $ref: '#/definitions/model.MetaData'
+        description: MetaData contains additional data like filtering, pagination,
+          etc.
+      ok:
+        description: OK is only true if the request was successful.
+        type: boolean
+    type: object
+  request_models.Filter:
+    properties:
+      column_field:
+        type: string
+      operator_value:
+        type: string
+      value:
+        type: string
+    type: object
   request_models.RevokeClientBody:
     properties:
       client_id:
         description: |-
           ClientID is the id of the client to be revoked access of.
           It is a required field
+        type: string
+    type: object
+  request_models.Sort:
+    properties:
+      field:
+        type: string
+      sort:
         type: string
     type: object
 host: 206.189.54.235:8000
@@ -589,6 +701,28 @@ paths:
       summary: Authorize.
       tags:
       - OAuth2
+  /oauth/authorizedClients:
+    get:
+      consumes:
+      - application/json
+      description: It returns all clients that have resource access other than openid
+        for the logged in user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AuthorizedClientsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: returns all authorized clients
+      tags:
+      - OAuth2
   /oauth/consent/{id}:
     get:
       consumes:
@@ -662,6 +796,28 @@ paths:
       security:
       - BasicAuth: []
       summary: rp-logout.
+      tags:
+      - OAuth2
+  /oauth/openIDAuthorizedClients:
+    get:
+      consumes:
+      - application/json
+      description: It returns all clients that have only openid access for the logged-in
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.AuthorizedClientsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: returns all only-openid authorized clients
       tags:
       - OAuth2
   /oauth/rejectConsent:
@@ -1054,6 +1210,34 @@ paths:
       security:
       - BearerAuth: []
       summary: get user details.
+      tags:
+      - user
+  /users/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: changes user status to ACTIVE or INACTIVE
+      parameters:
+      - description: user
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: changes user status
       tags:
       - user
 securityDefinitions:
