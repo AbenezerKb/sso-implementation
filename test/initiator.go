@@ -11,6 +11,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -78,7 +79,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := initiator.InitPersistence(sqlConn, log)
+	persistence := initiator.InitPersistence(persistencedb.New(pgxConn), log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")

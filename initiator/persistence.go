@@ -1,7 +1,7 @@
 package initiator
 
 import (
-	"sso/internal/constant/model/db"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/internal/storage/persistence/client"
 	"sso/internal/storage/persistence/oauth"
@@ -22,13 +22,13 @@ type Persistence struct {
 	ProfilePersistence storage.ProfilePersistence
 }
 
-func InitPersistence(db *db.Queries, log logger.Logger) Persistence {
+func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persistence {
 	return Persistence{
-		OAuthPersistence:   oauth.InitOAuth(log.Named("oauth-persistence"), db),
-		ClientPersistence:  client.InitClient(log.Named("client-persistence"), db),
-		OAuth2Persistence:  oauth2.InitOAuth2(log.Named("oauth2-persistence"), db),
-		ScopePersistence:   scope.InitScopePersistence(log.Named("scope-persistence"), db),
-		UserPersistence:    user.InitUserPersistence(log.Named("user-persistence"), db),
-		ProfilePersistence: profile.InitProfilePersistence(log.Named("profile-persistence"), db),
+		OAuthPersistence:   oauth.InitOAuth(log.Named("oauth-persistence"), db.Queries),
+		ClientPersistence:  client.InitClient(log.Named("client-persistence"), db.Queries),
+		OAuth2Persistence:  oauth2.InitOAuth2(log.Named("oauth2-persistence"), db.Queries),
+		ScopePersistence:   scope.InitScopePersistence(log.Named("scope-persistence"), db.Queries),
+		UserPersistence:    user.InitUserPersistence(log.Named("user-persistence"), db.Queries),
+		ProfilePersistence: profile.InitProfilePersistence(log.Named("profile-persistence"), db.Queries),
 	}
 }
