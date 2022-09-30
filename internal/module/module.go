@@ -55,3 +55,7 @@ type ProfileModule interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context) (*dto.User, error)
 }
+
+type ResourceServerModule interface {
+	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
+}
