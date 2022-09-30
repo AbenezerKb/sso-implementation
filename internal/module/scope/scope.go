@@ -37,8 +37,11 @@ func (s *scopeModule) CreateScope(ctx context.Context, scope dto.Scope) (dto.Sco
 
 	name := scope.Name
 	if scope.ResourceServerName != "" {
+		// TODO: check if resource server with this name exists
+		// TODO: check if scope name is unique for that resource server
 		name = scope.ResourceServerName + "." + name
 	}
+	// TODO: check if scope name is unique for non-resource-server scopes
 
 	return s.scopePersistence.CreateScope(ctx, dto.Scope{
 		Name:               name,

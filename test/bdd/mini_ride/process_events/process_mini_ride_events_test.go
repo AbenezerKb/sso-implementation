@@ -154,7 +154,7 @@ func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 			return err
 		}
 		wg.Add(1)
-		go p.Module.Mini_rideModule.ProcessEvents(context.Background(), &rsp, wg)
+		go p.Module.MiniRideModule.ProcessEvents(context.Background(), &rsp, wg)
 	}
 
 	wg.Wait()

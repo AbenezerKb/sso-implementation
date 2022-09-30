@@ -2,6 +2,7 @@ package initiator
 
 import (
 	"sso/internal/glue/routing/client"
+	resource_server "sso/internal/glue/routing/resource-server"
 
 	"sso/docs"
 
@@ -32,4 +33,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	client.InitRoute(group, handler.client, authMiddleware, enforcer)
 	scope.InitRoute(group, handler.scope, authMiddleware, enforcer)
 	profile.InitRoute(group, handler.profile, authMiddleware, enforcer)
+	resource_server.InitRoute(group, handler.resourceServer, authMiddleware, enforcer)
 }

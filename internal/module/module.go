@@ -57,6 +57,10 @@ type ProfileModule interface {
 	GetProfile(ctx context.Context) (*dto.User, error)
 }
 
+type ResourceServerModule interface {
+	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
+}
+
 type MiniRideModule interface {
 	ListenMiniRideEvent(ctx context.Context)
 	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
