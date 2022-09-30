@@ -24,7 +24,7 @@ type ResourceServer struct {
 
 func (r ResourceServer) Validate() error {
 	return validation.ValidateStruct(&r,
-		validation.Field(&r.Name, validation.Required.Error("name is required")),
+		validation.Field(&r.Name, validation.Required.Error("server name is required")),
 		validation.Field(&r.Scopes, validation.By(scopesValidate)),
 	)
 }
@@ -35,12 +35,15 @@ func scopesValidate(value interface{}) error {
 		return fmt.Errorf("invalid scopes")
 	}
 
-	if err := validation.Validate(scopes); err != nil {
-		return err
-	}
 	for i := 0; i < len(scopes); i++ {
+		if err := validation.Validate(scopes[i].Name, validation.Required.Error("scope name is required")); err != nil {
+			return err
+		}
+		if err := validation.Validate(scopes[i].Description, validation.Required.Error("scope description is required")); err != nil {
+			return err
+		}
 		for j := 0; j < len(scopes); j++ {
-			if scopes[i] == scopes[j] && i != j {
+			if scopes[i].Name == scopes[j].Name && i != j {
 				return fmt.Errorf("scope name must be unique")
 			}
 		}
