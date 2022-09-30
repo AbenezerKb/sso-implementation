@@ -7,6 +7,7 @@ import (
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -15,16 +16,14 @@ import (
 )
 
 type miniRidePersistence struct {
-	logger    logger.Logger
-	db        *db.Queries
-	phoneSwap db.PhoneSwap
+	logger logger.Logger
+	db     *persistencedb.PersistenceDB
 }
 
-func InitMiniRidePersistence(logger logger.Logger, db *db.Queries, phoneSwap db.PhoneSwap) storage.MiniRidePersistence {
+func InitMiniRidePersistence(logger logger.Logger, db *persistencedb.PersistenceDB) storage.MiniRidePersistence {
 	return &miniRidePersistence{
-		logger:    logger,
-		db:        db,
-		phoneSwap: phoneSwap,
+		logger: logger,
+		db:     db,
 	}
 }
 
@@ -78,7 +77,7 @@ func (m *miniRidePersistence) CreateUser(ctx context.Context, createUserParam *r
 }
 
 func (u *miniRidePersistence) SwapPhones(ctx context.Context, newPhone, oldPhone string) error {
-	err := u.phoneSwap.SwapPhones(ctx, newPhone, oldPhone)
+	err := u.db.SwapPhones(ctx, newPhone, oldPhone)
 	if err != nil {
 		err = errors.ErrWriteError.Wrap(err, "error swapping phone")
 		u.logger.Error(ctx, "couldn't swap phone", zap.Error(err), zap.String("phone1", newPhone), zap.String("phone2", oldPhone))
