@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"time"
@@ -24,6 +25,26 @@ type ResourceServer struct {
 func (r ResourceServer) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required.Error("name is required")),
-		validation.Field(&r.Scopes),
+		validation.Field(&r.Scopes, validation.By(scopesValidate)),
 	)
+}
+
+func scopesValidate(value interface{}) error {
+	scopes, ok := value.([]Scope)
+	if !ok {
+		return fmt.Errorf("invalid scopes")
+	}
+
+	if err := validation.Validate(scopes); err != nil {
+		return err
+	}
+	for i := 0; i < len(scopes); i++ {
+		for j := 0; j < len(scopes); j++ {
+			if scopes[i] == scopes[j] && i != j {
+				return fmt.Errorf("scope name must be unique")
+			}
+		}
+	}
+
+	return nil
 }
