@@ -22,18 +22,18 @@ type Client struct {
 	ClientType string `json:"client_type"`
 	// RedirectURIs is the list of redirect URIs of the client.
 	// Each redirect URI must be a valid URL and must use HTTPS.
-	RedirectURIs []string `json:"redirect_uris"`
+	RedirectURIs []string `json:"redirect_uris,omitempty"`
 	// Scopes is the list of default scopes of the client if one is not provided.
-	Scopes string `json:"scopes"`
+	Scopes string `json:"scopes,omitempty"`
 	// Secret is the secret the client uses to authenticate itself.
 	// It is automatically generated when the client is registered.
-	Secret string `json:"secret"`
+	Secret string `json:"secret,omitempty"`
 	// LogoURL is the URL of the client's logo.
 	// It must be a valid URL.
 	LogoURL string `json:"logo_url"`
 	// Status is the current status of the client.
 	// It is set to active by default.
-	Status string `json:"status"`
+	Status string `json:"status,omitempty"`
 	// CreatedAt is the time this client was created at
 	CreatedAt time.Time `json:"created_at"`
 }
