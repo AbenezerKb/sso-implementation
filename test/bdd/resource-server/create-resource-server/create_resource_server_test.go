@@ -48,9 +48,14 @@ func (r *createResourceServerTest) iHaveFilledResourceServerNameAndTheFollowingS
 	if err != nil {
 		return err
 	}
+	var scopesData []dto.Scope
+	err = r.apiTest.UnmarshalJSON([]byte(scopes), &scopesData)
+	if err != nil {
+		return err
+	}
 	r.apiTest.SetBodyMap(map[string]interface{}{
 		"name":   serverName,
-		"scopes": scopes,
+		"scopes": scopesData,
 	})
 
 	r.resourceServer = dto.ResourceServer{
@@ -82,21 +87,21 @@ func (r *createResourceServerTest) iSubmitToCreateAResourceServer() error {
 
 // Then functions
 func (r *createResourceServerTest) theResourceServerShouldBeCreated() error {
-	if err := r.apiTest.AssertStatusCode(http.StatusOK); err != nil {
+	if err := r.apiTest.AssertStatusCode(http.StatusCreated); err != nil {
 		return err
 	}
 	var resourceServer dto.ResourceServer
 	if err := r.apiTest.UnmarshalResponseBodyPath("data", &resourceServer); err != nil {
 		return err
 	}
+	r.resourceServer = resourceServer
 	if err := r.apiTest.AssertEqual(resourceServer.Name, r.resourceServer.Name); err != nil {
 		return err
 	}
 	for _, v := range resourceServer.Scopes {
 		found := false
-		for k, v2 := range r.resourceServer.Scopes {
-			if v.Name == fmt.Sprintf(r.resourceServer.Name, ".", v2.Name) {
-				r.resourceServer.Scopes[k].Name = v.Name // to hold the real scope name for deleting it after the test
+		for _, v2 := range r.resourceServer.Scopes {
+			if v.Name == v2.Name {
 				found = true
 				break
 			}
@@ -132,7 +137,7 @@ func (r *createResourceServerTest) InitializeScenario(ctx *godog.ScenarioContext
 		_, _ = r.DB.DeleteResourceServer(ctx, r.resourceServer.ID)
 		_, _ = r.DB.DeleteResourceServer(ctx, r.existingServer.ID)
 		for _, v := range r.resourceServer.Scopes {
-			_, _ = r.DB.DeleteScope(ctx, v.Name)
+			_, _ = r.DB.DeleteScope(ctx, r.resourceServer.Name+"."+v.Name)
 		}
 		return ctx, nil
 	})
