@@ -106,6 +106,7 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			state.URLs),
 		scopeModule:    scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
 		profile:        profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
+		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		MiniRideModule: mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
 	}
 }
