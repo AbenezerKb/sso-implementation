@@ -34,7 +34,7 @@ func Init(logger logger.Logger, resourceServerModule module.ResourceServerModule
 // @param client body dto.ResourceServer true "resource_server"
 // @Success      200  {object}  dto.ResourceServer
 // @Failure      400  {object}  model.ErrorResponse
-// @Router       /resourceServer [post]
+// @Router       /resourceServers [post]
 // @Security	BearerAuth
 func (c *resourceServer) CreateResourceServer(ctx *gin.Context) {
 	resourceServerBody := dto.ResourceServer{}

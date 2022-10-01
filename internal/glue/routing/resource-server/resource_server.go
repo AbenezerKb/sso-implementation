@@ -11,7 +11,7 @@ import (
 )
 
 func InitRoute(group *gin.RouterGroup, resourceServer rest.ResourceServer, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
-	resourceServers := group.Group("/resourceServer")
+	resourceServers := group.Group("/resourceServers")
 	resourceServerRoutes := []routing.Router{
 		{
 			Method:  http.MethodPost,
