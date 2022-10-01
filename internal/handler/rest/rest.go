@@ -43,3 +43,7 @@ type Profile interface {
 	UpdateProfile(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
 }
+
+type MiniRide interface {
+	CheckPhone(ctx *gin.Context)
+}
