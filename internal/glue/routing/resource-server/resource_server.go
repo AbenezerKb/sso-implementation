@@ -23,6 +23,16 @@ func InitRoute(group *gin.RouterGroup, resourceServer rest.ResourceServer, authM
 			},
 			Permission: permissions.CreateResourceServer,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: resourceServer.GetResourceServers,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllResourceServers,
+		},
 	}
 
 	routing.RegisterRoutes(resourceServers, resourceServerRoutes, enforcer)
