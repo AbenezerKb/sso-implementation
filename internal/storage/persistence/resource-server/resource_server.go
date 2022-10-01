@@ -5,10 +5,13 @@ import (
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 )
 
 type resourceServerPersistence struct {
@@ -52,5 +55,25 @@ func (r *resourceServerPersistence) GetResourceServerByName(ctx context.Context,
 		Name:      resourceServer.Name,
 		CreatedAt: resourceServer.CreatedAt,
 		UpdatedAt: resourceServer.UpdatedAt,
+	}, nil
+}
+
+func (r *resourceServerPersistence) GetAllResourceServers(ctx context.Context, filters request_models.FilterParams) ([]dto.ResourceServer, *model.MetaData, error) {
+	resourceServers, total, err := r.db.GetAllResourceServers(ctx, utils.ComposeFilterSQL(ctx, filters, r.logger))
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no resource servers found")
+			r.logger.Info(ctx, "no resource servers were found", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading resource servers")
+			r.logger.Error(ctx, "error reading resource servers", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		}
+	}
+	return resourceServers, &model.MetaData{
+		FilterParams: filters,
+		Total:        total,
+		Extra:        nil,
 	}, nil
 }

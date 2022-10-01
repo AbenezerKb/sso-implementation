@@ -3,6 +3,8 @@ package persistencedb
 import (
 	"context"
 	"database/sql"
+	"fmt"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
 	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -53,4 +55,85 @@ func (db *PersistenceDB) CreateResourceServerWithTX(ctx context.Context, server 
 		UpdatedAt: createdServer.UpdatedAt,
 		Scopes:    scopes,
 	}, nil
+}
+
+const getAllResourceServersWithScope = `
+SELECT
+rs.id AS resource_server_id,
+rs.name AS resource_server_name,
+rs.created_at,
+rs.updated_at,
+sc.id AS scope_id,
+sc.name AS scope_name,
+sc.description,
+sc.status,
+COUNT(*) OVER()
+FROM resource_servers rs
+    LEFT JOIN scopes sc
+        ON sc.resource_server_name = rs.name`
+
+func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string) ([]dto.ResourceServer, int, error) {
+	rows, err := p.pool.Query(ctx, fmt.Sprintf("%s %s", getAllResourceServersWithScope, pgnFlt))
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	// maps are a better way to search than slices
+	resourceServers := map[uuid.UUID]dto.ResourceServer{}
+	var totalCount, reducer int
+	for rows.Next() {
+		var i db2.ResourceServer
+		var s struct {
+			ID          uuid.UUID
+			Name        sql.NullString
+			Description sql.NullString
+			Status      sql.NullString
+		}
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&s.ID,
+			&s.Name,
+			&s.Description,
+			&s.Status,
+			&totalCount); err != nil {
+			return nil, 0, err
+		}
+		if v, ok := resourceServers[i.ID]; ok {
+			v.Scopes = append(v.Scopes, dto.Scope{
+				Name:        s.Name.String,
+				Description: s.Description.String,
+			})
+			resourceServers[i.ID] = v
+			reducer++
+		} else {
+			rs := dto.ResourceServer{
+				ID:        i.ID,
+				Name:      i.Name,
+				CreatedAt: i.CreatedAt,
+				UpdatedAt: i.UpdatedAt,
+			}
+			if s.Name.Valid { // if scope was found
+				rs.Scopes = []dto.Scope{
+					{
+						Name:        s.Name.String,
+						Description: s.Description.String,
+					},
+				}
+			}
+			resourceServers[i.ID] = rs
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	servers := make([]dto.ResourceServer, 0, len(resourceServers))
+	for _, v := range resourceServers {
+		servers = append(servers, v)
+	}
+	return servers, totalCount - reducer, nil
 }

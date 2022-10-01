@@ -49,4 +49,5 @@ type MiniRide interface {
 }
 type ResourceServer interface {
 	CreateResourceServer(ctx *gin.Context)
+	GetAllResourceServers(ctx *gin.Context)
 }

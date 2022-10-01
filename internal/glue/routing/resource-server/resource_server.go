@@ -11,7 +11,7 @@ import (
 )
 
 func InitRoute(group *gin.RouterGroup, resourceServer rest.ResourceServer, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
-	resourceServers := group.Group("/resourceServer")
+	resourceServers := group.Group("/resourceServers")
 	resourceServerRoutes := []routing.Router{
 		{
 			Method:  http.MethodPost,
@@ -22,6 +22,16 @@ func InitRoute(group *gin.RouterGroup, resourceServer rest.ResourceServer, authM
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.CreateResourceServer,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: resourceServer.GetAllResourceServers,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllResourceServers,
 		},
 	}
 
