@@ -7,7 +7,7 @@ Feature: Check phone for mini-ride
     Background: populate user's
         Given I am authenticated with following credential
             | username | password |
-            | username | password |
+            | mini-ride | fbL50Wgr1E7o3vvmR |
         And they are the following user's on sso
             | id                                   | first_name | middle_name | last_name | phone        | profile_picture                                                                                                                       | status |
             | 06eb340a-862a-4dd0-8a3f-5e4c1f767d3d | abebe      | kebede      | teshome   | 251944123345 | image                                                                                                                                 | ACTIVE |

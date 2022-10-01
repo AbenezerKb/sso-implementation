@@ -56,3 +56,7 @@ kafka:
   topic: example-topic
   url: kafka:9092
   group_id: test
+  
+mini_ride:
+  username: mini-ride
+  password: fbL50Wgr1E7o3vvmR
