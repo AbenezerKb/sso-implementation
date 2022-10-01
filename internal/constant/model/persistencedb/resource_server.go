@@ -69,7 +69,7 @@ sc.description,
 sc.status,
 COUNT(*) OVER()
 FROM resource_servers rs
-    JOIN scopes sc
+    LEFT JOIN scopes sc
         ON sc.resource_server_name = rs.name`
 
 func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string) ([]dto.ResourceServer, int, error) {
@@ -81,10 +81,15 @@ func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string
 
 	// maps are a better way to search than slices
 	resourceServers := map[uuid.UUID]dto.ResourceServer{}
-	var totalCount int
+	var totalCount, reducer int
 	for rows.Next() {
 		var i db2.ResourceServer
-		var s db2.Scope
+		var s struct {
+			ID          uuid.UUID
+			Name        sql.NullString
+			Description sql.NullString
+			Status      sql.NullString
+		}
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
@@ -99,23 +104,27 @@ func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string
 		}
 		if v, ok := resourceServers[i.ID]; ok {
 			v.Scopes = append(v.Scopes, dto.Scope{
-				Name:        s.Name,
-				Description: s.Description,
+				Name:        s.Name.String,
+				Description: s.Description.String,
 			})
 			resourceServers[i.ID] = v
+			reducer++
 		} else {
-			resourceServers[i.ID] = dto.ResourceServer{
+			rs := dto.ResourceServer{
 				ID:        i.ID,
 				Name:      i.Name,
 				CreatedAt: i.CreatedAt,
 				UpdatedAt: i.UpdatedAt,
-				Scopes: []dto.Scope{
-					{
-						Name:        s.Name,
-						Description: s.Description,
-					},
-				},
 			}
+			if s.Name.Valid { // if scope was found
+				rs.Scopes = []dto.Scope{
+					{
+						Name:        s.Name.String,
+						Description: s.Description.String,
+					},
+				}
+			}
+			resourceServers[i.ID] = rs
 		}
 	}
 	if err := rows.Err(); err != nil {
@@ -126,5 +135,5 @@ func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string
 	for _, v := range resourceServers {
 		servers = append(servers, v)
 	}
-	return servers, totalCount, nil
+	return servers, totalCount - reducer, nil
 }
