@@ -23,7 +23,9 @@ definitions:
     properties:
       auth_scopes:
         description: AuthScopes is the scopes this authorization is given access to
-        type: string
+        items:
+          $ref: '#/definitions/dto.Scope'
+        type: array
       client_type:
         description: |-
           ClientType is the type of the client.
@@ -278,6 +280,28 @@ definitions:
         description: |-
           UserName is the username of the user.
           It is currently of no use
+        type: string
+    type: object
+  dto.ResourceServer:
+    properties:
+      created_at:
+        description: CreatedAt is the time this resource server is created at
+        type: string
+      id:
+        description: ID is the unique id for this resource server
+        type: string
+      name:
+        description: |-
+          Name is the resource server name.
+          It must be unique across the sso
+        type: string
+      scopes:
+        description: Scopes is the scopes of this resource server
+        items:
+          $ref: '#/definitions/dto.Scope'
+        type: array
+      updated_at:
+        description: UpdatedAt is the time this resource server is updated at
         type: string
     type: object
   dto.Scope:
@@ -1115,6 +1139,34 @@ paths:
       summary: Register a new user.
       tags:
       - auth
+  /resourceServer:
+    post:
+      consumes:
+      - application/json
+      description: Create a new resource server
+      parameters:
+      - description: resource_server
+        in: body
+        name: client
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResourceServer'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ResourceServer'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a resource server
+      tags:
+      - resourceServer
   /users:
     get:
       consumes:

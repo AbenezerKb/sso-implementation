@@ -8,6 +8,7 @@ import (
 	"sso/internal/module/oauth"
 	"sso/internal/module/oauth2"
 	"sso/internal/module/profile"
+	resource_server "sso/internal/module/resource-server"
 	"sso/internal/module/scope"
 	"sso/internal/module/user"
 	"sso/platform/logger"
@@ -18,18 +19,19 @@ import (
 )
 
 type Module struct {
-	OAuthModule     module.OAuthModule
-	OAuth2Module    module.OAuth2Module
-	userModule      module.UserModule
-	clientModule    module.ClientModule
-	scopeModule     module.ScopeModule
-	profile         module.ProfileModule
-	Mini_rideModule module.MiniRideModule
+	OAuthModule    module.OAuthModule
+	OAuth2Module   module.OAuth2Module
+	userModule     module.UserModule
+	clientModule   module.ClientModule
+	scopeModule    module.ScopeModule
+	profile        module.ProfileModule
+	resourceServer module.ResourceServerModule
+	MiniRideModule module.MiniRideModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
-	mini_rideModule := mini_ride.InitMinRide(log, persistence.MiniRidePersistence, platformLayer.Kafka)
-	go mini_rideModule.ListenMiniRideEvent(context.Background())
+	miniRideModule := mini_ride.InitMinRide(log, persistence.MiniRidePersistence, platformLayer.Kafka)
+	go miniRideModule.ListenMiniRideEvent(context.Background())
 
 	return Module{
 		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, persistence.UserPersistence, platformLayer.Sms, enforcer),
@@ -63,8 +65,9 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			),
 			persistence.ScopePersistence,
 			state.URLs),
-		scopeModule: scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
-		profile:     profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
+		scopeModule:    scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
+		profile:        profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
+		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 	}
 }
 
@@ -101,8 +104,9 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			),
 			persistence.ScopePersistence,
 			state.URLs),
-		scopeModule:     scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
-		profile:         profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
-		Mini_rideModule: mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
+		scopeModule:    scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
+		profile:        profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
+		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
+		MiniRideModule: mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
 	}
 }

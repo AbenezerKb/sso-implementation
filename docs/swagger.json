@@ -1029,6 +1029,51 @@
                 }
             }
         },
+        "/resourceServer": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create a new resource server",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "resourceServer"
+                ],
+                "summary": "Create a resource server",
+                "parameters": [
+                    {
+                        "description": "resource_server",
+                        "name": "client",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResourceServer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResourceServer"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users": {
             "get": {
                 "security": [
@@ -1258,7 +1303,10 @@
             "properties": {
                 "auth_scopes": {
                     "description": "AuthScopes is the scopes this authorization is given access to",
-                    "type": "string"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Scope"
+                    }
                 },
                 "client_type": {
                     "description": "ClientType is the type of the client.\nIt can be either confidential or public.",
@@ -1534,6 +1582,34 @@
                 },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ResourceServer": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the time this resource server is created at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique id for this resource server",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the resource server name.\nIt must be unique across the sso",
+                    "type": "string"
+                },
+                "scopes": {
+                    "description": "Scopes is the scopes of this resource server",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.Scope"
+                    }
+                },
+                "updated_at": {
+                    "description": "UpdatedAt is the time this resource server is updated at",
                     "type": "string"
                 }
             }

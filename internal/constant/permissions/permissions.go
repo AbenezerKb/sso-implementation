@@ -56,4 +56,9 @@ var (
 		Name:     "update a user",
 		Category: "user",
 	}
+	CreateResourceServer = Permission{
+		ID:       "create_resource_server",
+		Name:     "create a resource server",
+		Category: "resource_server",
+	}
 )

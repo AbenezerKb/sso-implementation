@@ -47,3 +47,6 @@ type Profile interface {
 type MiniRide interface {
 	CheckPhone(ctx *gin.Context)
 }
+type ResourceServer interface {
+	CreateResourceServer(ctx *gin.Context)
+}
