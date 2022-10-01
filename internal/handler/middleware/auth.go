@@ -21,23 +21,31 @@ type AuthMiddleware interface {
 	Authentication() gin.HandlerFunc
 	AccessControl() gin.HandlerFunc
 	ClientBasicAuth() gin.HandlerFunc
+	MiniRideBasicAuth() gin.HandlerFunc
+}
+
+type MiniRideCredential struct {
+	UserName string `json:"username"`
+	Password string `json:"password"`
 }
 
 type authMiddleware struct {
-	enforcer *casbin.Enforcer
-	auth     module.OAuthModule
-	token    platform.Token
-	client   module.ClientModule
-	logger   logger.Logger
+	enforcer           *casbin.Enforcer
+	auth               module.OAuthModule
+	token              platform.Token
+	client             module.ClientModule
+	miniRideCredential MiniRideCredential
+	logger             logger.Logger
 }
 
 func InitAuthMiddleware(enforcer *casbin.Enforcer,
-	auth module.OAuthModule, token platform.Token, client module.ClientModule, logger logger.Logger) AuthMiddleware {
+	auth module.OAuthModule, token platform.Token, client module.ClientModule, miniRideCredential MiniRideCredential, logger logger.Logger) AuthMiddleware {
 	return &authMiddleware{
 		enforcer,
 		auth,
 		token,
 		client,
+		miniRideCredential,
 		logger,
 	}
 }
@@ -137,6 +145,29 @@ func (a *authMiddleware) ClientBasicAuth() gin.HandlerFunc {
 			return
 		}
 		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), constant.Context("x-client"), client))
+		ctx.Next()
+	}
+}
+
+func (a *authMiddleware) MiniRideBasicAuth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		username, password, ok := ctx.Request.BasicAuth()
+		if !ok {
+			err := errors.ErrInternalServerError.New("couldn't extract basic auth detail's")
+			a.logger.Error(ctx, "extract error", zap.Error(err))
+			ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusBadRequest)
+			return
+		}
+
+		if password != a.miniRideCredential.Password || username != a.miniRideCredential.UserName {
+			err := errors.ErrAuthError.New("mini_ride credential mismatch")
+			a.logger.Info(ctx, "mini_ride_credential_mismatch", zap.Error(err), zap.Any("existing_credential", a.miniRideCredential), zap.Any("provided_credential", []string{username, password}))
+			ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+
 		ctx.Next()
 	}
 }

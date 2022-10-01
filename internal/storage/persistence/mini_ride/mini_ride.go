@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
@@ -84,4 +85,33 @@ func (u *miniRidePersistence) SwapPhones(ctx context.Context, newPhone, oldPhone
 		return err
 	}
 	return nil
+}
+
+func (u *miniRidePersistence) CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error) {
+	user, err := u.db.GetUserByPhone(ctx, phone)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return &dto.MiniRideResponse{Exists: false}, nil
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			u.logger.Error(ctx, "unable to get user by phone", zap.Error(err), zap.String("phone", phone))
+			return nil, err
+		}
+	}
+	return &dto.MiniRideResponse{
+		User: dto.User{
+			ID:             user.ID,
+			Status:         user.Status.String,
+			UserName:       user.UserName,
+			FirstName:      user.FirstName,
+			MiddleName:     user.MiddleName,
+			LastName:       user.LastName,
+			Email:          user.Email.String,
+			Phone:          user.Phone,
+			Gender:         user.Gender,
+			ProfilePicture: user.ProfilePicture.String,
+			Password:       user.Password,
+		},
+		Exists: true,
+	}, nil
 }

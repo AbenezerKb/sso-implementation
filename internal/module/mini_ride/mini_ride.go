@@ -3,6 +3,8 @@ package mini_ride
 import (
 	"context"
 	"sso/internal/constant"
+	"sso/internal/constant/errors"
+	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
@@ -10,6 +12,7 @@ import (
 	"sso/platform/logger"
 	"sync"
 
+	"github.com/dongri/phonenumber"
 	"go.uber.org/zap"
 )
 
@@ -78,4 +81,16 @@ func (m *miniRide) ProcessEvents(ctx context.Context, miniRideEvent *request_mod
 		m.log.Debug(ctx, "unwanted event form kafka", zap.Any("event", miniRideEvent.Event))
 	}
 
+}
+
+func (m *miniRide) CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error) {
+
+	parsedPhone := phonenumber.Parse(phone, "ET")
+	if parsedPhone == "" {
+		err := errors.ErrInvalidUserInput.New("invalid phone number")
+		m.log.Error(ctx, "couldn't parse phone", zap.Error(err), zap.String("phone", phone))
+		return nil, err
+	}
+
+	return m.miniRidePersistence.CheckPhone(ctx, parsedPhone)
 }
