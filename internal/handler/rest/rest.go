@@ -46,5 +46,5 @@ type Profile interface {
 
 type ResourceServer interface {
 	CreateResourceServer(ctx *gin.Context)
-	GetResourceServers(ctx *gin.Context)
+	GetAllResourceServers(ctx *gin.Context)
 }

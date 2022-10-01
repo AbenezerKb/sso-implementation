@@ -26,7 +26,7 @@ func InitRoute(group *gin.RouterGroup, resourceServer rest.ResourceServer, authM
 		{
 			Method:  http.MethodGet,
 			Path:    "",
-			Handler: resourceServer.GetResourceServers,
+			Handler: resourceServer.GetAllResourceServers,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
