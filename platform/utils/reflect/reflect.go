@@ -12,6 +12,16 @@ func GetJSONFieldNames(model interface{}) []string {
 		return nil
 	}
 	for i := 0; i < v.NumField(); i++ {
+		{
+			// FIXME:
+			// added this to not include populated arrays. This is not enough though.
+			// trying to filter values that are from other related tables would not work
+			// some kind of stable way should be implemented
+			typeOfV := reflect.TypeOf(v.Field(i)).Kind()
+			if typeOfV == reflect.Slice {
+				continue
+			}
+		}
 		jsonName := strings.Split(v.Field(i).Tag.Get("json"), ",")[0]
 		if jsonName == "" {
 			// construct construct fieldName
