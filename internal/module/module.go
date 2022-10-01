@@ -60,4 +60,5 @@ type ProfileModule interface {
 type MiniRideModule interface {
 	ListenMiniRideEvent(ctx context.Context)
 	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
+	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
 }
