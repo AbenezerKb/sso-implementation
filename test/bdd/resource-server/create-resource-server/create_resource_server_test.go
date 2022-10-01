@@ -26,7 +26,7 @@ func TestCreateResourceServer(t *testing.T) {
 	r.apiTest = src.ApiTest{
 		Server: r.Server,
 	}
-	r.apiTest.URL = "/v1/resourceServer"
+	r.apiTest.URL = "/v1/resourceServers"
 	r.apiTest.Method = http.MethodPost
 	r.apiTest.SetHeader("Content-Type", "application/json")
 	r.apiTest.InitializeTest(t, "create resource server test", "features/create_resource_server.feature", r.InitializeScenario)
