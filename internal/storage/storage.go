@@ -91,4 +91,5 @@ type MiniRidePersistence interface {
 	UpdateUser(ctx context.Context, updateUserParam *request_models.Driver) error
 	CreateUser(ctx context.Context, createUserParam *request_models.Driver) (*dto.User, error)
 	SwapPhones(ctx context.Context, newPhone, oldPhone string) error
+	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
 }
