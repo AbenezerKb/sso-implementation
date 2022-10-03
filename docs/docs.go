@@ -681,6 +681,68 @@ const docTemplate = `{
             }
         },
         "/oauth/scopes": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "returns all scopes that satisfy given filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "scope"
+                ],
+                "summary": "returns all scopes that satisfy given filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "link_operator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Scope"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1495,6 +1557,10 @@ const docTemplate = `{
                     "description": "Role is the role given to the user being created.",
                     "type": "string"
                 },
+                "status": {
+                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
+                    "type": "string"
+                },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
                     "type": "string"
@@ -1587,6 +1653,10 @@ const docTemplate = `{
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
                     "type": "string"
                 },
+                "status": {
+                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
+                    "type": "string"
+                },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
                     "type": "string"
@@ -1624,6 +1694,10 @@ const docTemplate = `{
         "dto.Scope": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "description": "date the scope created",
+                    "type": "string"
+                },
                 "description": {
                     "description": "The scope description.",
                     "type": "string"
@@ -1704,6 +1778,10 @@ const docTemplate = `{
                 },
                 "profile_picture": {
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
                     "type": "string"
                 },
                 "user_name": {
