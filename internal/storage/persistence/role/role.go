@@ -35,7 +35,7 @@ func (r *rolePersistence) GetAllPermissions(ctx context.Context, category string
 	}
 	perms, err := r.db.GetPermissionsOfCategory(ctx, category)
 	if err != nil {
-		err := errors.ErrReadError.Wrap(err, "error reading permissions", zap.String("category", category))
+		err := errors.ErrReadError.Wrap(err, "error reading permissions")
 		r.logger.Error(ctx, "unable to read permissions", zap.Error(err), zap.String("category", category))
 		return nil, err
 	}
