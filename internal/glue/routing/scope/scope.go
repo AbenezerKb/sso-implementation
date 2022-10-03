@@ -11,7 +11,7 @@ import (
 )
 
 func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
-	scopeGroup := group.Group("oauth/scope")
+	scopeGroup := group.Group("oauth/scopes")
 	scopeRoutes := []routing.Router{
 		{
 			Method:  "GET",
@@ -32,6 +32,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middle
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.CreateScope,
+		},
+		{
+			Method:  "GET",
+			Path:    "",
+			Handler: handler.GetAllScopes,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllScopes,
 		},
 	}
 	routing.RegisterRoutes(scopeGroup, scopeRoutes, enforcer)

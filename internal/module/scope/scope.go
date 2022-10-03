@@ -3,7 +3,9 @@ package scope
 import (
 	"context"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
@@ -48,4 +50,14 @@ func (s *scopeModule) CreateScope(ctx context.Context, scope dto.Scope) (dto.Sco
 		Description:        scope.Description,
 		ResourceServerName: scope.ResourceServerName,
 	})
+}
+
+func (s *scopeModule) GetAllScopes(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.Scope{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		s.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return s.scopePersistence.GetAllScopes(ctx, filters)
 }

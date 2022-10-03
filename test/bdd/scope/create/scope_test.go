@@ -67,7 +67,7 @@ func (s *scopeCreateTest) theCreationShouldFailWith(message string) error {
 
 func (s *scopeCreateTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
-		s.apiTest.URL = "/v1/oauth/scope"
+		s.apiTest.URL = "/v1/oauth/scopes"
 		s.apiTest.Method = http.MethodPost
 		s.apiTest.SetHeader("Content-Type", "application/json")
 		s.apiTest.InitializeServer(s.Server)

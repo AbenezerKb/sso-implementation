@@ -70,6 +70,7 @@ type Scope struct {
 	ResourceServerID   uuid.NullUUID  `json:"resource_server_id"`
 	ResourceServerName sql.NullString `json:"resource_server_name"`
 	Status             string         `json:"status"`
+	CreatedAt          time.Time      `json:"created_at"`
 }
 
 type User struct {

@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -91,4 +93,33 @@ func (s *scopePersistence) GetScopeNameOnly(ctx context.Context, scopes ...strin
 	}
 	scopeStr := utils.ArrayToString(scopeNameAry)
 	return scopeStr, nil
+}
+
+func (s *scopePersistence) GetAllScopes(ctx context.Context, filters request_models.FilterParams) ([]dto.Scope, *model.MetaData, error) {
+	scopes, total, err := s.db.GetAllScopes(ctx, utils.ComposeFilterSQL(ctx, filters, s.logger))
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no scope found")
+			s.logger.Info(ctx, "no scopes were found", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading clients")
+			s.logger.Error(ctx, "error reading clients", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		}
+	}
+	scopesDTO := make([]dto.Scope, len(scopes))
+	for k, v := range scopes {
+		scopesDTO[k] = dto.Scope{
+			Description:        v.Description,
+			Name:               v.Name,
+			CreatedAt:          v.CreatedAt,
+			ResourceServerName: v.ResourceServerName.String,
+		}
+	}
+	return scopesDTO, &model.MetaData{
+		FilterParams: filters,
+		Total:        total,
+		Extra:        nil,
+	}, nil
 }

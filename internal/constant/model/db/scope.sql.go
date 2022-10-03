@@ -17,7 +17,7 @@ INSERT INTO scopes (
     resource_server_name
 ) VALUES (
     $1, $2, $3
-) RETURNING id, name, description, resource_server_id, resource_server_name, status
+) RETURNING id, name, description, resource_server_id, resource_server_name, status, created_at
 `
 
 type CreateScopeParams struct {
@@ -36,12 +36,13 @@ func (q *Queries) CreateScope(ctx context.Context, arg CreateScopeParams) (Scope
 		&i.ResourceServerID,
 		&i.ResourceServerName,
 		&i.Status,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const deleteScope = `-- name: DeleteScope :one
-DELETE FROM scopes WHERE name = $1 RETURNING id, name, description, resource_server_id, resource_server_name, status
+DELETE FROM scopes WHERE name = $1 RETURNING id, name, description, resource_server_id, resource_server_name, status, created_at
 `
 
 func (q *Queries) DeleteScope(ctx context.Context, name string) (Scope, error) {
@@ -54,12 +55,13 @@ func (q *Queries) DeleteScope(ctx context.Context, name string) (Scope, error) {
 		&i.ResourceServerID,
 		&i.ResourceServerName,
 		&i.Status,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getScope = `-- name: GetScope :one
-SELECT id, name, description, resource_server_id, resource_server_name, status FROM scopes WHERE name = $1
+SELECT id, name, description, resource_server_id, resource_server_name, status, created_at FROM scopes WHERE name = $1
 `
 
 func (q *Queries) GetScope(ctx context.Context, name string) (Scope, error) {
@@ -72,12 +74,13 @@ func (q *Queries) GetScope(ctx context.Context, name string) (Scope, error) {
 		&i.ResourceServerID,
 		&i.ResourceServerName,
 		&i.Status,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getScopesByResourceServerName = `-- name: GetScopesByResourceServerName :many
-SELECT id, name, description, resource_server_id, resource_server_name, status
+SELECT id, name, description, resource_server_id, resource_server_name, status, created_at
 FROM scopes
 WHERE resource_server_name = $1
 `
@@ -98,6 +101,7 @@ func (q *Queries) GetScopesByResourceServerName(ctx context.Context, resourceSer
 			&i.ResourceServerID,
 			&i.ResourceServerName,
 			&i.Status,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

@@ -50,6 +50,7 @@ type ClientModule interface {
 type ScopeModule interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
+	GetAllScopes(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error)
 }
 
 type ProfileModule interface {

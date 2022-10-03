@@ -61,6 +61,11 @@ var (
 		Name:     "create a resource server",
 		Category: "resource_server",
 	}
+	GetAllScopes = Permission{
+		ID:       "get_all_scopes",
+		Name:     "get all scope",
+		Category: "scope",
+	}
 	GetAllResourceServers = Permission{
 		ID:       "get_all_resource_servers",
 		Name:     "get all resource servers",

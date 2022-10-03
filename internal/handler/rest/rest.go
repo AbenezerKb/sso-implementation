@@ -37,6 +37,7 @@ type Client interface {
 type Scope interface {
 	GetScope(ctx *gin.Context)
 	CreateScope(ctx *gin.Context)
+	GetAllScopes(ctx *gin.Context)
 }
 
 type Profile interface {

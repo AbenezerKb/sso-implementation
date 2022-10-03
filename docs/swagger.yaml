@@ -198,6 +198,11 @@ definitions:
       role:
         description: Role is the role given to the user being created.
         type: string
+      status:
+        description: |-
+          Status is the status of the user.
+          It is set to active by default after successful registration.
+        type: string
       user_name:
         description: |-
           UserName is the username of the user.
@@ -276,6 +281,11 @@ definitions:
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
         type: string
+      status:
+        description: |-
+          Status is the status of the user.
+          It is set to active by default after successful registration.
+        type: string
       user_name:
         description: |-
           UserName is the username of the user.
@@ -306,6 +316,9 @@ definitions:
     type: object
   dto.Scope:
     properties:
+      created_at:
+        description: date the scope created
+        type: string
       description:
         description: The scope description.
         type: string
@@ -373,6 +386,11 @@ definitions:
         description: |-
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
+        type: string
+      status:
+        description: |-
+          Status is the status of the user.
+          It is set to active by default after successful registration.
         type: string
       user_name:
         description: |-
@@ -912,6 +930,44 @@ paths:
       tags:
       - OAuth2
   /oauth/scopes:
+    get:
+      consumes:
+      - application/json
+      description: returns all scopes that satisfy given filters
+      parameters:
+      - in: query
+        name: filter
+        type: string
+      - in: query
+        name: link_operator
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.Scope'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns all scopes that satisfy given filters
+      tags:
+      - scope
     post:
       consumes:
       - application/json
