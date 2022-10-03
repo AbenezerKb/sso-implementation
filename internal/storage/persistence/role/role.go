@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
-	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/constant/permissions"
 	"sso/internal/storage"
@@ -36,13 +35,13 @@ func (r *rolePersistence) GetAllPermissions(ctx context.Context, category string
 	}
 	perms, err := r.db.GetPermissionsOfCategory(ctx, category)
 	if err != nil {
-		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
-			err = errors.ErrInvalidUserInput.Wrap(err, fmt.Sprintf("category %s doesn't exist", category))
-			r.logger.Info(ctx, "category was not found", zap.String("category", category), zap.Error(err))
-			return nil, err
-		}
 		err := errors.ErrReadError.Wrap(err, "error reading permissions", zap.String("category", category))
 		r.logger.Error(ctx, "unable to read permissions", zap.Error(err), zap.String("category", category))
+		return nil, err
+	}
+	if perms == nil {
+		err := errors.ErrInvalidUserInput.New(fmt.Sprintf("category %s doesn't exist", category))
+		r.logger.Info(ctx, "category was not found", zap.String("category", category), zap.Error(err))
 		return nil, err
 	}
 	return perms, nil

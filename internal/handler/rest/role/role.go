@@ -43,11 +43,13 @@ func (r *role) GetAllPermissions(ctx *gin.Context) {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		r.logger.Info(ctx, "could not bind to PermissionCategory. invalid input", zap.Error(err))
 		_ = ctx.Error(err)
+		return
 	}
 
 	perms, err := r.roleModule.GetAllPermissions(ctx, category.Category)
 	if err != nil {
 		_ = ctx.Error(err)
+		return
 	}
 
 	constant.SuccessResponse(ctx, http.StatusOK, perms, nil)
