@@ -111,5 +111,6 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 		profile:        profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
 		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		MiniRideModule: mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
+		RoleModule:     role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 	}
 }
