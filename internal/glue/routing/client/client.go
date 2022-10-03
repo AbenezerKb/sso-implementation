@@ -44,6 +44,16 @@ func InitRoute(group *gin.RouterGroup, client rest.Client, authMiddleware middle
 			},
 			Permission: permissions.GetAllClients,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/:id",
+			Handler: client.GetAllClientByID,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetClient,
+		},
 	}
 	routing.RegisterRoutes(clients, clientRoutes, enforcer)
 }
