@@ -9,3 +9,13 @@ func Contains[T comparable](value T, array []T) bool {
 
 	return false
 }
+
+func ContainsWithMatcher[T comparable, B any](value T, array []B, matcher func(value T, arrayValue B) bool) bool {
+	for i := 0; i < len(array); i++ {
+		if matcher(value, array[i]) {
+			return true
+		}
+	}
+
+	return false
+}

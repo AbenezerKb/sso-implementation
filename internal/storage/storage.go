@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sso/internal/constant/permissions"
 
 	"github.com/google/uuid"
 )
@@ -99,4 +100,8 @@ type MiniRidePersistence interface {
 	CreateUser(ctx context.Context, createUserParam *request_models.Driver) (*dto.User, error)
 	SwapPhones(ctx context.Context, newPhone, oldPhone string) error
 	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
+}
+
+type RolePersistence interface {
+	GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error)
 }
