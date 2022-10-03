@@ -5,7 +5,7 @@ import (
 	"sso/internal/constant/permissions"
 )
 
-const getAllPermissions = "SELECT * FROM casbin_rule WHERE p_type = 'p'"
+const getAllPermissions = "SELECT v0, v1, v2 FROM casbin_rule WHERE p_type = 'p'"
 
 func (db *PersistenceDB) GetAllPermissions(ctx context.Context) ([]permissions.Permission, error) {
 	rows, err := db.pool.Query(ctx, getAllPermissions)
@@ -16,7 +16,7 @@ func (db *PersistenceDB) GetAllPermissions(ctx context.Context) ([]permissions.P
 	var perms []permissions.Permission
 	for rows.Next() {
 		var i permissions.Permission
-		if err := rows.Scan(nil, nil, &i.ID, &i.Name, &i.Category); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Category); err != nil {
 			return nil, err
 		}
 		perms = append(perms, i)
@@ -25,7 +25,7 @@ func (db *PersistenceDB) GetAllPermissions(ctx context.Context) ([]permissions.P
 	return perms, nil
 }
 
-const getPermissionsOfCategory = "SELECT * FROM casbin_rule WHERE p_type = 'p' AND v2 = $1"
+const getPermissionsOfCategory = "SELECT v0, v1, v2 FROM casbin_rule WHERE p_type = 'p' AND v2 = $1"
 
 func (db *PersistenceDB) GetPermissionsOfCategory(ctx context.Context, category string) ([]permissions.Permission, error) {
 	rows, err := db.pool.Query(ctx, getPermissionsOfCategory, category)
@@ -36,7 +36,7 @@ func (db *PersistenceDB) GetPermissionsOfCategory(ctx context.Context, category 
 	var perms []permissions.Permission
 	for rows.Next() {
 		var i permissions.Permission
-		if err := rows.Scan(nil, nil, &i.ID, &i.Name, &i.Category); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Category); err != nil {
 			return nil, err
 		}
 		perms = append(perms, i)
