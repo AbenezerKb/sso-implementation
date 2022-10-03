@@ -113,3 +113,29 @@ func (c *client) DeleteClient(ctx *gin.Context) {
 	c.logger.Info(ctx, "client deleted", zap.Any("client-id", clientID))
 	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
 }
+
+// GetClientByID returns client
+// @Summary      returns client
+// @Description  returns client that holds given id
+// @Tags         client
+// @Accept       json
+// @Produce      json
+// @param id path string true "id"
+// @Success      200  {object}  dto.Client
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /clients/{id} [get]
+// @Security	BearerAuth
+func (c *client) GetAllClientByID(ctx *gin.Context) {
+	clientID := ctx.Param("id")
+
+	requestCtx := ctx.Request.Context()
+	client, err := c.clientModule.GetClientByID(requestCtx, clientID)
+
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	c.logger.Info(ctx, "client fetched", zap.Any("client-id", clientID))
+	constant.SuccessResponse(ctx, http.StatusOK, client, nil)
+}
