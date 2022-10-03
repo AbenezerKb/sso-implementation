@@ -14,7 +14,7 @@ func InitRoute(group *gin.RouterGroup, handler rest.Role, authMiddleware middlew
 	roleRoutes := []routing.Router{
 		{
 			Method:  "GET",
-			Path:    "",
+			Path:    "permissions",
 			Handler: handler.GetAllPermissions,
 			Middlewares: []gin.HandlerFunc{
 				authMiddleware.Authentication(),
