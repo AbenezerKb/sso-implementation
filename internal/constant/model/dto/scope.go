@@ -1,6 +1,10 @@
 package dto
 
-import validation "github.com/go-ozzo/ozzo-validation/v4"
+import (
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+)
 
 type Scope struct {
 	// The scope name.
@@ -9,6 +13,8 @@ type Scope struct {
 	Description string `json:"description,omitempty"`
 	// resource server name
 	ResourceServerName string `json:"resource_server_name,omitempty"`
+	// date the scope created
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (s Scope) Validate() error {
