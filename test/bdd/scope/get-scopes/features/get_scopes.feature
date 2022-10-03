@@ -5,9 +5,12 @@ Feature: Get All Scopes
 
     Background:
         Given The following scopes are registered on the system
-            | name   | description        | resource_server_name |
-            | openid | your profile info  | sso                  |
-            | email  | your default email | sso                  |
+            | name    | description          | resource_server_name |
+            | openid  | your profile info    | sso                  |
+            | email   | your default email   | sso                  |
+            | profile | your default profile | sso                  |
+            | account | your default account | sso                  |
+            | balance | your default balance | sso                  |
         And I am logged in as admin user
             | email           | password      | role       |
             | admin@gmail.com | adminPassword | super-user |

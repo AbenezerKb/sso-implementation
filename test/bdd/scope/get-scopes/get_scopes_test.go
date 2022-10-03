@@ -30,7 +30,7 @@ type preferenceData struct {
 
 func TestGetScopes(t *testing.T) {
 	g := getScopesTest{}
-	g.apiTest.URL = "/v1/scopes"
+	g.apiTest.URL = "/v1/oauth/scopes"
 	g.apiTest.Method = http.MethodGet
 	g.TestInstance = test.Initiate("../../../../")
 	g.apiTest.InitializeServer(g.Server)
@@ -141,7 +141,13 @@ func (g *getScopesTest) iShouldGetTheListOfScopesThatPassMyPreferences() error {
 }
 
 func (g *getScopesTest) InitializeScenario(ctx *godog.ScenarioContext) {
-
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		_, _ = g.DB.DeleteUser(ctx, g.Admin.ID)
+		for _, scope := range g.scopes {
+			_, _ = g.DB.DeleteScope(ctx, scope.Name)
+		}
+		return ctx, nil
+	})
 	ctx.Step(`^I am logged in as admin user$`, g.iAmLoggedInAsAdminUser)
 	ctx.Step(`^I request to get all the scopes with the following preferences$`, g.iRequestToGetAllTheScopesWithTheFollowingPreferences)
 	ctx.Step(`^I should get the list of scopes that pass my preferences$`, g.iShouldGetTheListOfScopesThatPassMyPreferences)
