@@ -71,4 +71,9 @@ var (
 		Name:     "get all resource servers",
 		Category: "resource_server",
 	}
+	GetAllPermissions = Permission{
+		ID:       "get_all_permissions",
+		Name:     "Get all permissions",
+		Category: "role",
+	}
 )
