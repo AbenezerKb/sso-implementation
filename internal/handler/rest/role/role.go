@@ -38,7 +38,7 @@ func InitRole(logger logger.Logger, roleModule module.RoleModule) rest.Role {
 // @Security BearerAuth
 func (r *role) GetAllPermissions(ctx *gin.Context) {
 	var category request_models.PermissionCategory
-	err := ctx.ShouldBind(&category)
+	err := ctx.BindQuery(&category)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		r.logger.Info(ctx, "could not bind to PermissionCategory. invalid input", zap.Error(err))

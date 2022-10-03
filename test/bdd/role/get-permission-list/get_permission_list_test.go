@@ -15,9 +15,9 @@ import (
 
 type getPermissionsTest struct {
 	test.TestInstance
-	apiTest src.ApiTest
-	Admin   db.User
-	group   string
+	apiTest  src.ApiTest
+	Admin    db.User
+	category string
 }
 
 func TestGetPermissionList(t *testing.T) {
@@ -38,15 +38,15 @@ func (g *getPermissionsTest) iAmLoggedInWithTheFollowingCredentials(adminCredent
 	return g.GrantRoleForUser(g.Admin.ID.String(), adminCredentials)
 }
 
-func (g *getPermissionsTest) iRequestToGetAllPermissionsWithGroup(group string) error {
-	g.group = group
-	g.apiTest.SetBodyValue("group", group)
+func (g *getPermissionsTest) iRequestToGetAllPermissionsWithCategory(category string) error {
+	g.category = category
+	g.apiTest.SetQueryParam("category", category)
 	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
 	g.apiTest.SendRequest()
 	return nil
 }
 
-func (g *getPermissionsTest) iShouldGetAllPermissionsInThatGroup() error {
+func (g *getPermissionsTest) iShouldGetAllPermissionsInThatCategory() error {
 	if err := g.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
@@ -56,9 +56,9 @@ func (g *getPermissionsTest) iShouldGetAllPermissionsInThatGroup() error {
 		return err
 	}
 
-	query := "select * from casbin_rule where p_type = 'p'"
-	if g.group != "" {
-		query = fmt.Sprintf("%s and v2 = '%s'", query, g.group)
+	query := "select v0,v1,v2 from casbin_rule where p_type = 'p'"
+	if g.category != "" {
+		query = fmt.Sprintf("%s and v2 = '%s'", query, g.category)
 	}
 	var dbPermissions []permissions.Permission
 	rows, err := g.Conn.Query(context.Background(), query)
@@ -67,7 +67,7 @@ func (g *getPermissionsTest) iShouldGetAllPermissionsInThatGroup() error {
 	}
 	for rows.Next() {
 		var i permissions.Permission
-		if err := rows.Scan(nil, nil, &i.ID, &i.Name, &i.Category); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Category); err != nil {
 			return err
 		}
 		dbPermissions = append(dbPermissions, i)
@@ -80,9 +80,9 @@ func (g *getPermissionsTest) iShouldGetAllPermissionsInThatGroup() error {
 			return fmt.Errorf("expected to get: %v", v)
 		}
 	}
-	if g.group != "" {
+	if g.category != "" {
 		for _, v := range permissionsList {
-			if err := g.apiTest.AssertEqual(v.Category, g.group); err != nil {
+			if err := g.apiTest.AssertEqual(v.Category, g.category); err != nil {
 				return err
 			}
 		}
@@ -109,7 +109,7 @@ func (g *getPermissionsTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, g.iAmLoggedInWithTheFollowingCredentials)
-	ctx.Step(`^I request to get all permissions with group "([^"]*)"$`, g.iRequestToGetAllPermissionsWithGroup)
-	ctx.Step(`^I should get all permissions in that group$`, g.iShouldGetAllPermissionsInThatGroup)
+	ctx.Step(`^I request to get all permissions with category "([^"]*)"$`, g.iRequestToGetAllPermissionsWithCategory)
+	ctx.Step(`^I should get all permissions in that category$`, g.iShouldGetAllPermissionsInThatCategory)
 	ctx.Step(`^my request should fail with message "([^"]*)"$`, g.myRequestShouldFailWithMessage)
 }

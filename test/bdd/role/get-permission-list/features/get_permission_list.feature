@@ -6,20 +6,20 @@ Feature: Get Permission List
   Background:
     Given I am logged in with the following credentials
       | email           | password | role                |
-      | admin@gmail.com | 12345678 | get_permission_list |
+      | admin@gmail.com | 12345678 | get_all_permissions |
 
   Scenario Outline: I get all permissions
-    When I request to get all permissions with group "<group>"
-    Then I should get all permissions in that group
+    When I request to get all permissions with category "<category>"
+    Then I should get all permissions in that category
     Examples:
-      | group  |
+      | category |
       |        |
       | user   |
       | client |
 
   Scenario Outline: I fail to get all permissions
-    When I request to get all permissions with group "<group>"
+    When I request to get all permissions with category "<category>"
     Then my request should fail with message "<message>"
     Examples:
-      | group    | message                      |
-      | no-group | group no-group doesn't exist |
+      | category    | message                            |
+      | no-category | category no-category doesn't exist |
