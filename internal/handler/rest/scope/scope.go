@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -40,7 +41,9 @@ func InitScope(logger logger.Logger, scopeModule module.ScopeModule) rest.Scope 
 // @Security BearerAuth
 func (s *scope) GetScope(ctx *gin.Context) {
 	scopeName := ctx.Param("name")
-	scope, err := s.scopeModule.GetScope(ctx, scopeName)
+
+	requestCtx := ctx.Request.Context()
+	scope, err := s.scopeModule.GetScope(requestCtx, scopeName)
 	if err != nil {
 		ctx.Error(err)
 		return
@@ -72,7 +75,8 @@ func (s *scope) CreateScope(ctx *gin.Context) {
 		return
 	}
 
-	createdScope, err := s.scopeModule.CreateScope(ctx, scopeParam)
+	requestCtx := ctx.Request.Context()
+	createdScope, err := s.scopeModule.CreateScope(requestCtx, scopeParam)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -80,4 +84,36 @@ func (s *scope) CreateScope(ctx *gin.Context) {
 
 	s.logger.Info(ctx, "created scope", zap.Any("scope", createdScope))
 	constant.SuccessResponse(ctx, http.StatusCreated, createdScope, nil)
+}
+
+// GetAllScopes returns all scopes
+// @Summary returns all scopes that satisfy given filters
+// @Description returns all scopes that satisfy given filters
+// @Tags scope
+// @Accept  json
+// @Produce  json
+// @param filter query request_models.PgnFltQueryParams true "filter"
+// @Success 200 {object} []dto.Scope
+// @Failure 400 {object} model.ErrorResponse
+// @Router /oauth/scopes [get]
+// @Security BearerAuth
+func (s *scope) GetAllScopes(ctx *gin.Context) {
+	var filtersParam request_models.PgnFltQueryParams
+	err := ctx.BindQuery(&filtersParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
+		s.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+
+	scopes, metaData, err := s.scopeModule.GetAllScopes(requestCtx, filtersParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, scopes, metaData)
 }
