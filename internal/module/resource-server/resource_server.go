@@ -4,7 +4,9 @@ import (
 	"context"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
@@ -47,4 +49,14 @@ func (r *resourceServerModule) CreateResourceServer(ctx context.Context, server 
 
 	// create resource server
 	return r.resourceServerPersistence.CreateResourceServer(ctx, server)
+}
+
+func (r *resourceServerModule) GetAllResourceServers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.ResourceServer{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		r.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return r.resourceServerPersistence.GetAllResourceServers(ctx, filters)
 }

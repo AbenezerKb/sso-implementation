@@ -45,6 +45,10 @@ type Profile interface {
 	GetProfile(ctx *gin.Context)
 }
 
+type MiniRide interface {
+	CheckPhone(ctx *gin.Context)
+}
 type ResourceServer interface {
 	CreateResourceServer(ctx *gin.Context)
+	GetAllResourceServers(ctx *gin.Context)
 }

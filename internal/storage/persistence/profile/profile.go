@@ -63,7 +63,7 @@ func (p *profilePersistence) GetProfile(ctx context.Context, userID uuid.UUID) (
 		ID:             user.ID,
 		FirstName:      user.FirstName,
 		MiddleName:     user.MiddleName,
-		LastName:       user.MiddleName,
+		LastName:       user.LastName,
 		Email:          user.Email.String,
 		Phone:          user.Phone,
 		UserName:       user.UserName,

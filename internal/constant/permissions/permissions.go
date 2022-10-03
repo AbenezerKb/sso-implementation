@@ -66,4 +66,9 @@ var (
 		Name:     "get all scope",
 		Category: "scope",
 	}
+	GetAllResourceServers = Permission{
+		ID:       "get_all_resource_servers",
+		Name:     "get all resource servers",
+		Category: "resource_server",
+	}
 )

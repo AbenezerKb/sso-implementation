@@ -60,9 +60,11 @@ type ProfileModule interface {
 
 type ResourceServerModule interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
+	GetAllResourceServers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error)
 }
 
 type MiniRideModule interface {
 	ListenMiniRideEvent(ctx context.Context)
 	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
+	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
 }
