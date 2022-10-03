@@ -31,6 +31,7 @@ func (g *getClientTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) er
 	if err != nil {
 		return err
 	}
+	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
 	return g.GrantRoleForUser(g.Admin.ID.String(), adminCredentials)
 }
 

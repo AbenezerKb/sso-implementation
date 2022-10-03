@@ -6,7 +6,7 @@ Feature: Get Client By ID
 
     Background: I am logged in as admin
         Given I am logged in as admin user
-            | email           | password | role     |
+            | email           | password | role       |
             | admin@gmail.com | iAmAdmin | get_client |
 
         And there is client with the following details:
@@ -26,5 +26,6 @@ Feature: Get Client By ID
         Then Then I should get error with message "<message>"
 
         Examples:
-            | id                         | message        |
-            | 3kjf0-kljkla0-afl30-afl-dk | client not found |
+            | id                                   | message           |
+            | 06f7404f-5402-4832-8b0b-53da2cdd7efc | no client found   |
+            | 3kjf0-kljkla0-afl30-afl-dk           | invalid client id |
