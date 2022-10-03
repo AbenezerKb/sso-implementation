@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sso/internal/constant/permissions"
 	"sync"
 
 	"github.com/joomcode/errorx"
@@ -67,4 +68,8 @@ type MiniRideModule interface {
 	ListenMiniRideEvent(ctx context.Context)
 	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
 	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
+}
+
+type RoleModule interface {
+	GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error)
 }
