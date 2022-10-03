@@ -40,8 +40,14 @@ func (c *clientModule) Create(ctx context.Context, clientParam dto.Client) (*dto
 	return c.clientPersistence.Create(ctx, clientParam)
 }
 
-func (c *clientModule) GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error) {
-	return c.clientPersistence.GetClientByID(ctx, id)
+func (c *clientModule) GetClientByID(ctx context.Context, id string) (*dto.Client, error) {
+	clientID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "invalid client id")
+		c.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("client-id", id))
+		return nil, err
+	}
+	return c.clientPersistence.GetClientByID(ctx, clientID)
 }
 
 func (c *clientModule) GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error) {

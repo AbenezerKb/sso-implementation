@@ -13,7 +13,6 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -123,15 +122,7 @@ func (a *authMiddleware) ClientBasicAuth() gin.HandlerFunc {
 			return
 		}
 
-		id, err := uuid.Parse(clientId)
-		if err != nil {
-			err := errors.ErrInternalServerError.Wrap(err, "could not parse client id")
-			a.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("client-id", clientId))
-			ctx.Error(err)
-			ctx.AbortWithStatus(http.StatusBadRequest)
-			return
-		}
-		client, err := a.client.GetClientByID(ctx.Request.Context(), id)
+		client, err := a.client.GetClientByID(ctx.Request.Context(), clientId)
 		if err != nil {
 			ctx.Error(err)
 			ctx.Abort()

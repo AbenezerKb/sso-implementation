@@ -32,6 +32,7 @@ type Client interface {
 	CreateClient(ctx *gin.Context)
 	DeleteClient(ctx *gin.Context)
 	GetAllClients(ctx *gin.Context)
+	GetAllClientByID(ctx *gin.Context)
 }
 
 type Scope interface {
