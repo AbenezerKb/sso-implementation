@@ -4,6 +4,7 @@ import (
 	"sso/internal/glue/routing/client"
 	"sso/internal/glue/routing/mini_ride"
 	resource_server "sso/internal/glue/routing/resource-server"
+	"sso/internal/glue/routing/role"
 
 	"sso/docs"
 
@@ -37,4 +38,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	profile.InitRoute(group, handler.profile, authMiddleware, enforcer)
 	mini_ride.InitRoute(group, handler.miniRide, authMiddleware, enforcer)
 	resource_server.InitRoute(group, handler.resourceServer, authMiddleware, enforcer)
+	role.InitRoute(group, handler.role, authMiddleware, enforcer)
 }

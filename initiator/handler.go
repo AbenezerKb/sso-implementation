@@ -8,6 +8,7 @@ import (
 	"sso/internal/handler/rest/oauth2"
 	"sso/internal/handler/rest/profile"
 	resource_server "sso/internal/handler/rest/resource-server"
+	"sso/internal/handler/rest/role"
 	"sso/internal/handler/rest/scope"
 	"sso/internal/handler/rest/user"
 	"sso/platform/logger"
@@ -22,6 +23,7 @@ type Handler struct {
 	profile        rest.Profile
 	miniRide       rest.MiniRide
 	resourceServer rest.ResourceServer
+	role           rest.Role
 }
 
 func InitHandler(module Module, log logger.Logger) Handler {
@@ -34,5 +36,6 @@ func InitHandler(module Module, log logger.Logger) Handler {
 		profile:        profile.Init(log.Named("profile-handler"), module.profile),
 		miniRide:       mini_ride.Init(log.Named("minRide-handler"), module.MiniRideModule),
 		resourceServer: resource_server.Init(log.Named("resource-server-handler"), module.resourceServer),
+		role:           role.InitRole(log.Named("role-handler"), module.RoleModule),
 	}
 }

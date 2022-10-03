@@ -9,6 +9,7 @@ import (
 	"sso/internal/module/oauth2"
 	"sso/internal/module/profile"
 	resource_server "sso/internal/module/resource-server"
+	"sso/internal/module/role"
 	"sso/internal/module/scope"
 	"sso/internal/module/user"
 	"sso/platform/logger"
@@ -27,6 +28,7 @@ type Module struct {
 	profile        module.ProfileModule
 	resourceServer module.ResourceServerModule
 	MiniRideModule module.MiniRideModule
+	RoleModule     module.RoleModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
@@ -68,6 +70,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 		scopeModule:    scope.InitScope(log.Named("scope-module"), persistence.ScopePersistence),
 		profile:        profile.InitProfile(log.Named("profile-module"), persistence.OAuthPersistence, persistence.ProfilePersistence),
 		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
+		RoleModule:     role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 	}
 }
 
