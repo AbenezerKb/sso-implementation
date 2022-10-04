@@ -2,6 +2,7 @@ package profile
 
 import (
 	"context"
+	"database/sql"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -71,4 +72,19 @@ func (p *profilePersistence) GetProfile(ctx context.Context, userID uuid.UUID) (
 		ProfilePicture: user.ProfilePicture.String,
 		CreatedAt:      user.CreatedAt,
 	}, nil
+}
+
+func (p *profilePersistence) UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error {
+	_, err := p.db.UpdateUser(ctx, db.UpdateUserParams{
+		ProfilePicture: sql.NullString{String: finalImageName, Valid: true},
+		ID:             userID,
+	})
+
+	if err != nil {
+		err = errors.ErrWriteError.Wrap(err, "could not update user profile picture")
+		p.logger.Error(ctx, "unable to update user profile picture", zap.Error(err), zap.Any("imageName", finalImageName), zap.Any("user-id", userID))
+		return err
+	}
+
+	return nil
 }
