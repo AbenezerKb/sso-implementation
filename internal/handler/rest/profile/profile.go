@@ -86,8 +86,8 @@ func (p *profile) GetProfile(ctx *gin.Context) {
 // @Tags         profile
 // @Accept       mpfd
 // @Produce      json
-// @param image formData  true "image"
-// @Success      200  {object}
+// @param image formData file  true "image"
+// @Success      200  {object}  model.Response
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /profile/picture [put]
 // @Security	BearerAuth

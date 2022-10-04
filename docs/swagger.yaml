@@ -231,6 +231,13 @@ definitions:
         description: Phone number of the user if for login with otp
         type: string
     type: object
+  dto.MiniRideResponse:
+    properties:
+      exists:
+        type: boolean
+      user:
+        $ref: '#/definitions/dto.User'
+    type: object
   dto.RedirectResponse:
     properties:
       location:
@@ -594,6 +601,32 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete  client
+      tags:
+      - client
+    get:
+      consumes:
+      - application/json
+      description: returns client that holds given id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Client'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns client
       tags:
       - client
   /login:
@@ -1141,6 +1174,33 @@ paths:
       summary: update user profile.
       tags:
       - profile
+  /profile/picture:
+    put:
+      consumes:
+      - multipart/form-data
+      description: update user profile picture.
+      parameters:
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile picture.
+      tags:
+      - profile
   /refreshToken:
     get:
       consumes:
@@ -1195,7 +1255,46 @@ paths:
       summary: Register a new user.
       tags:
       - auth
-  /resourceServer:
+  /resourceServers:
+    get:
+      consumes:
+      - application/json
+      description: returns all resource servers based on the filters and pagination
+        given
+      parameters:
+      - in: query
+        name: filter
+        type: string
+      - in: query
+        name: link_operator
+        type: string
+      - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: sort
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.ResourceServer'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns all resource servers that satisfy the given filters
+      tags:
+      - resourceServer
     post:
       consumes:
       - application/json
@@ -1348,6 +1447,37 @@ paths:
       summary: changes user status
       tags:
       - user
+  /users/{phone}/exists:
+    get:
+      consumes:
+      - application/json
+      description: check's if phone exists.
+      parameters:
+      - description: phone
+        in: path
+        name: phone
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MiniRideResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: check's if phone exists.
+      tags:
+      - miniRide
 securityDefinitions:
   BasicAuth:
     type: basic
