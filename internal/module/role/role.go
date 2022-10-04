@@ -2,9 +2,11 @@ package role
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model/dto"
 	"sso/internal/constant/permissions"
 	"sso/internal/module"
 	"sso/internal/storage"
@@ -50,4 +52,27 @@ func (r *roleModule) GetRoleStatusForUser(ctx context.Context, userID string) (s
 	}
 
 	return r.rolePersistence.GetRoleStatusForUser(ctx, userIDParsed)
+}
+
+func (r *roleModule) CreateRole(ctx context.Context, role dto.Role) (dto.Role, error) {
+	if err := role.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		r.logger.Info(ctx, "invalid input", zap.Any("role", role))
+		return dto.Role{}, err
+	}
+
+	// check for invalid permissions
+	for i := 0; i < len(role.Permissions); i++ {
+		exists, err := r.rolePersistence.CheckIfPermissionExists(ctx, role.Permissions[i])
+		if err != nil {
+			return dto.Role{}, err
+		}
+		if !exists {
+			err := errors.ErrInvalidUserInput.New(fmt.Sprintf("permission %s doesn't exist", role.Permissions[i]))
+			r.logger.Info(ctx, "permission doesn't exist")
+			return dto.Role{}, err
+		}
+	}
+
+	return r.rolePersistence.CreateRole(ctx, role)
 }

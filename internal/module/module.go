@@ -75,4 +75,5 @@ type RoleModule interface {
 	GetRoleStatus(ctx context.Context, roleName string) (string, error)
 	GetRoleForUser(ctx context.Context, userID string) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID string) (string, error)
+	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
 }
