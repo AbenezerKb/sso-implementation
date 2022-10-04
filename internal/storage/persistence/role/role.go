@@ -3,8 +3,10 @@ package role
 import (
 	"context"
 	"fmt"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/constant/permissions"
 	"sso/internal/storage"
@@ -45,4 +47,45 @@ func (r *rolePersistence) GetAllPermissions(ctx context.Context, category string
 		return nil, err
 	}
 	return perms, nil
+}
+
+func (r *rolePersistence) GetRoleStatus(ctx context.Context, roleName string) (string, error) {
+	status, err := r.db.GetRoleStatus(ctx, roleName)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return "", nil
+		}
+		err := errors.ErrReadError.Wrap(err, "error fetching role status")
+		r.logger.Error(ctx, "unable to fetch role status", zap.Error(err), zap.String("role-name", roleName))
+		return "", err
+	}
+	return status.String, nil
+}
+
+func (r *rolePersistence) GetRoleForUser(ctx context.Context, userID uuid.UUID) (string, error) {
+	role, err := r.db.GetRoleForUser(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return "", nil
+		}
+		err := errors.ErrReadError.Wrap(err, "error fetching role for user")
+		r.logger.Error(ctx, "error while reading role for user", zap.Error(err), zap.Any("user-id", userID))
+		return "", err
+	}
+
+	return role, nil
+}
+
+func (r *rolePersistence) GetRoleStatusForUser(ctx context.Context, userID uuid.UUID) (string, error) {
+	role, err := r.GetRoleForUser(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+
+	status, err := r.GetRoleStatus(ctx, role)
+	if err != nil {
+		return "", err
+	}
+
+	return status, nil
 }
