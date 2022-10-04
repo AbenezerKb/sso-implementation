@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"database/sql"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
@@ -129,4 +130,25 @@ func (c *clientPersistence) GetAllClients(ctx context.Context, filters request_m
 		Total:        total,
 		Extra:        nil,
 	}, nil
+}
+
+func (c *clientPersistence) UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, clientID uuid.UUID) error {
+	_, err := c.db.UpdateClient(ctx, db.UpdateClientParams{
+		Status: sql.NullString{String: updateClientStatusParam.Status, Valid: true},
+		ID:     clientID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "client not found")
+			c.logger.Error(ctx, "error updating client's status", zap.Error(err), zap.Any("client-param", updateClientStatusParam))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error updating client status")
+			c.logger.Error(ctx, "error updating client's status", zap.Error(err), zap.Any("client-param", updateClientStatusParam))
+			return err
+		}
+	}
+
+	return nil
 }
