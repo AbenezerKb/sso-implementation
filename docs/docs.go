@@ -214,6 +214,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/clients/{id}/status": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "changes client status so that they can revoke client's",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client"
+                ],
+                "summary": "changes client status",
+                "parameters": [
+                    {
+                        "description": "status",
+                        "name": "status",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateClientStatus"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login a user.",
@@ -1985,6 +2030,15 @@ const docTemplate = `{
                 },
                 "token_type": {
                     "description": "TokenType is the type of token",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UpdateClientStatus": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "description": "Status is new status that will replace old status of the user",
                     "type": "string"
                 }
             }
