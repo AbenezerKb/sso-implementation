@@ -12,3 +12,13 @@ RETURNING *;
 -- name: GetAllRoles :many
 SELECT *
 FROM roles;
+
+-- name: GetRoleByName :one
+SELECT *
+FROM roles
+WHERE name = $1;
+
+-- name: GetRoleStatus :one
+SELECT status
+FROM roles
+WHERE name = $1;

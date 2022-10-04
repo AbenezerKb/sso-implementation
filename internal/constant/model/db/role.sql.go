@@ -81,3 +81,34 @@ func (q *Queries) GetAllRoles(ctx context.Context) ([]Role, error) {
 	}
 	return items, nil
 }
+
+const getRoleByName = `-- name: GetRoleByName :one
+SELECT name, status, created_at, updated_at
+FROM roles
+WHERE name = $1
+`
+
+func (q *Queries) GetRoleByName(ctx context.Context, name string) (Role, error) {
+	row := q.db.QueryRow(ctx, getRoleByName, name)
+	var i Role
+	err := row.Scan(
+		&i.Name,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getRoleStatus = `-- name: GetRoleStatus :one
+SELECT status
+FROM roles
+WHERE name = $1
+`
+
+func (q *Queries) GetRoleStatus(ctx context.Context, name string) (sql.NullString, error) {
+	row := q.db.QueryRow(ctx, getRoleStatus, name)
+	var status sql.NullString
+	err := row.Scan(&status)
+	return status, err
+}
