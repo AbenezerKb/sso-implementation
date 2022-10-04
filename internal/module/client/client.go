@@ -76,3 +76,24 @@ func (c *clientModule) DeleteClientByID(ctx context.Context, id string) error {
 
 	return nil
 }
+
+func (c *clientModule) UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, id string) error {
+	clientID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "invalid client id")
+		c.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
+		return err
+	}
+
+	if err := updateClientStatusParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		c.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	err = c.clientPersistence.UpdateClientStatus(ctx, updateClientStatusParam, clientID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

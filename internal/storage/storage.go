@@ -63,6 +63,7 @@ type ClientPersistence interface {
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id uuid.UUID) error
 	GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error)
+	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, clientID uuid.UUID) error
 }
 
 type AuthCodeCache interface {

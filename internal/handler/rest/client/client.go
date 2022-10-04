@@ -139,3 +139,36 @@ func (c *client) GetAllClientByID(ctx *gin.Context) {
 	c.logger.Info(ctx, "client fetched", zap.Any("client-id", clientID))
 	constant.SuccessResponse(ctx, http.StatusOK, client, nil)
 }
+
+// UpdateClientStatus updates client status
+// @Summary      changes client status
+// @Description  changes client status so that they can revoke client's
+// @Tags         client
+// @Accept       json
+// @Produce      json
+// @param status body dto.UpdateClientStatus true "status"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /clients/{id}/status [patch]
+// @Security	BearerAuth
+func (c *client) UpdateClientStatus(ctx *gin.Context) {
+
+	clientID := ctx.Param("id")
+	updateClientStatusParam := dto.UpdateClientStatus{}
+	err := ctx.ShouldBindJSON(&updateClientStatusParam)
+	if err != nil {
+		c.logger.Info(ctx, "unable to bind client status", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+	err = c.clientModule.UpdateClientStatus(requestCtx, updateClientStatusParam, clientID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	c.logger.Info(ctx, "client status changed", zap.Any("client-id", clientID), zap.Any("to-status", updateClientStatusParam))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
