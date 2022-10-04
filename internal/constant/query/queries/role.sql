@@ -1,6 +1,6 @@
 -- name: AddRole :one
-INSERT INTO roles (name, status)
-VALUES ($1, $2)
+INSERT INTO roles (name)
+VALUES ($1)
 RETURNING *;
 
 -- name: DeleteRole :one
