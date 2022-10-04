@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"sso/initiator"
-	"sso/internal/constant"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/persistencedb"
@@ -201,15 +200,24 @@ func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error 
 	if err != nil {
 		return err
 	}
-	exists, err := t.enforcer.HasRoleForUser(userID, permission, constant.User)
+
+	_, err = t.enforcer.AddGroupingPolicy("test", permission, "role")
 	if err != nil {
 		return err
 	}
-	if !exists {
-		_, err := t.enforcer.AddRoleForUser(userID, permission, constant.User)
+	_, err = t.enforcer.AddRoleForUser(userID, "test")
+	if err != nil {
+		return err
+	}
+	_, err = t.DB.GetRoleByName(context.Background(), "test")
+	if err != nil {
+		_, err = t.DB.AddRole(context.Background(), "test")
 		if err != nil {
 			return err
 		}
+	}
+	if err != nil {
+		return err
 	}
 	return nil
 }

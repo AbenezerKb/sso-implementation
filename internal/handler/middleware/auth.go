@@ -34,17 +34,19 @@ type authMiddleware struct {
 	token              platform.Token
 	client             module.ClientModule
 	miniRideCredential MiniRideCredential
+	role               module.RoleModule
 	logger             logger.Logger
 }
 
 func InitAuthMiddleware(enforcer *casbin.Enforcer,
-	auth module.OAuthModule, token platform.Token, client module.ClientModule, miniRideCredential MiniRideCredential, logger logger.Logger) AuthMiddleware {
+	auth module.OAuthModule, token platform.Token, client module.ClientModule, miniRideCredential MiniRideCredential, role module.RoleModule, logger logger.Logger) AuthMiddleware {
 	return &authMiddleware{
 		enforcer,
 		auth,
 		token,
 		client,
 		miniRideCredential,
+		role,
 		logger,
 	}
 }
@@ -88,20 +90,51 @@ func (a *authMiddleware) Authentication() gin.HandlerFunc {
 }
 func (a *authMiddleware) AccessControl() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		context := ctx.Request.Context()
-		userId := context.Value(constant.Context("x-user-id")).(string)
+		requestCtx := ctx.Request.Context()
+		userId := requestCtx.Value(constant.Context("x-user-id")).(string)
 
-		a.enforcer.LoadPolicy()
-		ok, err := a.enforcer.Enforce(userId, permissions.Notneeded, permissions.Notneeded, ctx.Request.URL.Path, ctx.Request.Method)
+		// check user role status
+		status, err := a.role.GetRoleStatusForUser(ctx, userId)
 		if err != nil {
-			Err := errors.ErrAcessError.Wrap(err, "unable to perform operation")
-			ctx.Error(Err)
+			err := errors.ErrAcessError.Wrap(err, "unable to perform operation")
+			_ = ctx.Error(err)
+			a.logger.Error(ctx, "error while fetching role status for user", zap.Error(err), zap.String("user-id", userId))
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+
+		if status != constant.Active {
+			message := "access denied"
+			if status != "" {
+				message = "your role is disabled"
+			}
+			err := errors.ErrAcessError.New(message)
+			a.logger.Info(ctx, "access denied", zap.Error(err), zap.String("user-id", userId))
+			_ = ctx.Error(err)
+			ctx.AbortWithStatus(http.StatusForbidden)
+		}
+
+		// enforce role
+		err = a.enforcer.LoadPolicy()
+		if err != nil {
+			err := errors.ErrAcessError.Wrap(err, "unable to perform operation")
+			_ = ctx.Error(err)
+			a.logger.Error(ctx, "error while trying to load policy", zap.Error(err), zap.String("user-id", userId))
+			ctx.AbortWithStatus(http.StatusForbidden)
+			return
+		}
+		ok, err := a.enforcer.Enforce(userId, permissions.Notneeded, permissions.Notneeded, ctx.Request.URL.Path, ctx.Request.Method, permissions.Notneeded)
+		if err != nil {
+			err := errors.ErrAcessError.Wrap(err, "unable to perform operation")
+			_ = ctx.Error(err)
+			a.logger.Error(ctx, "error while enforcing policy", zap.Error(err), zap.String("user-id", userId))
 			ctx.AbortWithStatus(http.StatusForbidden)
 			return
 		}
 		if !ok {
-			Err := errors.ErrAcessError.Wrap(err, "Access denied")
-			ctx.Error(Err)
+			err := errors.ErrAcessError.Wrap(err, "Access denied")
+			_ = ctx.Error(err)
+			a.logger.Info(ctx, "access denied", zap.Error(err), zap.String("user-id", userId))
 			ctx.AbortWithStatus(http.StatusForbidden)
 			return
 		}

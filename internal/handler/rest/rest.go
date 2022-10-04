@@ -58,4 +58,5 @@ type ResourceServer interface {
 
 type Role interface {
 	GetAllPermissions(ctx *gin.Context)
+	CreateRole(ctx *gin.Context)
 }

@@ -63,6 +63,13 @@ type ResourceServer struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type Role struct {
+	Name      string         `json:"name"`
+	Status    sql.NullString `json:"status"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+}
+
 type Scope struct {
 	ID                 uuid.UUID      `json:"id"`
 	Name               string         `json:"name"`

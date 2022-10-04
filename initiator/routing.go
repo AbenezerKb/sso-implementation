@@ -25,7 +25,16 @@ import (
 
 func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, module Module, log logger.Logger, enforcer *casbin.Enforcer, platformLayer PlatformLayer) {
 
-	authMiddleware := middleware.InitAuthMiddleware(enforcer, module.OAuthModule, platformLayer.Token, module.clientModule, middleware.MiniRideCredential{UserName: viper.GetString("mini_ride.username"), Password: viper.GetString("mini_ride.password")}, log.Named("auth-middleware"))
+	authMiddleware := middleware.InitAuthMiddleware(
+		enforcer,
+		module.OAuthModule,
+		platformLayer.Token,
+		module.clientModule,
+		middleware.MiniRideCredential{
+			UserName: viper.GetString("mini_ride.username"),
+			Password: viper.GetString("mini_ride.password")},
+		module.RoleModule,
+		log.Named("auth-middleware"))
 
 	docs.SwaggerInfo.BasePath = "/v1"
 	group.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
