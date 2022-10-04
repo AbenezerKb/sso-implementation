@@ -2,6 +2,7 @@ package module
 
 import (
 	"context"
+	"mime/multipart"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
@@ -46,6 +47,7 @@ type ClientModule interface {
 	GetClientByID(ctx context.Context, id string) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id string) error
 	GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
+	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, id string) error
 }
 
 type ScopeModule interface {
@@ -57,6 +59,7 @@ type ScopeModule interface {
 type ProfileModule interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context) (*dto.User, error)
+	UpdateProfilePicture(ctx context.Context, imageFile *multipart.FileHeader) error
 }
 
 type ResourceServerModule interface {

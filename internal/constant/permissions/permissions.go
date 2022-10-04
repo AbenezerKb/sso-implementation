@@ -76,6 +76,11 @@ var (
 		Name:     "get a client",
 		Category: "client",
 	}
+	UpdateClient = Permission{
+		ID:       "update_client",
+		Name:     "update a client",
+		Category: "client",
+	}
 	GetAllPermissions = Permission{
 		ID:       "get_all_permissions",
 		Name:     "Get all permissions",

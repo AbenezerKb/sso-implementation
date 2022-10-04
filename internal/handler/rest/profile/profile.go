@@ -1,6 +1,7 @@
 package profile
 
 import (
+	"context"
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -77,4 +78,35 @@ func (p *profile) GetProfile(ctx *gin.Context) {
 
 	p.logger.Info(ctx, "user profile fetched", zap.Any("user", user))
 	constant.SuccessResponse(ctx, http.StatusOK, user, nil)
+}
+
+// UpdateProfilePicture	 updates user's profile picture.
+// @Summary      update user profile picture.
+// @Description  update user profile picture.
+// @Tags         profile
+// @Accept       mpfd
+// @Produce      json
+// @param image formData file  true "image"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile/picture [put]
+// @Security	BearerAuth
+func (p *profile) UpdateProfilePicture(ctx *gin.Context) {
+	imageFile, err := ctx.FormFile("image")
+	if err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid profile picture")
+		p.logger.Error(context.Background(), "error binding profile picture")
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+	err = p.profileModule.UpdateProfilePicture(requestCtx, imageFile)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	p.logger.Info(ctx, "user profile picture updated", zap.Any("user-id", constant.Context("x-user-id")), zap.Any("picture", imageFile.Filename))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }

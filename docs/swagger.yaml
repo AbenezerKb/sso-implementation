@@ -354,6 +354,12 @@ definitions:
         description: TokenType is the type of token
         type: string
     type: object
+  dto.UpdateClientStatus:
+    properties:
+      status:
+        description: Status is new status that will replace old status of the user
+        type: string
+    type: object
   dto.User:
     properties:
       created_at:
@@ -636,6 +642,34 @@ paths:
       security:
       - BearerAuth: []
       summary: returns client
+      tags:
+      - client
+  /clients/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: changes client status so that they can revoke client's
+      parameters:
+      - description: status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateClientStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: changes client status
       tags:
       - client
   /login:
@@ -1181,6 +1215,33 @@ paths:
       security:
       - BearerAuth: []
       summary: update user profile.
+      tags:
+      - profile
+  /profile/picture:
+    put:
+      consumes:
+      - multipart/form-data
+      description: update user profile picture.
+      parameters:
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile picture.
       tags:
       - profile
   /refreshToken:

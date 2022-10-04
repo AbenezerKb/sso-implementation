@@ -63,6 +63,7 @@ type ClientPersistence interface {
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id uuid.UUID) error
 	GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error)
+	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, clientID uuid.UUID) error
 }
 
 type AuthCodeCache interface {
@@ -87,6 +88,7 @@ type UserPersistence interface {
 type ProfilePersistence interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
+	UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error
 }
 
 type ResourceServerPersistence interface {
