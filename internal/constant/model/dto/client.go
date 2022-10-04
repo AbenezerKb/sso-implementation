@@ -84,3 +84,14 @@ func ValidateLogo(logo interface{}) error {
 	}
 	return nil
 }
+
+type UpdateClientStatus struct {
+	// Status is new status that will replace old status of the user
+	Status string `json:"status"`
+}
+
+func (u UpdateClientStatus) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In("ACTIVE", "PENDING", "INACTIVE")),
+	)
+}
