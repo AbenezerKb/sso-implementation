@@ -107,7 +107,7 @@ func (c *createRoleTest) theRoleShouldSuccessfullyBeCreated() error {
 func (c *createRoleTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
 		_, _ = c.DB.DeleteUser(ctx, c.admin.ID)
-		// TODO: delete role here
+		_, _ = c.DB.DeleteRole(ctx, c.role.Name)
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, c.iAmLoggedInWithTheFollowingCredentials)
