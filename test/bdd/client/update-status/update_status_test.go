@@ -80,12 +80,12 @@ func (u *updateClientStatusTest) theClientStatusShouldUpdateTo(updatedStatus str
 	if err := u.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
-	updatedClientData, err := u.DB.GetUserById(context.Background(), u.client.ID)
+	updatedClientData, err := u.DB.GetClientByID(context.Background(), u.client.ID)
 	if err != nil {
 		return err
 	}
 
-	if err := u.apiTest.AssertEqual(updatedClientData.Status.String, updatedStatus); err != nil {
+	if err := u.apiTest.AssertEqual(updatedClientData.Status, updatedStatus); err != nil {
 		return err
 	}
 	return nil
@@ -107,7 +107,7 @@ func (u *updateClientStatusTest) thenIShouldGetErrorWithMessage(message string) 
 
 func (u *updateClientStatusTest) thereIsClientWithId(clientID string) error {
 	u.apiTest.URL += clientID + "/status"
-	return godog.ErrPending
+	return nil
 }
 
 func (u *updateClientStatusTest) InitializeScenario(ctx *godog.ScenarioContext) {

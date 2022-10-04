@@ -28,9 +28,9 @@ Feature: update Client Status
         Then Then I should get client not found error with message "<message>"
 
         Examples:
-            | id                          | updated_status | message           |
-            | 3kjf0-kjf0afl2-afl30-afl-dk | ACTIVE         | client not found  |
-            | 3kjf0-kjf0afl2-afl30-afl-dk | ACTIVE         | invalid client id |
+            | id                                   | updated_status | message           |
+            | e125af47-5c03-41b6-9df8-4cce383d1e64 | ACTIVE         | client not found  |
+            | 3kjf0-kjf0afl2-afl30-afl-dk          | ACTIVE         | invalid client id |
     @failure
     Scenario Outline: Invalid Status
         Given there is client with the following details:
