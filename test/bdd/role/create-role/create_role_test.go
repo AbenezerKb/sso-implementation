@@ -74,7 +74,7 @@ func (c *createRoleTest) myRequestShouldFailWithAnd(message, fieldError string) 
 		}
 	}
 	if fieldError != "" {
-		if err := c.apiTest.AssertStringValueOnPathInResponse("error.field_errors.0.description", fieldError); err != nil {
+		if err := c.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", fieldError); err != nil {
 			return err
 		}
 	}
@@ -82,7 +82,7 @@ func (c *createRoleTest) myRequestShouldFailWithAnd(message, fieldError string) 
 }
 
 func (c *createRoleTest) theRoleShouldSuccessfullyBeCreated() error {
-	if err := c.apiTest.AssertStatusCode(http.StatusOK); err != nil {
+	if err := c.apiTest.AssertStatusCode(http.StatusCreated); err != nil {
 		return err
 	}
 
@@ -105,7 +105,7 @@ func (c *createRoleTest) theRoleShouldSuccessfullyBeCreated() error {
 }
 
 func (c *createRoleTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = c.DB.DeleteUser(ctx, c.admin.ID)
 		_, _ = c.DB.DeleteRole(ctx, c.role.Name)
 		return ctx, nil
