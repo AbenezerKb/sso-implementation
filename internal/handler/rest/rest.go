@@ -44,6 +44,7 @@ type Scope interface {
 type Profile interface {
 	UpdateProfile(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
+	UpdateProfilePicture(ctx *gin.Context)
 }
 
 type MiniRide interface {

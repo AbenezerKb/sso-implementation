@@ -1183,6 +1183,33 @@ paths:
       summary: update user profile.
       tags:
       - profile
+  /profile/picture:
+    put:
+      consumes:
+      - multipart/form-data
+      description: update user profile picture.
+      parameters:
+      - description: image
+        in: formData
+        name: image
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update user profile picture.
+      tags:
+      - profile
   /refreshToken:
     get:
       consumes:

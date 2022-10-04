@@ -30,6 +30,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.Profile, authMiddleware mid
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  "PUT",
+			Path:    "/picture",
+			Handler: handler.UpdateProfilePicture,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(profile, profileRoutes, enforcer)
 }
