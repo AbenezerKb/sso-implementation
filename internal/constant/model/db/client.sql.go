@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -84,6 +85,57 @@ SELECT id, name, client_type, redirect_uris, scopes, secret, logo_url, status, c
 
 func (q *Queries) GetClientByID(ctx context.Context, id uuid.UUID) (Client, error) {
 	row := q.db.QueryRow(ctx, getClientByID, id)
+	var i Client
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ClientType,
+		&i.RedirectUris,
+		&i.Scopes,
+		&i.Secret,
+		&i.LogoUrl,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const updateClient = `-- name: UpdateClient :one
+UPDATE clients
+SET
+ name = coalesce($1, name),
+ client_type = coalesce($2, client_type),
+ redirect_uris = coalesce($3, redirect_uris),
+ scopes = coalesce($4, scopes),
+ secret = coalesce($5, secret),
+ logo_url = coalesce($6, logo_url),
+ status = coalesce($7, status)
+WHERE id = $8
+RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+`
+
+type UpdateClientParams struct {
+	Name         sql.NullString `json:"name"`
+	ClientType   sql.NullString `json:"client_type"`
+	RedirectUris sql.NullString `json:"redirect_uris"`
+	Scopes       sql.NullString `json:"scopes"`
+	Secret       sql.NullString `json:"secret"`
+	LogoUrl      sql.NullString `json:"logo_url"`
+	Status       sql.NullString `json:"status"`
+	ID           uuid.UUID      `json:"id"`
+}
+
+func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) (Client, error) {
+	row := q.db.QueryRow(ctx, updateClient,
+		arg.Name,
+		arg.ClientType,
+		arg.RedirectUris,
+		arg.Scopes,
+		arg.Secret,
+		arg.LogoUrl,
+		arg.Status,
+		arg.ID,
+	)
 	var i Client
 	err := row.Scan(
 		&i.ID,
