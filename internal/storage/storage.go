@@ -107,4 +107,6 @@ type RolePersistence interface {
 	GetRoleStatus(ctx context.Context, roleName string) (string, error)
 	GetRoleForUser(ctx context.Context, userID uuid.UUID) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID uuid.UUID) (string, error)
+	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
+	CheckIfPermissionExists(ctx context.Context, permission string) (bool, error)
 }

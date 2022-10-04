@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/constant/permissions"
 	"sso/internal/storage"
@@ -88,4 +89,25 @@ func (r *rolePersistence) GetRoleStatusForUser(ctx context.Context, userID uuid.
 	}
 
 	return status, nil
+}
+
+func (r *rolePersistence) CreateRole(ctx context.Context, role dto.Role) (dto.Role, error) {
+	roleSaved, err := r.db.CreateRoleTX(ctx, role.Name, role.Permissions)
+	if err != nil {
+		err := errors.ErrWriteError.Wrap(err, "error creating role")
+		r.logger.Error(ctx, "error while creating a role", zap.Error(err), zap.Any("role", role))
+		return dto.Role{}, err
+	}
+
+	return roleSaved, nil
+}
+
+func (r *rolePersistence) CheckIfPermissionExists(ctx context.Context, perm string) (bool, error) {
+	exist, err := r.db.CheckIfPermissionExists(ctx, perm)
+	if err != nil {
+		err := errors.ErrWriteError.Wrap(err, "error checking if permission exists")
+		r.logger.Error(ctx, "error while checking for permission existence", zap.Error(err), zap.Any("permission", perm))
+	}
+
+	return exist, nil
 }
