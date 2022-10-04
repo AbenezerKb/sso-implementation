@@ -17,16 +17,17 @@ Feature: Update Profile Picture
 
         Examples:
             | picture              |
+            | ./assets/girl.jpeg   |
             | ./assets/hacker.jpeg |
 
-# @failure
-# Scenario: UnUnsuccessful Update
-#     Given I selected this picture "<picture>"
-#     When I update my profile picture
-#     Then The update should fail with message "<message>"
+    @failure
+    Scenario: UnUnsuccessful Update
+        Given I selected this picture "<picture>"
+        When I update my profile picture
+        Then The update should fail with message "<message>"
 
-#     Examples:
-#         | picture   | message                       |
-#         | ./pic.pic | invalid picture               |
-#         | ./pic.pdf | invalid picture               |
-#         | ./big.png | picture must be less then 2MB |
+        Examples:
+            | picture             | message                          |
+            | ./assets/links.txt  | invalid picture                  |
+            | ./assets/sample.pdf | invalid picture                  |
+            | ./assets/big.jpg    | image size must be less than 2MB |

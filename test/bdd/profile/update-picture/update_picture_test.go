@@ -64,6 +64,10 @@ func (u *updateProfilePictureTest) iUpdateMyProfilePicture() error {
 }
 
 func (u *updateProfilePictureTest) myProfilePictureShouldBeUpdated() error {
+	if err := u.apiTest.AssertStatusCode(http.StatusOK); err != nil {
+		return err
+	}
+
 	updatedUser, err := u.DB.GetUserById(context.Background(), u.User.ID)
 	if err != nil {
 		return err
@@ -72,12 +76,16 @@ func (u *updateProfilePictureTest) myProfilePictureShouldBeUpdated() error {
 	if err := u.apiTest.AssertEqual(updatedUser.ProfilePicture.String, u.User.ProfilePicture.String); err == nil {
 		return fmt.Errorf("profile picture not updated")
 	}
+	u.User = updatedUser
 
 	return nil
 }
 
-func (u *updateProfilePictureTest) theUpdateShouldFailWithMessage(arg1 string) error {
-	return nil
+func (u *updateProfilePictureTest) theUpdateShouldFailWithMessage(message string) error {
+	if err := u.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+		return err
+	}
+	return u.apiTest.AssertStringValueOnPathInResponse("error.message", message)
 }
 
 func (u *updateProfilePictureTest) openMultipartFormData(filePath string) (*bytes.Buffer, *multipart.Writer) {
@@ -102,8 +110,9 @@ func (u *updateProfilePictureTest) InitializeScenario(ctx *godog.ScenarioContext
 	u.apiTest.InitializeServer(u.Server)
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		_, _ = u.DB.DeleteUser(ctx, u.User.ID)
+		_ = os.Remove("../../../../static/profile_picture/" + u.User.ProfilePicture.String)
 
+		_, _ = u.DB.DeleteUser(ctx, u.User.ID)
 		return ctx, nil
 	})
 
