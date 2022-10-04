@@ -3,6 +3,7 @@ package role
 import (
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"sso/internal/constant/permissions"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
@@ -21,6 +22,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Role, authMiddleware middlew
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.GetAllPermissions,
+		},
+		{
+			Method:  http.MethodPost,
+			Path:    "",
+			Handler: handler.CreateRole,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.CreateRole,
 		},
 	}
 	routing.RegisterRoutes(roleGroup, roleRoutes, enforcer)
