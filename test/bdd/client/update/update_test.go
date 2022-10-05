@@ -83,6 +83,12 @@ func (u *updateClientTest) iFillTheFormWithTheFollowingDetails(clientForm *godog
 
 	u.updateClient = clientValues
 
+	// jsonClient, err := json.Marshal(clientValues)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// u.apiTest.Body = string(jsonClient)
 	u.apiTest.Body = body
 	return nil
 }
