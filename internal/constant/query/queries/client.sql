@@ -28,3 +28,15 @@ SET
  status = coalesce(sqlc.narg('status'), status)
 WHERE id = sqlc.arg('id')
 RETURNING *;
+
+-- name: UpdateEntireClient :one   
+UPDATE clients
+SET
+ name = $2,
+ client_type = $3,
+ redirect_uris = $4,
+ scopes = $5,
+ logo_url = $6
+WHERE id = $1
+RETURNING *;
+
