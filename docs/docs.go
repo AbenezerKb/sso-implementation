@@ -212,6 +212,47 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "changes client information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "client"
+                ],
+                "summary": "changes client information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/clients/{id}/status": {
@@ -1378,6 +1419,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/roles": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "create a role with specified name and permission list",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "role"
+                ],
+                "summary": "create role",
+                "operationId": "create-role",
+                "parameters": [
+                    {
+                        "description": "role",
+                        "name": "role",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.Role"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Role"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/roles/permissions": {
             "get": {
                 "security": [
@@ -1399,13 +1486,11 @@ const docTemplate = `{
                 "operationId": "get-all-permissions",
                 "parameters": [
                     {
+                        "type": "string",
                         "description": "category of permissions",
                         "name": "category",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "string"
-                        }
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -2029,6 +2114,22 @@ const docTemplate = `{
                 "updated_at": {
                     "description": "UpdatedAt is the time this resource server is updated at",
                     "type": "string"
+                }
+            }
+        },
+        "dto.Role": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "Name is a unique name for the role",
+                    "type": "string"
+                },
+                "permissions": {
+                    "description": "Permissions are the list of permissions names this role contains",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

@@ -321,6 +321,17 @@ definitions:
         description: UpdatedAt is the time this resource server is updated at
         type: string
     type: object
+  dto.Role:
+    properties:
+      name:
+        description: Name is a unique name for the role
+        type: string
+      permissions:
+        description: Permissions are the list of permissions names this role contains
+        items:
+          type: string
+        type: array
+    type: object
   dto.Scope:
     properties:
       created_at:
@@ -642,6 +653,32 @@ paths:
       security:
       - BearerAuth: []
       summary: returns client
+      tags:
+      - client
+    patch:
+      consumes:
+      - application/json
+      description: changes client information
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: changes client information
       tags:
       - client
   /clients/{id}/status:
@@ -1393,6 +1430,35 @@ paths:
       summary: Create a resource server
       tags:
       - resourceServer
+  /roles:
+    post:
+      consumes:
+      - application/json
+      description: create a role with specified name and permission list
+      operationId: create-role
+      parameters:
+      - description: role
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: create role
+      tags:
+      - role
   /roles/permissions:
     get:
       consumes:
@@ -1401,11 +1467,10 @@ paths:
       operationId: get-all-permissions
       parameters:
       - description: category of permissions
-        in: body
+        in: query
         name: category
         required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:
