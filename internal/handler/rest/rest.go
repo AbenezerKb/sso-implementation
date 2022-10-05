@@ -34,6 +34,7 @@ type Client interface {
 	GetAllClients(ctx *gin.Context)
 	GetAllClientByID(ctx *gin.Context)
 	UpdateClientStatus(ctx *gin.Context)
+	UpdateClient(ctx *gin.Context)
 }
 
 type Scope interface {
