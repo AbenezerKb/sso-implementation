@@ -43,6 +43,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middle
 			},
 			Permission: permissions.GetAllScopes,
 		},
+		{
+			Method:  "DELETE",
+			Path:    "/:name",
+			Handler: handler.DeleteScope,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.DeleteScope,
+		},
 	}
 	routing.RegisterRoutes(scopeGroup, scopeRoutes, enforcer)
 }
