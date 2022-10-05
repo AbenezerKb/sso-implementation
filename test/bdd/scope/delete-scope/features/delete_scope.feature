@@ -30,5 +30,5 @@ Feature: Delete Scope
         Then The delete should fail with message "<message>"
 
         Examples:
-            | name       | message         |
-            | not_openid | scope not found |
+            | name       | message        |
+            | not_openid | no scope found |
