@@ -48,6 +48,7 @@ type ClientModule interface {
 	DeleteClientByID(ctx context.Context, id string) error
 	GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
 	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, id string) error
+	UpdateClient(ctx context.Context, client dto.Client, id string) error
 }
 
 type ScopeModule interface {
