@@ -107,7 +107,7 @@ func (d *deleteScopeTest) thereAreScopesWithTheFollowingDetails(scopes *godog.Ta
 }
 
 func (d *deleteScopeTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	d.apiTest.URL = "/v1/scopes/"
+	d.apiTest.URL = "/v1/oauth/scopes/"
 	d.apiTest.Method = http.MethodDelete
 	d.apiTest.SetHeader("Content-Type", "application/json")
 	d.apiTest.InitializeServer(d.Server)
