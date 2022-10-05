@@ -152,3 +152,28 @@ func (c *clientPersistence) UpdateClientStatus(ctx context.Context, updateClient
 
 	return nil
 }
+
+func (c *clientPersistence) UpdateClient(ctx context.Context, client dto.Client) error {
+	_, err := c.db.UpdateEntireClient(ctx, db.UpdateEntireClientParams{
+		Name:         client.Name,
+		LogoUrl:      client.LogoURL,
+		ClientType:   client.ClientType,
+		RedirectUris: utils.ArrayToString(client.RedirectURIs),
+		Scopes:       client.Scopes,
+		ID:           client.ID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "client not found")
+			c.logger.Error(ctx, "error updating client, ", zap.Error(err), zap.Any("client-param", client))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error updating client")
+			c.logger.Error(ctx, "error updating client", zap.Error(err), zap.Any("client-param", client))
+			return err
+		}
+	}
+
+	return nil
+}
