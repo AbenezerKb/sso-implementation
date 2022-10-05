@@ -1073,6 +1073,34 @@ paths:
       tags:
       - scope
   /oauth/scopes/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete  scope
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete  scope
+      tags:
+      - scope
     get:
       consumes:
       - application/json

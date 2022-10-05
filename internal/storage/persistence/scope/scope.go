@@ -103,8 +103,8 @@ func (s *scopePersistence) GetAllScopes(ctx context.Context, filters request_mod
 			s.logger.Info(ctx, "no scopes were found", zap.Error(err), zap.Any("filters", filters))
 			return nil, nil, err
 		} else {
-			err = errors.ErrReadError.Wrap(err, "error reading clients")
-			s.logger.Error(ctx, "error reading clients", zap.Error(err), zap.Any("filters", filters))
+			err = errors.ErrReadError.Wrap(err, "error reading scopes")
+			s.logger.Error(ctx, "error reading scopes", zap.Error(err), zap.Any("filters", filters))
 			return nil, nil, err
 		}
 	}
@@ -122,4 +122,21 @@ func (s *scopePersistence) GetAllScopes(ctx context.Context, filters request_mod
 		Total:        total,
 		Extra:        nil,
 	}, nil
+}
+
+func (s *scopePersistence) DeleteScopeByName(ctx context.Context, name string) error {
+	_, err := s.db.DeleteScope(ctx, name)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no scope found")
+			s.logger.Info(ctx, "no scopes were found", zap.Error(err), zap.String("scope", name))
+			return err
+		} else {
+			err = errors.ErrDBDelError.Wrap(err, "error deleting scope")
+			s.logger.Error(ctx, "error deleting scope", zap.Error(err), zap.String("scope", name))
+			return err
+		}
+	}
+
+	return nil
 }

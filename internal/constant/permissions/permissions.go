@@ -86,6 +86,11 @@ var (
 		Name:     "Get all permissions",
 		Category: "role",
 	}
+	DeleteScope = Permission{
+		ID:       "delete_scope",
+		Name:     "Delete a scope",
+		Category: "scope",
+	}
 	CreateRole = Permission{
 		ID:       "create_role",
 		Name:     "create a role",
