@@ -37,15 +37,17 @@ type TestInstance struct {
 		OK   bool              `json:"ok"`
 		Data dto.TokenResponse `json:"data"`
 	}
-	AccessToken   string
-	RefreshToken  string
-	enforcer      *casbin.Enforcer
-	Logger        logger.Logger
-	Conn          *pgxpool.Pool
-	PlatformLayer initiator.PlatformLayer
-	CacheLayer    initiator.CacheLayer
-	KafkaConn     *kafka.Conn
-	KafkaReader   *kafka.Reader
+	AccessToken        string
+	RefreshToken       string
+	enforcer           *casbin.Enforcer
+	Logger             logger.Logger
+	Conn               *pgxpool.Pool
+	PlatformLayer      initiator.PlatformLayer
+	CacheLayer         initiator.CacheLayer
+	KafkaConn          *kafka.Conn
+	KafkaReader        *kafka.Reader
+	PersistDB          persistencedb.PersistenceDB
+	GrantRoleAfterFunc func() error
 }
 
 func Initiate(path string) TestInstance {
@@ -82,7 +84,8 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistence := initiator.InitPersistence(persistencedb.New(pgxConn), log)
+	persistDB := persistencedb.New(pgxConn)
+	persistence := initiator.InitPersistence(persistDB, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
 	log.Info(context.Background(), "initializing cache layer")
@@ -142,6 +145,7 @@ func Initiate(path string) TestInstance {
 		CacheLayer:    cacheLayer,
 		KafkaConn:     kafkaConn,
 		KafkaReader:   kafkaReader,
+		PersistDB:     persistDB,
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
@@ -194,6 +198,8 @@ func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
 	return user, nil
 }
 
+// GrantRoleForUser
+// Deprecated: use GrantRoleForUserWithAfter
 func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error {
 	test := src.ApiTest{}
 	permission, err := test.ReadCellString(role, "role")
@@ -220,6 +226,47 @@ func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error 
 		return err
 	}
 	return nil
+}
+
+func (t *TestInstance) GrantRoleForUserWithAfter(userID string, role *godog.Table) (func() error, error) {
+	testRoleName := "test_" + utils.GenerateRandomString(10, false)
+	test := src.ApiTest{}
+	permission, err := test.ReadCellString(role, "role")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = t.enforcer.AddGroupingPolicy(testRoleName, permission, "role")
+	if err != nil {
+		return nil, err
+	}
+	_, err = t.enforcer.AddRoleForUser(userID, testRoleName)
+	if err != nil {
+		return nil, err
+	}
+	_, err = t.DB.GetRoleByName(context.Background(), testRoleName)
+	if err != nil {
+		_, err = t.DB.AddRole(context.Background(), testRoleName)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	return func() error {
+		var errs error
+		_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", testRoleName)
+		if err != nil {
+			errs = err
+		}
+		_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", userID)
+		if err != nil {
+			errs = fmt.Errorf(errs.Error() + "," + err.Error())
+		}
+
+		return errs
+	}, nil
 }
 
 func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, error) {
