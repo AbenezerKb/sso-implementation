@@ -67,8 +67,8 @@ func (c *clientModule) DeleteClientByID(ctx context.Context, id string) error {
 		return err
 	}
 
-	// TODO: before deleting client we should de somthing about rf token issued to this client
-	// TODO: before deleting this client we should do somthing about the auth_histories of this client
+	// TODO: before deleting client we should de something about rf token issued to this client
+	// TODO: before deleting this client we should do something about the auth_histories of this client
 	err = c.clientPersistence.DeleteClientByID(ctx, clientID)
 	if err != nil {
 		return err
