@@ -2,8 +2,10 @@ package persistencedb
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"sso/internal/constant/errors/sqlcerr"
+	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 )
 
@@ -71,4 +73,66 @@ func (db *PersistenceDB) CheckIfPermissionExists(ctx context.Context, permission
 		return false, err
 	}
 	return true, nil
+}
+
+const getAllRoles = `
+SELECT
+r.name,
+r.status,
+r.created_at,
+r.updated_at,
+cs.v1 AS permission,
+COUNT(*) OVER()
+FROM roles r
+    LEFT JOIN casbin_rule cs
+        ON cs.v0 = r.name`
+
+func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.Role, int, error) {
+	rows, err := db.pool.Query(ctx, fmt.Sprintf("%s %s", getAllRoles, pgnFlt))
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	// maps are a better way to search than slices
+	rolesMap := map[string]dto.Role{}
+	var totalCount, reducer int
+	for rows.Next() {
+		var i db2.Role
+		var p string
+		if err := rows.Scan(
+			&i.Name,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&p,
+			&totalCount); err != nil {
+			return nil, 0, err
+		}
+		if v, ok := rolesMap[i.Name]; ok {
+			v.Permissions = append(v.Permissions, p)
+			rolesMap[i.Name] = v
+			reducer++
+		} else {
+			rs := dto.Role{
+				Name:      i.Name,
+				Status:    i.Status.String,
+				CreatedAt: i.CreatedAt,
+				UpdatedAt: i.UpdatedAt,
+			}
+			if p != "" { // if scope was found
+				rs.Permissions = []string{p}
+			}
+			rolesMap[i.Name] = rs
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	roles := make([]dto.Role, 0, len(rolesMap))
+	for _, v := range rolesMap {
+		roles = append(roles, v)
+	}
+	return roles, totalCount - reducer, nil
 }
