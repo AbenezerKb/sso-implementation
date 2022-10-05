@@ -40,6 +40,7 @@ type Scope interface {
 	GetScope(ctx *gin.Context)
 	CreateScope(ctx *gin.Context)
 	GetAllScopes(ctx *gin.Context)
+	DeleteScope(ctx *gin.Context)
 }
 
 type Profile interface {
