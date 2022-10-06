@@ -9,6 +9,7 @@ import (
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -19,10 +20,10 @@ import (
 
 type userPersistence struct {
 	logger logger.Logger
-	db     *db.Queries
+	db     *persistencedb.PersistenceDB
 }
 
-func InitUserPersistence(logger logger.Logger, db *db.Queries) storage.UserPersistence {
+func InitUserPersistence(logger logger.Logger, db *persistencedb.PersistenceDB) storage.UserPersistence {
 	return &userPersistence{
 		logger: logger,
 		db:     db,
@@ -74,5 +75,16 @@ func (u *userPersistence) UpdateUserStatus(ctx context.Context, updateUserStatus
 		u.logger.Error(ctx, "error updating user's status", zap.Error(err), zap.Any("user-param", updateUserStatusParam))
 		return err
 	}
+	return nil
+}
+
+func (u *userPersistence) UpdateUserRole(ctx context.Context, userID uuid.UUID, roleName string) error {
+	err := u.db.AssignRoleForUser(ctx, userID, roleName)
+	if err != nil {
+		err = errors.ErrUpdateError.Wrap(err, "error updating user role")
+		u.logger.Error(ctx, "error updating user's role", zap.Error(err), zap.Any("user-id", userID), zap.String("role-name", roleName))
+		return err
+	}
+
 	return nil
 }
