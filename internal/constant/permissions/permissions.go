@@ -51,11 +51,6 @@ var (
 		Name:     "get all users",
 		Category: "user",
 	}
-	UpdateUser = Permission{
-		ID:       "update_user",
-		Name:     "update a user",
-		Category: "user",
-	}
 	CreateResourceServer = Permission{
 		ID:       "create_resource_server",
 		Name:     "create a resource server",
@@ -104,6 +99,11 @@ var (
 	UpdateUserRole = Permission{
 		ID:       "update_user_role",
 		Name:     "update user role",
+		Category: "user",
+	}
+	UpdateUserStatus = Permission{
+		ID:       "update_user_status",
+		Name:     "update user status",
 		Category: "user",
 	}
 )

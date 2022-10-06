@@ -52,7 +52,7 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
 			},
-			Permission: permissions.UpdateUser,
+			Permission: permissions.UpdateUserStatus,
 		},
 		{
 			Method:  http.MethodPatch,

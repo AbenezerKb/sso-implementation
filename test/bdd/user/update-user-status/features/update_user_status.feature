@@ -7,7 +7,7 @@ Feature: update User Status
     Background: I am logged in as admin
         Given I am logged in as admin user
             | email           | password | role        |
-            | admin@gmail.com | iAmAdmin | update_user |
+            | admin@gmail.com | iAmAdmin | update_user_status |
     @success
     Scenario Outline: Successful User Status Update
         Given there is user with the following details:
