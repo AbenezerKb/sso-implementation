@@ -137,7 +137,7 @@ func (u *updateClientTest) theClientUpdatedShouldFailWithMessage(message string)
 func (u *updateClientTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	u.apiTest.URL = "/v1/clients/"
-	u.apiTest.Method = http.MethodPatch
+	u.apiTest.Method = http.MethodPut
 	u.apiTest.InitializeServer(u.Server)
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
