@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
@@ -23,17 +24,25 @@ type user struct {
 	logger           logger.Logger
 	oauthPersistence storage.OAuthPersistence
 	userPersistence  storage.UserPersistence
+	rolePersistence  storage.RolePersistence
 	smsClient        platform.SMSClient
 	enforcer         *casbin.Enforcer
 }
 
-func Init(logger logger.Logger, oauthPersistence storage.OAuthPersistence, userPersistence storage.UserPersistence, smsClient platform.SMSClient, enforcer *casbin.Enforcer) module.UserModule {
+func Init(
+	logger logger.Logger,
+	oauthPersistence storage.OAuthPersistence,
+	userPersistence storage.UserPersistence,
+	rolePersistence storage.RolePersistence,
+	smsClient platform.SMSClient,
+	enforcer *casbin.Enforcer) module.UserModule {
 	return &user{
-		logger,
-		oauthPersistence,
-		userPersistence,
-		smsClient,
-		enforcer,
+		logger:           logger,
+		oauthPersistence: oauthPersistence,
+		userPersistence:  userPersistence,
+		rolePersistence:  rolePersistence,
+		smsClient:        smsClient,
+		enforcer:         enforcer,
 	}
 }
 
@@ -125,4 +134,31 @@ func (u *user) UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.U
 	}
 	return nil
 
+}
+
+func (u *user) UpdateUserRole(ctx context.Context, userID string, role dto.AssignRole) error {
+	userIDParsed, err := uuid.Parse(userID)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "invalid user id param on update user role", zap.String("user-id", userID), zap.Error(err))
+		return err
+	}
+	if err := role.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "invalid role value on update user role", zap.String("user-id", userID), zap.Error(err))
+		return err
+	}
+	// check if user is valid
+	_, err = u.oauthPersistence.GetUserByID(ctx, userIDParsed)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "user not found")
+		return err
+	}
+	// check if role is valid
+	_, err = u.rolePersistence.GetRoleByName(ctx, role.Role)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, fmt.Sprintf("role %s does not exist", role.Role))
+		return err
+	}
+	return u.userPersistence.UpdateUserRole(ctx, userIDParsed, role.Role)
 }
