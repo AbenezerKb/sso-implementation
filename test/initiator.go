@@ -228,45 +228,58 @@ func (t *TestInstance) GrantRoleForUser(userID string, role *godog.Table) error 
 	return nil
 }
 
-func (t *TestInstance) GrantRoleForUserWithAfter(userID string, role *godog.Table) (func() error, error) {
+func (t *TestInstance) GrantRoleForUserWithAfter(userID string, permTable *godog.Table) (*dto.Role, func() error, error) {
 	testRoleName := "test_" + utils.GenerateRandomString(10, false)
 	test := src.ApiTest{}
-	permission, err := test.ReadCellString(role, "role")
+	permission, err := test.ReadCell(permTable, "role", &src.Type{Kind: src.Array})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	_, err = t.enforcer.AddGroupingPolicy(testRoleName, permission, "role")
-	if err != nil {
-		return nil, err
+	permissions, ok := permission.([]string)
+	if !ok {
+		return nil, nil, fmt.Errorf("error while reading roles from table")
+	}
+	for i := 0; i < len(permissions); i++ {
+		_, err = t.enforcer.AddGroupingPolicy(testRoleName, permissions[i], "role")
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	_, err = t.enforcer.AddRoleForUser(userID, testRoleName)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	_, err = t.DB.GetRoleByName(context.Background(), testRoleName)
 	if err != nil {
 		_, err = t.DB.AddRole(context.Background(), testRoleName)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return func() error {
-		var errs error
-		_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", testRoleName)
-		if err != nil {
-			errs = err
-		}
-		_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", userID)
-		if err != nil {
-			errs = fmt.Errorf(errs.Error() + "," + err.Error())
-		}
+	return &dto.Role{
+			Name:        testRoleName,
+			Permissions: permissions,
+		}, func() error {
+			var errs error
+			_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", testRoleName)
+			if err != nil {
+				errs = err
+			}
+			_, err = t.Conn.Exec(context.Background(), "DELETE FROM casbin_rule WHERE v0 = $1", userID)
+			if err != nil {
+				errs = fmt.Errorf(errs.Error() + "," + err.Error())
+			}
+			_, err := t.Conn.Exec(context.Background(), "DELETE FROM roles WHERE name = $1", testRoleName)
+			if err != nil {
+				errs = fmt.Errorf(errs.Error() + "," + err.Error())
+			}
 
-		return errs
-	}, nil
+			return errs
+		}, nil
 }
 
 func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, error) {
