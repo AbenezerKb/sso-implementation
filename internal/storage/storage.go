@@ -111,4 +111,5 @@ type RolePersistence interface {
 	GetRoleStatusForUser(ctx context.Context, userID uuid.UUID) (string, error)
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
 	CheckIfPermissionExists(ctx context.Context, permission string) (bool, error)
+	GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error)
 }
