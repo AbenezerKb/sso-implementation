@@ -132,3 +132,12 @@ func (u UpdateUserStatus) Validate() error {
 		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In("ACTIVE", "PENDING", "INACTIVE")),
 	)
 }
+
+type AssignRole struct {
+	Role string `json:"role"`
+}
+
+func (r AssignRole) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.Role, validation.Required.Error("role is required")))
+}
