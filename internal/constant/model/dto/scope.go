@@ -23,3 +23,8 @@ func (s Scope) Validate() error {
 		validation.Field(&s.Description, validation.Required.Error("description is required")),
 	)
 }
+
+type UpdateScopeParam struct {
+	// The scope description.
+	Description string `json:"description,omitempty"`
+}
