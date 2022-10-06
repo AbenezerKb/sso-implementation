@@ -77,6 +77,15 @@ definitions:
           at
         type: string
     type: object
+  dto.ChangePhoneParam:
+    properties:
+      otp:
+        description: OTP is the one time password of the user.
+        type: string
+      phone:
+        description: Phone is the phone of the user.
+        type: string
+    type: object
   dto.Client:
     properties:
       client_type:
@@ -320,6 +329,17 @@ definitions:
       updated_at:
         description: UpdatedAt is the time this resource server is updated at
         type: string
+    type: object
+  dto.Role:
+    properties:
+      name:
+        description: Name is a unique name for the role
+        type: string
+      permissions:
+        description: Permissions are the list of permissions names this role contains
+        items:
+          type: string
+        type: array
     type: object
   dto.Scope:
     properties:
@@ -642,6 +662,32 @@ paths:
       security:
       - BearerAuth: []
       summary: returns client
+      tags:
+      - client
+    put:
+      consumes:
+      - application/json
+      description: changes client information
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: changes client information
       tags:
       - client
   /clients/{id}/status:
@@ -1073,6 +1119,34 @@ paths:
       tags:
       - scope
   /oauth/scopes/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete  scope
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete  scope
+      tags:
+      - scope
     get:
       consumes:
       - application/json
@@ -1215,6 +1289,34 @@ paths:
       security:
       - BearerAuth: []
       summary: update user profile.
+      tags:
+      - profile
+  /profile/phone:
+    patch:
+      consumes:
+      - application/json
+      description: change user phone number.
+      parameters:
+      - description: ChangePhoneParam
+        in: body
+        name: ChangePhoneParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePhoneParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: change user phone number.
       tags:
       - profile
   /profile/picture:
@@ -1365,6 +1467,35 @@ paths:
       summary: Create a resource server
       tags:
       - resourceServer
+  /roles:
+    post:
+      consumes:
+      - application/json
+      description: create a role with specified name and permission list
+      operationId: create-role
+      parameters:
+      - description: role
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: create role
+      tags:
+      - role
   /roles/permissions:
     get:
       consumes:
@@ -1373,11 +1504,10 @@ paths:
       operationId: get-all-permissions
       parameters:
       - description: category of permissions
-        in: body
+        in: query
         name: category
         required: true
-        schema:
-          type: string
+        type: string
       produces:
       - application/json
       responses:

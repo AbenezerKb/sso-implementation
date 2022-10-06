@@ -67,8 +67,8 @@ func (c *clientModule) DeleteClientByID(ctx context.Context, id string) error {
 		return err
 	}
 
-	// TODO: before deleting client we should de somthing about rf token issued to this client
-	// TODO: before deleting this client we should do somthing about the auth_histories of this client
+	// TODO: before deleting client we should de something about rf token issued to this client
+	// TODO: before deleting this client we should do something about the auth_histories of this client
 	err = c.clientPersistence.DeleteClientByID(ctx, clientID)
 	if err != nil {
 		return err
@@ -96,4 +96,23 @@ func (c *clientModule) UpdateClientStatus(ctx context.Context, updateClientStatu
 		return err
 	}
 	return nil
+}
+
+func (c *clientModule) UpdateClient(ctx context.Context, client dto.Client, id string) error {
+	clientID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "invalid client id")
+		c.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("client-id", id))
+		return err
+	}
+
+	if err := client.ValidateClient(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		c.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	client.ID = clientID
+
+	return c.clientPersistence.UpdateClient(ctx, client)
 }

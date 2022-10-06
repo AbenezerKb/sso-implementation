@@ -48,18 +48,21 @@ type ClientModule interface {
 	DeleteClientByID(ctx context.Context, id string) error
 	GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
 	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, id string) error
+	UpdateClient(ctx context.Context, client dto.Client, id string) error
 }
 
 type ScopeModule interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
 	GetAllScopes(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error)
+	DeleteScopeByName(ctx context.Context, name string) error
 }
 
 type ProfileModule interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context) (*dto.User, error)
 	UpdateProfilePicture(ctx context.Context, imageFile *multipart.FileHeader) error
+	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam) error
 }
 
 type ResourceServerModule interface {

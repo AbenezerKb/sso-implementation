@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dongri/phonenumber"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
@@ -25,15 +26,17 @@ type profileModule struct {
 	profilePersistence    storage.ProfilePersistence
 	profilePictureDist    string
 	profilePictureMaxSize int
+	otpCache              storage.OTPCache
 }
 
-func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, profilePictureDist string, profilePictureMaxSize int) module.ProfileModule {
+func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, otpCache storage.OTPCache, profilePictureDist string, profilePictureMaxSize int) module.ProfileModule {
 	return &profileModule{
 		logger:                logger,
 		oauthPersistence:      oauthPersistence,
 		profilePersistence:    profilePersistence,
 		profilePictureDist:    profilePictureDist,
 		profilePictureMaxSize: profilePictureMaxSize,
+		otpCache:              otpCache,
 	}
 }
 
@@ -148,4 +151,45 @@ func (p *profileModule) UpdateProfilePicture(ctx context.Context, imageFile *mul
 	}
 
 	return nil
+}
+
+func (p *profileModule) ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam) error {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		p.logger.Info(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		return err
+	}
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		p.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
+		return err
+	}
+
+	if err := changePhoneParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		p.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	changePhoneParam.Phone = phonenumber.Parse(changePhoneParam.Phone, "ET")
+
+	err = p.otpCache.VerifyOTP(ctx, changePhoneParam.Phone, changePhoneParam.OTP)
+	if err != nil {
+		return err
+	}
+
+	exists, err := p.oauthPersistence.UserByPhoneExists(ctx, changePhoneParam.Phone)
+	if err != nil {
+		return err
+	}
+	if exists {
+		p.logger.Info(ctx, "user already exists", zap.String("phone", changePhoneParam.Phone))
+		return errors.ErrDataExists.New("user with this phone already exists")
+	}
+
+	return p.profilePersistence.ChangePhone(ctx, changePhoneParam, userID)
+
 }

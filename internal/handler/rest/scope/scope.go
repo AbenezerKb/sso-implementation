@@ -117,3 +117,30 @@ func (s *scope) GetAllScopes(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, scopes, metaData)
 }
+
+// DeleteScope is a handler for deleting a scope
+// @Summary      Delete  scope
+// @Description  Delete  scope
+// @Tags         scope
+// @Accept       json
+// @Produce      json
+// @param name path string true "name"
+// @Success      204
+// @Failure      400  {object}  model.ErrorResponse
+// @Failure      404  {object}  model.ErrorResponse
+// @Router       /oauth/scopes/{name} [delete]
+// @Security	BearerAuth
+func (s *scope) DeleteScope(ctx *gin.Context) {
+	scopeName := ctx.Param("name")
+
+	requestCtx := ctx.Request.Context()
+	err := s.scopeModule.DeleteScopeByName(requestCtx, scopeName)
+
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	s.logger.Info(ctx, "scope deleted", zap.Any("scope", scopeName))
+	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
+}

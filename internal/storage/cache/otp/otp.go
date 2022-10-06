@@ -3,12 +3,13 @@ package otp
 import (
 	"context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"time"
+
+	"github.com/go-redis/redis/v8"
+	"go.uber.org/zap"
 )
 
 type otpCache struct {
@@ -66,4 +67,23 @@ func (o *otpCache) DeleteOTP(ctx context.Context, phone ...string) error {
 	}
 
 	return nil
+}
+
+func (o *otpCache) VerifyOTP(ctx context.Context, phone string, otp string) error {
+	otpFromCache, err := o.GetOTP(ctx, phone)
+	if err != nil {
+		return err
+	}
+	if otpFromCache == "" {
+		err := errors.ErrInvalidUserInput.New("invalid otp")
+		o.logger.Info(ctx, "invalid otp", zap.Error(err))
+		return err
+	}
+	if otpFromCache != otp {
+		err = errors.ErrInvalidUserInput.New("invalid otp")
+		o.logger.Info(ctx, "invalid otp", zap.Error(err))
+		return err
+	}
+
+	return o.DeleteOTP(ctx, phone)
 }

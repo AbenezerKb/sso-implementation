@@ -61,3 +61,7 @@ func (s *scopeModule) GetAllScopes(ctx context.Context, filtersQuery request_mod
 	}
 	return s.scopePersistence.GetAllScopes(ctx, filters)
 }
+
+func (s *scopeModule) DeleteScopeByName(ctx context.Context, name string) error {
+	return s.scopePersistence.DeleteScopeByName(ctx, name)
+}

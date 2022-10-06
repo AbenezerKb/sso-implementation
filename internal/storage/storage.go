@@ -31,6 +31,7 @@ type OTPCache interface {
 	GetOTP(ctx context.Context, phone string) (string, error)
 	GetDelOTP(ctx context.Context, phone string) (string, error)
 	DeleteOTP(ctx context.Context, phone ...string) error
+	VerifyOTP(ctx context.Context, phone string, otp string) error
 }
 
 type SessionCache interface {
@@ -64,6 +65,7 @@ type ClientPersistence interface {
 	DeleteClientByID(ctx context.Context, id uuid.UUID) error
 	GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error)
 	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, clientID uuid.UUID) error
+	UpdateClient(ctx context.Context, client dto.Client) error
 }
 
 type AuthCodeCache interface {
@@ -78,6 +80,7 @@ type ScopePersistence interface {
 	GetListedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error)
 	GetAllScopes(ctx context.Context, filters request_models.FilterParams) ([]dto.Scope, *model.MetaData, error)
+	DeleteScopeByName(ctx context.Context, name string) error
 }
 
 type UserPersistence interface {
@@ -89,6 +92,7 @@ type ProfilePersistence interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
 	UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error
+	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam, userID uuid.UUID) error
 }
 
 type ResourceServerPersistence interface {

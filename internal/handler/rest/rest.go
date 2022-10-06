@@ -34,18 +34,21 @@ type Client interface {
 	GetAllClients(ctx *gin.Context)
 	GetAllClientByID(ctx *gin.Context)
 	UpdateClientStatus(ctx *gin.Context)
+	UpdateClient(ctx *gin.Context)
 }
 
 type Scope interface {
 	GetScope(ctx *gin.Context)
 	CreateScope(ctx *gin.Context)
 	GetAllScopes(ctx *gin.Context)
+	DeleteScope(ctx *gin.Context)
 }
 
 type Profile interface {
 	UpdateProfile(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
 	UpdateProfilePicture(ctx *gin.Context)
+	ChangePhone(ctx *gin.Context)
 }
 
 type MiniRide interface {

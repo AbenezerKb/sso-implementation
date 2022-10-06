@@ -172,3 +172,37 @@ func (c *client) UpdateClientStatus(ctx *gin.Context) {
 	c.logger.Info(ctx, "client status changed", zap.Any("client-id", clientID), zap.Any("to-status", updateClientStatusParam))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// UpdateClient updates client
+// @Summary      changes client information
+// @Description  changes client information
+// @Tags         client
+// @Accept       json
+// @Produce      json
+// @param id path string  true "id"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /clients/{id} [put]
+// @Security	BearerAuth
+func (c *client) UpdateClient(ctx *gin.Context) {
+	clientID := ctx.Param("id")
+
+	clientParam := dto.Client{}
+	err := ctx.ShouldBindJSON(&clientParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		c.logger.Info(ctx, "couldn't bind to dto.Client body", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+	err = c.clientModule.UpdateClient(requestCtx, clientParam, clientID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	c.logger.Info(ctx, "client status changed", zap.Any("param", clientParam))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}

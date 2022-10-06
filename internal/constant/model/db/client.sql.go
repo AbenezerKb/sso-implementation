@@ -150,3 +150,48 @@ func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) (Cli
 	)
 	return i, err
 }
+
+const updateEntireClient = `-- name: UpdateEntireClient :one
+UPDATE clients
+SET
+ name = $2,
+ client_type = $3,
+ redirect_uris = $4,
+ scopes = $5,
+ logo_url = $6
+WHERE id = $1
+RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+`
+
+type UpdateEntireClientParams struct {
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	ClientType   string    `json:"client_type"`
+	RedirectUris string    `json:"redirect_uris"`
+	Scopes       string    `json:"scopes"`
+	LogoUrl      string    `json:"logo_url"`
+}
+
+func (q *Queries) UpdateEntireClient(ctx context.Context, arg UpdateEntireClientParams) (Client, error) {
+	row := q.db.QueryRow(ctx, updateEntireClient,
+		arg.ID,
+		arg.Name,
+		arg.ClientType,
+		arg.RedirectUris,
+		arg.Scopes,
+		arg.LogoUrl,
+	)
+	var i Client
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.ClientType,
+		&i.RedirectUris,
+		&i.Scopes,
+		&i.Secret,
+		&i.LogoUrl,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}

@@ -110,3 +110,35 @@ func (p *profile) UpdateProfilePicture(ctx *gin.Context) {
 	p.logger.Info(ctx, "user profile picture updated", zap.Any("user-id", constant.Context("x-user-id")), zap.Any("picture", imageFile.Filename))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// ChangePhone	 change's user phone number.
+// @Summary      change user phone number.
+// @Description  change user phone number.
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @param ChangePhoneParam body dto.ChangePhoneParam true "ChangePhoneParam"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile/phone [patch]
+// @Security	BearerAuth
+func (p *profile) ChangePhone(ctx *gin.Context) {
+	changePhoneParam := dto.ChangePhoneParam{}
+	err := ctx.ShouldBind(&changePhoneParam)
+	if err != nil {
+		p.logger.Info(ctx, "unable to bind change phone information", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+
+	err = p.profileModule.ChangePhone(requestCtx, changePhoneParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	p.logger.Info(ctx, "user changed phone", zap.Any("phone-to", changePhoneParam.Phone))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
