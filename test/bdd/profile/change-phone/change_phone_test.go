@@ -141,16 +141,24 @@ func (c *changePhoneTest) iShouldSuccessfullyChangeMyPhone() error {
 }
 
 func (c *changePhoneTest) thePhoneChangingShouldFailWithMessage(message string) error {
-	if err := c.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
+	if err := c.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
 		return err
 	}
 	return c.apiTest.AssertStringValueOnPathInResponse("error.message", message)
+}
+
+func (c *changePhoneTest) thePhoneChangingShouldFailWithFieldErrorMessage(message string) error {
+	if err := c.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+		return err
+	}
+	return c.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", message)
 }
 
 func (c *changePhoneTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	c.apiTest.URL = "/v1/profile/phone"
 	c.apiTest.Method = http.MethodPatch
 	c.apiTest.InitializeServer(c.Server)
+	c.apiTest.SetHeader("Content-Type", "application/json")
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = c.DB.DeleteUser(ctx, c.User.ID)
@@ -164,4 +172,5 @@ func (c *changePhoneTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.Step(`^The following user is registered on the system$`, c.theFollowingUserIsRegisteredOnTheSystem)
 	ctx.Step(`^The phone changing should fail with message "([^"]*)"$`, c.thePhoneChangingShouldFailWithMessage)
 	ctx.Step(`^I fill the following details with wrong info$`, c.iFillTheFollowingDetailsWithWrongInfo)
+	ctx.Step(`^The phone changing should fail with field error message "([^"]*)"$`, c.thePhoneChangingShouldFailWithFieldErrorMessage)
 }

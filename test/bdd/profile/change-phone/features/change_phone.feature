@@ -31,8 +31,8 @@ Feature: Change Phone
         Then The phone changing should fail with message "<message>"
 
         Examples:
-            | phone        | otp    | message              |
-            | 251933333333 | 123456 | phone already exists |
+            | phone        | otp    | message                             |
+            | 251933333333 | 123456 | user with this phone already exists |
 
 
     @failure
@@ -41,10 +41,11 @@ Feature: Change Phone
             | phone   | otp   |
             | <phone> | <otp> |
         When I request to change my phone
-        Then The phone changing should fail with message "<message>"
+        Then The phone changing should fail with field error message "<message>"
 
         Examples:
-            | phone        | otp    | message              |
-            | 251933333334 | 123    | invalid otp          |
-            | 25193333333  | 123456 | invalid phone number |
-            | 251933333334 |        | otp is required      |
+            | phone        | otp    | message                  |
+            | 251933333334 | 123    | otp must be 6 characters |
+            | 25193333333  | 123456 | invalid phone number     |
+            | 251933333334 |        | otp is required          |
+            |              | 123456 | phone is required        |
