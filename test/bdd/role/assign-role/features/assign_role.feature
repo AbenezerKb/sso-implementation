@@ -5,8 +5,8 @@ Feature: Assign Role
 
   Background:
     Given I am logged in with the following credentials
-      | email           | password | role        |
-      | admin@gmail.com | 12345678 | create_role |
+      | email           | password | role             |
+      | admin@gmail.com | 12345678 | update_user_role |
     And The following role is registered on the system
       | name  | permissions                               |
       | clerk | get_all_users,create_user,get_all_clients |
@@ -25,5 +25,6 @@ Feature: Assign Role
     Then my request should fail with "<message>" and "<field_error>"
 
     Examples:
-      | role         |
-      | non-existing |
+      | role         | message                          | field_error      |
+      |              |                                  | role is required |
+      | non-existing | role non-existing does not exist |                  |

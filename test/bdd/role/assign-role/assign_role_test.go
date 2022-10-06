@@ -21,8 +21,8 @@ type assignRoleTest struct {
 
 func TestAssignRole(t *testing.T) {
 	a := assignRoleTest{}
-	a.apiTest.URL = "/v1/users" // initial prefix
 	a.apiTest.Method = http.MethodPatch
+	a.apiTest.SetHeader("Content-Type", "application/json")
 	a.TestInstance = test.Initiate("../../../../")
 	a.apiTest.InitializeServer(a.Server)
 	a.apiTest.InitializeTest(t, "assign role test", "features/assign_role.feature", a.InitializeScenario)
@@ -139,6 +139,10 @@ func (a *assignRoleTest) myRequestShouldFailWithAnd(message, fieldError string) 
 }
 
 func (a *assignRoleTest) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		a.apiTest.URL = "/v1/users" // initial prefix
+		return ctx, nil
+	})
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = a.DB.DeleteUser(ctx, a.user.ID)
 		_, _ = a.DB.DeleteUser(ctx, a.admin.ID)
