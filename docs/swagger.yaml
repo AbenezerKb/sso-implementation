@@ -77,6 +77,15 @@ definitions:
           at
         type: string
     type: object
+  dto.ChangePhoneParam:
+    properties:
+      otp:
+        description: OTP is the one time password of the user.
+        type: string
+      phone:
+        description: Phone is the phone of the user.
+        type: string
+    type: object
   dto.Client:
     properties:
       client_type:
@@ -655,7 +664,7 @@ paths:
       summary: returns client
       tags:
       - client
-    patch:
+    put:
       consumes:
       - application/json
       description: changes client information
@@ -1280,6 +1289,34 @@ paths:
       security:
       - BearerAuth: []
       summary: update user profile.
+      tags:
+      - profile
+  /profile/phone:
+    patch:
+      consumes:
+      - application/json
+      description: change user phone number.
+      parameters:
+      - description: ChangePhoneParam
+        in: body
+        name: ChangePhoneParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePhoneParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: change user phone number.
       tags:
       - profile
   /profile/picture:
