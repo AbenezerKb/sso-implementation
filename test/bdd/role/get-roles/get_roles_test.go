@@ -161,6 +161,11 @@ func (c *getRolesTest) iShouldGetErrorMessage(message string) error {
 }
 
 func (c *getRolesTest) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Before(func(ctx context.Context, sc *godog.Scenario) (context.Context, error) {
+		// FIXME: this is not correct but is used to insure compatibility with the legacy function `GrantRoleForUser`
+		_, _ = c.Conn.Exec(ctx, "DELETE FROM roles WHERE true")
+		return ctx, nil
+	})
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		for _, v := range c.roles {
 			_, _ = c.DB.DeleteRole(ctx, v.Name)
