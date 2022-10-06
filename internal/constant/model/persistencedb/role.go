@@ -122,3 +122,37 @@ func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.
 
 	return roles, totalCount, nil
 }
+
+const assignRoleForUser = `
+INSERT INTO casbin_rule (p_type,v0,v1) VALUES ('g', $1, $2)`
+
+func (db *PersistenceDB) AssignRoleForUser(ctx context.Context, userID uuid.UUID, roleName string) error {
+	_, err := db.pool.Exec(ctx, assignRoleForUser, userID, roleName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+const getRoleByNameWithPermissions = `
+SELECT *,
+       (SELECT string_to_array(string_agg(v1,','),',')
+        FROM casbin_rule 
+        WHERE v0 = roles.name) AS permissions 
+FROM roles 
+WHERE roles.name = $1`
+
+func (db *PersistenceDB) GetRoleByNameWithPermissions(ctx context.Context, roleName string) (dto.Role, error) {
+	row := db.pool.QueryRow(ctx, getRoleByNameWithPermissions, roleName)
+	var role dto.Role
+	if err := row.Scan(
+		&role.Name,
+		&role.Status,
+		&role.CreatedAt,
+		&role.UpdatedAt,
+		&role.Permissions); err != nil {
+		return dto.Role{}, err
+	}
+
+	return role, nil
+}

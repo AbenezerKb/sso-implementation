@@ -26,6 +26,7 @@ type User interface {
 	GetUser(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	UpdateUserStatus(ctx *gin.Context)
+	UpdateUserRole(ctx *gin.Context)
 }
 
 type Client interface {

@@ -1465,6 +1465,68 @@ const docTemplate = `{
             }
         },
         "/roles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "returns all roles based on the filters and pagination given",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "role"
+                ],
+                "summary": "returns all roles that satisfy the given filters",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "filter",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "link_operator",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "name": "per_page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.Role"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1710,6 +1772,48 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/{id}/role": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "updates the role for the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "updates the role for the user",
+                "parameters": [
+                    {
+                        "description": "role",
+                        "name": "role",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.AssignRole"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/users/{id}/status": {
             "patch": {
                 "security": [
@@ -1823,6 +1927,14 @@ const docTemplate = `{
                 },
                 "refresh_token": {
                     "description": "RefreshToken is the opaque string that was given by the auth server when issuing the access token.\nit's used to refresh the access token.",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.AssignRole": {
+            "type": "object",
+            "properties": {
+                "role": {
                     "type": "string"
                 }
             }
@@ -2178,6 +2290,10 @@ const docTemplate = `{
         "dto.Role": {
             "type": "object",
             "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the time this role is created on",
+                    "type": "string"
+                },
                 "name": {
                     "description": "Name is a unique name for the role",
                     "type": "string"
@@ -2188,6 +2304,14 @@ const docTemplate = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "status": {
+                    "description": "Status is the current status of this role",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt is the time this role is last updated at",
+                    "type": "string"
                 }
             }
         },

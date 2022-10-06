@@ -36,7 +36,12 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 	go miniRideModule.ListenMiniRideEvent(context.Background())
 
 	return Module{
-		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, persistence.UserPersistence, platformLayer.Sms, enforcer),
+		userModule: user.Init(
+			log.Named("user-module"),
+			persistence.OAuthPersistence,
+			persistence.UserPersistence,
+			persistence.RolePersistence,
+			platformLayer.Sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,
@@ -82,7 +87,12 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 
 func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
 	return Module{
-		userModule: user.Init(log.Named("user-module"), persistence.OAuthPersistence, persistence.UserPersistence, platformLayer.Sms, enforcer),
+		userModule: user.Init(
+			log.Named("user-module"),
+			persistence.OAuthPersistence,
+			persistence.UserPersistence,
+			persistence.RolePersistence,
+			platformLayer.Sms, enforcer),
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,

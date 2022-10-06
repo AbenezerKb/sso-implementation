@@ -86,6 +86,7 @@ type ScopePersistence interface {
 type UserPersistence interface {
 	GetAllUsers(ctx context.Context, filters request_models.FilterParams) ([]dto.User, *model.MetaData, error)
 	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID uuid.UUID) error
+	UpdateUserRole(ctx context.Context, userID uuid.UUID, roleName string) error
 }
 
 type ProfilePersistence interface {
@@ -116,4 +117,5 @@ type RolePersistence interface {
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
 	CheckIfPermissionExists(ctx context.Context, permission string) (bool, error)
 	GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error)
+	GetRoleByName(ctx context.Context, roleName string) (dto.Role, error)
 }
