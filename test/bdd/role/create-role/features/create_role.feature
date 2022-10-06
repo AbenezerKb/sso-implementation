@@ -11,7 +11,7 @@ Feature: Create Role
   Scenario: I successfully create a role
     When I request to create a role with the following permissions
       | role_name | permissions                                     |
-      | my_role   | create_user,create_client,update_user,get_scope |
+      | my_role   | create_user,create_client,update_user_status,get_scope |
     Then the role should successfully be created
 
   Scenario Outline:
