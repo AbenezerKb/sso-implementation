@@ -9,6 +9,7 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/platform/utils/collection"
 	"sso/test"
 	"testing"
 )
@@ -18,6 +19,7 @@ type getRolesTest struct {
 	apiTest     src.ApiTest
 	roles       []dto.Role
 	Admin       db.User
+	adminRole   *dto.Role
 	Preferences preferenceData
 }
 
@@ -67,8 +69,11 @@ func (c *getRolesTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) err
 	if err != nil {
 		return err
 	}
-	c.GrantRoleAfterFunc, err = c.GrantRoleForUserWithAfter(c.Admin.ID.String(), adminCredentials)
-	return err
+	c.adminRole, c.GrantRoleAfterFunc, err = c.GrantRoleForUserWithAfter(c.Admin.ID.String(), adminCredentials)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *getRolesTest) iRequestToGetAllTheRolesWithTheFollowingPreferences(preferences *godog.Table) error {
@@ -126,9 +131,14 @@ func (c *getRolesTest) iShouldGetTheListOfRolesThatPassMyPreferences() error {
 	}
 	for _, v := range responseRoles {
 		found := false
-		for _, v2 := range c.roles {
+		for _, v2 := range append(c.roles, *c.adminRole) {
 			if v.Name == v2.Name {
 				found = true
+				for _, permission := range v.Permissions {
+					if !collection.Contains(permission, v2.Permissions) {
+						return fmt.Errorf("expected permission `%s` in role %s", permission, v2.Name)
+					}
+				}
 				continue
 			}
 		}
