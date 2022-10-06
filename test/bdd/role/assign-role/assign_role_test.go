@@ -143,6 +143,7 @@ func (a *assignRoleTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		_, _ = a.DB.DeleteUser(ctx, a.user.ID)
 		_, _ = a.DB.DeleteUser(ctx, a.admin.ID)
 		_, _ = a.DB.DeleteRole(ctx, a.role.Name)
+		_, _ = a.Conn.Exec(ctx, "DELETE FROM casbin_rule WHERE v0 = $1", a.role.Name)
 		_ = a.GrantRoleAfterFunc()
 		return ctx, nil
 	})
