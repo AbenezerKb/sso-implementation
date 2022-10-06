@@ -161,6 +161,14 @@ func (a *authMiddleware) ClientBasicAuth() gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
+
+		if client.Status != constant.Active {
+			Err := errors.ErrAuthError.Wrap(nil, "Your account has been deactivated, Please activate your account.")
+			ctx.Error(Err)
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+
 		if ok := client.Secret == secret; !ok {
 			err = errors.ErrAcessError.Wrap(err, "unauthorized_client")
 			a.logger.Info(ctx, "unauthorized_client", zap.Error(err), zap.String("client-secret", client.Secret), zap.String("provided-secret", secret))
