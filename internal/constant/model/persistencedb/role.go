@@ -76,16 +76,15 @@ func (db *PersistenceDB) CheckIfPermissionExists(ctx context.Context, permission
 }
 
 const getAllRoles = `
-SELECT
-r.name,
-r.status,
-r.created_at,
-r.updated_at,
-cs.v1 AS permission,
-COUNT(*) OVER()
-FROM roles r
-    LEFT JOIN casbin_rule cs
-        ON cs.v0 = r.name`
+SELECT r.name,
+       r.status,
+       r.created_at,
+       r.updated_at,
+       (SELECT string_to_array(string_agg(v1, ','), ',')
+        FROM casbin_rule
+        WHERE v0 = r.name) AS permissions,
+       count(*) over()
+FROM roles r`
 
 func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.Role, int, error) {
 	rows, err := db.pool.Query(ctx, fmt.Sprintf("%s %s", getAllRoles, pgnFlt))
@@ -95,11 +94,11 @@ func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.
 	defer rows.Close()
 
 	// maps are a better way to search than slices
-	rolesMap := map[string]dto.Role{}
-	var totalCount, reducer int
+	var roles []dto.Role
+	var totalCount int
 	for rows.Next() {
 		var i db2.Role
-		var p string
+		var p []string
 		if err := rows.Scan(
 			&i.Name,
 			&i.Status,
@@ -109,30 +108,17 @@ func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.
 			&totalCount); err != nil {
 			return nil, 0, err
 		}
-		if v, ok := rolesMap[i.Name]; ok {
-			v.Permissions = append(v.Permissions, p)
-			rolesMap[i.Name] = v
-			reducer++
-		} else {
-			rs := dto.Role{
-				Name:      i.Name,
-				Status:    i.Status.String,
-				CreatedAt: i.CreatedAt,
-				UpdatedAt: i.UpdatedAt,
-			}
-			if p != "" { // if scope was found
-				rs.Permissions = []string{p}
-			}
-			rolesMap[i.Name] = rs
-		}
+		roles = append(roles, dto.Role{
+			Name:        i.Name,
+			Status:      i.Status.String,
+			CreatedAt:   i.CreatedAt,
+			UpdatedAt:   i.UpdatedAt,
+			Permissions: p,
+		})
 	}
 	if err := rows.Err(); err != nil {
 		return nil, 0, err
 	}
 
-	roles := make([]dto.Role, 0, len(rolesMap))
-	for _, v := range rolesMap {
-		roles = append(roles, v)
-	}
-	return roles, totalCount - reducer, nil
+	return roles, totalCount, nil
 }
