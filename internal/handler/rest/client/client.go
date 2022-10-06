@@ -182,7 +182,7 @@ func (c *client) UpdateClientStatus(ctx *gin.Context) {
 // @param id path string  true "id"
 // @Success      200  {object}  model.Response
 // @Failure      400  {object}  model.ErrorResponse
-// @Router       /clients/{id} [patch]
+// @Router       /clients/{id} [put]
 // @Security	BearerAuth
 func (c *client) UpdateClient(ctx *gin.Context) {
 	clientID := ctx.Param("id")

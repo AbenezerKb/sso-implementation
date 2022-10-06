@@ -31,6 +31,7 @@ type OTPCache interface {
 	GetOTP(ctx context.Context, phone string) (string, error)
 	GetDelOTP(ctx context.Context, phone string) (string, error)
 	DeleteOTP(ctx context.Context, phone ...string) error
+	VerifyOTP(ctx context.Context, phone string, otp string) error
 }
 
 type SessionCache interface {
@@ -91,6 +92,7 @@ type ProfilePersistence interface {
 	UpdateProfile(ctx context.Context, userParam dto.User) (*dto.User, error)
 	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
 	UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error
+	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam, userID uuid.UUID) error
 }
 
 type ResourceServerPersistence interface {

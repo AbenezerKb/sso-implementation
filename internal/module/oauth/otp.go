@@ -72,6 +72,12 @@ func (o *oauth) RequestOTP(ctx context.Context, phone string, rqType string) err
 			return err
 		}
 
+	} else if rqType == "change" {
+		if exists {
+			err = errors.ErrDataExists.New("user with this phone already exists")
+			o.logger.Info(ctx, "user with this phone already exists", zap.Error(err))
+			return err
+		}
 	} else {
 		err = errors.ErrInvalidUserInput.New("invalid request type")
 		o.logger.Info(ctx, "invalid request type", zap.Error(err))
