@@ -88,3 +88,19 @@ func (p *profilePersistence) UpdateProfilePicture(ctx context.Context, finalImag
 
 	return nil
 }
+
+func (p *profilePersistence) ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam, userID uuid.UUID) error {
+	_, err := p.db.UpdateUser(ctx, db.UpdateUserParams{
+		Phone: sql.NullString{String: changePhoneParam.Phone, Valid: true},
+		ID:    userID,
+	})
+
+	if err != nil {
+		err = errors.ErrWriteError.Wrap(err, "could not change user phone number")
+		p.logger.Error(ctx, "unable to update user's phone number", zap.Error(err), zap.Any("phone", changePhoneParam.Phone), zap.Any("user-id", userID))
+		return err
+	}
+
+	return nil
+
+}
