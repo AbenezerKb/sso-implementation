@@ -86,3 +86,33 @@ func (r *role) CreateRole(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusCreated, roleCreated, nil)
 }
+
+// GetAllRoles returns all roles
+// @Summary      returns all roles that satisfy the given filters
+// @Description  returns all roles based on the filters and pagination given
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param filter query request_models.PgnFltQueryParams true "filter"
+// @Success      200  {object}  []dto.Role
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles [get]
+// @Security	BearerAuth
+func (r *role) GetAllRoles(ctx *gin.Context) {
+	var filtersParam request_models.PgnFltQueryParams
+	err := ctx.BindQuery(&filtersParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
+		r.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
+		_ = ctx.Error(err)
+		return
+	}
+
+	roles, metaData, err := r.roleModule.GetAllRoles(ctx, filtersParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, roles, metaData)
+}

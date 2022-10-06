@@ -6,7 +6,9 @@ import (
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/permissions"
 	"sso/internal/module"
 	"sso/internal/storage"
@@ -75,4 +77,14 @@ func (r *roleModule) CreateRole(ctx context.Context, role dto.Role) (dto.Role, e
 	}
 
 	return r.rolePersistence.CreateRole(ctx, role)
+}
+
+func (r *roleModule) GetAllRoles(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Role, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.Role{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		r.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return r.rolePersistence.GetAllRoles(ctx, filters)
 }
