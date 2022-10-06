@@ -101,4 +101,9 @@ var (
 		Name:     "get all roles",
 		Category: "role",
 	}
+	UpdateUserRole = Permission{
+		ID:       "update_user_role",
+		Name:     "update user role",
+		Category: "user",
+	}
 )
