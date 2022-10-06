@@ -79,4 +79,5 @@ type RoleModule interface {
 	GetRoleForUser(ctx context.Context, userID string) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID string) (string, error)
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
+	GetAllRoles(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Role, *model.MetaData, error)
 }
