@@ -33,6 +33,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Role, authMiddleware middlew
 			},
 			Permission: permissions.CreateRole,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: handler.GetAllRoles,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllRoles,
+		},
 	}
 	routing.RegisterRoutes(roleGroup, roleRoutes, enforcer)
 }

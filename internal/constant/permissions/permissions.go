@@ -91,4 +91,9 @@ var (
 		Name:     "create a role",
 		Category: "role",
 	}
+	GetAllRoles = Permission{
+		ID:       "get_all_roles",
+		Name:     "get all roles",
+		Category: "role",
+	}
 )
