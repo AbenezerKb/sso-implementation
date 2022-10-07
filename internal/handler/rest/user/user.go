@@ -145,3 +145,33 @@ func (u *user) UpdateUserStatus(ctx *gin.Context) {
 	u.logger.Info(ctx, "user status changed", zap.Any("user-id", userID), zap.Any("to-status", updateUserStatusParam))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// UpdateUserRole	 updates the role for the user
+// @Summary      updates the role for the user
+// @Description  updates the role for the user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @param role body dto.AssignRole true "role"
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users/{id}/role [patch]
+// @Security	BearerAuth
+func (u *user) UpdateUserRole(ctx *gin.Context) {
+	userID := ctx.Param("id")
+	role := dto.AssignRole{}
+	err := ctx.ShouldBind(&role)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "unable to bind to AssignRole for update user role", zap.Error(err), zap.String("user-id", userID))
+		_ = ctx.Error(err)
+		return
+	}
+	err = u.userModule.UpdateUserRole(ctx.Request.Context(), userID, role)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	u.logger.Info(ctx, "updated role for user", zap.String("user-id", userID))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}

@@ -7,11 +7,14 @@ import (
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/constant/permissions"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 )
 
 type rolePersistence struct {
@@ -110,4 +113,44 @@ func (r *rolePersistence) CheckIfPermissionExists(ctx context.Context, perm stri
 	}
 
 	return exist, nil
+}
+
+func (r *rolePersistence) GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error) {
+	roles, total, err := r.db.GetAllRoles(ctx, utils.ComposeFilterSQL(ctx, filters, r.logger))
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no roles found")
+			r.logger.Info(ctx, "no roles were found", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading roles")
+			r.logger.Error(ctx, "error reading roles", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		}
+	}
+	return roles, &model.MetaData{
+		FilterParams: filters,
+		Total:        total,
+		Extra:        nil,
+	}, nil
+}
+func (r *rolePersistence) GetRoleByName(ctx context.Context, roleName string) (dto.Role, error) {
+	role, err := r.db.GetRoleByName(ctx, roleName)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "role not found")
+			r.logger.Info(ctx, "role not found", zap.Error(err), zap.String("role-name", roleName))
+			return dto.Role{}, err
+		}
+		err := errors.ErrReadError.Wrap(err, "error getting role")
+		r.logger.Error(ctx, "error while getting role by name", zap.Error(err), zap.String("role-name", roleName))
+		return dto.Role{}, err
+	}
+
+	return dto.Role{
+		Name:      role.Name,
+		Status:    role.Status.String,
+		CreatedAt: role.CreatedAt,
+		UpdatedAt: role.UpdatedAt,
+	}, nil
 }

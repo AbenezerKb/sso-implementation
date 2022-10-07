@@ -2,8 +2,10 @@ package persistencedb
 
 import (
 	"context"
+	"fmt"
 	"github.com/google/uuid"
 	"sso/internal/constant/errors/sqlcerr"
+	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 )
 
@@ -71,4 +73,86 @@ func (db *PersistenceDB) CheckIfPermissionExists(ctx context.Context, permission
 		return false, err
 	}
 	return true, nil
+}
+
+const getAllRoles = `
+SELECT r.name,
+       r.status,
+       r.created_at,
+       r.updated_at,
+       (SELECT string_to_array(string_agg(v1, ','), ',')
+        FROM casbin_rule
+        WHERE v0 = r.name) AS permissions,
+       count(*) over()
+FROM roles r`
+
+func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.Role, int, error) {
+	rows, err := db.pool.Query(ctx, fmt.Sprintf("%s %s", getAllRoles, pgnFlt))
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	// maps are a better way to search than slices
+	var roles []dto.Role
+	var totalCount int
+	for rows.Next() {
+		var i db2.Role
+		var p []string
+		if err := rows.Scan(
+			&i.Name,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&p,
+			&totalCount); err != nil {
+			return nil, 0, err
+		}
+		roles = append(roles, dto.Role{
+			Name:        i.Name,
+			Status:      i.Status.String,
+			CreatedAt:   i.CreatedAt,
+			UpdatedAt:   i.UpdatedAt,
+			Permissions: p,
+		})
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return roles, totalCount, nil
+}
+
+const assignRoleForUser = `
+INSERT INTO casbin_rule (p_type,v0,v1) VALUES ('g', $1, $2)`
+
+func (db *PersistenceDB) AssignRoleForUser(ctx context.Context, userID uuid.UUID, roleName string) error {
+	_, err := db.pool.Exec(ctx, assignRoleForUser, userID, roleName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+const getRoleByNameWithPermissions = `
+SELECT *,
+       (SELECT string_to_array(string_agg(v1,','),',')
+        FROM casbin_rule 
+        WHERE v0 = roles.name) AS permissions 
+FROM roles 
+WHERE roles.name = $1`
+
+func (db *PersistenceDB) GetRoleByNameWithPermissions(ctx context.Context, roleName string) (dto.Role, error) {
+	row := db.pool.QueryRow(ctx, getRoleByNameWithPermissions, roleName)
+	var role dto.Role
+	if err := row.Scan(
+		&role.Name,
+		&role.Status,
+		&role.CreatedAt,
+		&role.UpdatedAt,
+		&role.Permissions); err != nil {
+		return dto.Role{}, err
+	}
+
+	return role, nil
 }

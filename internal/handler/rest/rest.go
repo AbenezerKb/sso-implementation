@@ -26,6 +26,7 @@ type User interface {
 	GetUser(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	UpdateUserStatus(ctx *gin.Context)
+	UpdateUserRole(ctx *gin.Context)
 }
 
 type Client interface {
@@ -63,4 +64,5 @@ type ResourceServer interface {
 type Role interface {
 	GetAllPermissions(ctx *gin.Context)
 	CreateRole(ctx *gin.Context)
+	GetAllRoles(ctx *gin.Context)
 }

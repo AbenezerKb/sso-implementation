@@ -40,6 +40,7 @@ type UserModule interface {
 	GetUserByID(ctx context.Context, id string) (*dto.User, error)
 	GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error)
 	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID string) error
+	UpdateUserRole(ctx context.Context, userID string, role dto.AssignRole) error
 }
 
 type ClientModule interface {
@@ -83,4 +84,5 @@ type RoleModule interface {
 	GetRoleForUser(ctx context.Context, userID string) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID string) (string, error)
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
+	GetAllRoles(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Role, *model.MetaData, error)
 }

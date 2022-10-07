@@ -34,7 +34,7 @@ func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persiste
 		ClientPersistence:         client.InitClient(log.Named("client-persistence"), db.Queries),
 		OAuth2Persistence:         oauth2.InitOAuth2(log.Named("oauth2-persistence"), db.Queries),
 		ScopePersistence:          scope.InitScopePersistence(log.Named("scope-persistence"), db.Queries),
-		UserPersistence:           user.InitUserPersistence(log.Named("user-persistence"), db.Queries),
+		UserPersistence:           user.InitUserPersistence(log.Named("user-persistence"), &db),
 		ProfilePersistence:        profile.InitProfilePersistence(log.Named("profile-persistence"), db.Queries),
 		ResourceServerPersistence: resource_server.InitResourceServerPersistence(log.Named("resource-server-persistence"), &db),
 		MiniRidePersistence:       mini_ride.InitMiniRidePersistence(log.Named("mini-ride-persistence"), &db),
