@@ -3,8 +3,12 @@ package constant
 type Context string
 
 const (
-	Active      = "ACTIVE"
-	Inactive    = "INACTIVE"
+	Active   = "ACTIVE"
+	Inactive = "INACTIVE"
+	Pending  = "PENDING"
+)
+
+const (
 	Revoke      = "Revoke"
 	Grant       = "Grant"
 	User        = "user"
