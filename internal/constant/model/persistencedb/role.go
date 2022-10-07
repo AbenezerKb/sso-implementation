@@ -183,3 +183,53 @@ func (db *PersistenceDB) DeleteRoleTX(ctx context.Context, roleName string) erro
 
 	return tx.Commit(ctx)
 }
+
+const deletePermissionsForRole = `
+DELETE FROM casbin_rule WHERE p_type = 'g' AND v0 = $1 AND v2 = 'role' RETURNING *`
+
+func (db *PersistenceDB) UpdateRoleTX(ctx context.Context, role dto.UpdateRole) (dto.Role, error) {
+	tx, err := db.pool.Begin(ctx)
+	if err != nil {
+		return dto.Role{}, err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+	query := db.Queries.WithTx(tx)
+
+	// check if role exists
+	_, err = query.GetRoleByName(ctx, role.Name)
+	if err != nil {
+		return dto.Role{}, err
+	}
+	// delete existing permissions
+	_, err = tx.Exec(ctx, deletePermissionsForRole, role.Name)
+	if err != nil {
+		return dto.Role{}, err
+	}
+	var permissions []string
+	for i := 0; i < len(role.Permissions); i++ {
+		var perm string
+		row := tx.QueryRow(ctx, createRole, role.Name, role.Permissions[i])
+		if err := row.Scan(&perm); err != nil {
+			return dto.Role{}, err
+		}
+		permissions = append(permissions, perm)
+	}
+	roleDB, err := query.GetRoleByName(ctx, role.Name)
+	if err != nil {
+		return dto.Role{}, err
+	}
+	err = tx.Commit(ctx)
+	if err != nil {
+		return dto.Role{}, err
+	}
+
+	return dto.Role{
+		Name:        roleDB.Name,
+		Status:      roleDB.Status.String,
+		CreatedAt:   roleDB.CreatedAt,
+		UpdatedAt:   roleDB.UpdatedAt,
+		Permissions: permissions,
+	}, nil
+}
