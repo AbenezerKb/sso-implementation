@@ -3,8 +3,6 @@ package role
 import (
 	"context"
 	"fmt"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
@@ -13,6 +11,9 @@ import (
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type roleModule struct {
@@ -101,6 +102,10 @@ func (r *roleModule) UpdateRoleStatus(ctx context.Context, updateRoleStatusParam
 		return err
 	}
 	return nil
+}
+
+func (r *roleModule) GetRoleByName(ctx context.Context, roleName string) (dto.Role, error) {
+	return r.rolePersistence.GetRoleByName(ctx, roleName)
 }
 
 func (r *roleModule) DeleteRole(ctx context.Context, roleName string) error {

@@ -174,6 +174,31 @@ func (r *role) DeleteRole(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
+// GetRoleByName returns one by the given role
+// @Summary      returns one by the given role
+// @Description  returns one by the given role
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param name path string  true "name"
+// @Success      200  {object}  dto.Role
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles/{name} [get]
+// @Security	BearerAuth
+func (r *role) GetRoleByName(ctx *gin.Context) {
+	roleName := ctx.Param("name")
+
+	requestCtx := ctx.Request.Context()
+	role, err := r.roleModule.GetRoleByName(requestCtx, roleName)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	r.logger.Info(ctx, "client fetched", zap.Any("role", role))
+	constant.SuccessResponse(ctx, http.StatusOK, role, nil)
+}
+
 // UpdateRole updates a role
 // @Summary      updates a role
 // @Description  updates a role with new permissions
