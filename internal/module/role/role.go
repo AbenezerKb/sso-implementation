@@ -88,3 +88,17 @@ func (r *roleModule) GetAllRoles(ctx context.Context, filtersQuery request_model
 	}
 	return r.rolePersistence.GetAllRoles(ctx, filters)
 }
+
+func (r *roleModule) UpdateRoleStatus(ctx context.Context, updateRoleStatusParam dto.UpdateRoleStatus, roleName string) error {
+	if err := updateRoleStatusParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		r.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	err := r.rolePersistence.UpdateRoleStatus(ctx, updateRoleStatusParam, roleName)
+	if err != nil {
+		return err
+	}
+	return nil
+}
