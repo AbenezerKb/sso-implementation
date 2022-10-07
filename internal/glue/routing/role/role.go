@@ -1,13 +1,14 @@
 package role
 
 import (
-	"github.com/casbin/casbin/v2"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"sso/internal/constant/permissions"
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
+
+	"github.com/casbin/casbin/v2"
+	"github.com/gin-gonic/gin"
 )
 
 func InitRoute(group *gin.RouterGroup, handler rest.Role, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
@@ -52,6 +53,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Role, authMiddleware middlew
 				authMiddleware.AccessControl(),
 			},
 			Permission: permissions.ChangeRoleStatus,
+		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/:name",
+			Handler: handler.GetRoleByName,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetRole,
 		},
 	}
 	routing.RegisterRoutes(roleGroup, roleRoutes, enforcer)
