@@ -173,3 +173,36 @@ func (r *role) DeleteRole(ctx *gin.Context) {
 	r.logger.Info(ctx, "role deleted", zap.String("role-name", roleName))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// UpdateRole updates a role
+// @Summary      updates a role
+// @Description  updates a role with new permissions
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param role body dto.UpdateRole true "body"
+// @Success      200  {object}  dto.Role
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles/{name} [put]
+// @Security	BearerAuth
+func (r *role) UpdateRole(ctx *gin.Context) {
+	roleName := ctx.Param("name")
+	requestCtx := ctx.Request.Context()
+	var updateRole dto.UpdateRole
+	err := ctx.ShouldBind(&updateRole)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		r.logger.Info(ctx, "invalid input on update role", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	updateRole.Name = roleName
+	role, err := r.roleModule.UpdateRole(requestCtx, updateRole)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	r.logger.Info(ctx, "role updated", zap.String("role-name", roleName))
+	constant.SuccessResponse(ctx, http.StatusOK, role, nil)
+}
