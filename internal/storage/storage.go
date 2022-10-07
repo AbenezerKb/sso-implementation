@@ -120,4 +120,5 @@ type RolePersistence interface {
 	GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error)
 	GetRoleByName(ctx context.Context, roleName string) (dto.Role, error)
 	UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error
+	DeleteRole(ctx context.Context, roleName string) error
 }
