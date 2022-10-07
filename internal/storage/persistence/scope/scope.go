@@ -140,3 +140,23 @@ func (s *scopePersistence) DeleteScopeByName(ctx context.Context, name string) e
 
 	return nil
 }
+
+func (s *scopePersistence) UpdateScope(ctx context.Context, scopeUpdateParam dto.Scope) error {
+	_, err := s.db.UpdateScope(ctx, db.UpdateScopeParams{
+		Description: scopeUpdateParam.Description,
+		Name:        scopeUpdateParam.Name,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "scope not found")
+			s.logger.Error(ctx, "error updating scope, ", zap.Error(err), zap.Any("scope-param", scopeUpdateParam))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error updating scope")
+			s.logger.Error(ctx, "error updating scope", zap.Error(err), zap.Any("scope-param", scopeUpdateParam))
+			return err
+		}
+	}
+	return nil
+}
