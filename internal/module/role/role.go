@@ -107,3 +107,7 @@ func (r *roleModule) UpdateRoleStatus(ctx context.Context, updateRoleStatusParam
 func (r *roleModule) GetRoleByName(ctx context.Context, roleName string) (dto.Role, error) {
 	return r.rolePersistence.GetRoleByName(ctx, roleName)
 }
+
+func (r *roleModule) DeleteRole(ctx context.Context, roleName string) error {
+	return r.rolePersistence.DeleteRole(ctx, roleName)
+}

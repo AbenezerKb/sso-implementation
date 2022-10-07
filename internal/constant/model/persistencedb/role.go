@@ -156,3 +156,30 @@ func (db *PersistenceDB) GetRoleByNameWithPermissions(ctx context.Context, roleN
 
 	return role, nil
 }
+
+const deleteRolePermissionsAndUsers = `
+DELETE FROM casbin_rule
+       WHERE p_type = 'g' AND (v0 = $1 OR v1 = $1)`
+
+func (db *PersistenceDB) DeleteRoleTX(ctx context.Context, roleName string) error {
+	tx, err := db.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+	query := db.Queries.WithTx(tx)
+
+	_, err = query.DeleteRole(ctx, roleName)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(ctx, deleteRolePermissionsAndUsers, roleName)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit(ctx)
+}
