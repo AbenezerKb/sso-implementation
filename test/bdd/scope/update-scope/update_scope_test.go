@@ -27,7 +27,6 @@ func TestUpdateScope(t *testing.T) {
 
 	u.apiTest.Method = http.MethodPut
 	u.apiTest.InitializeServer(u.Server)
-	u.apiTest.SetHeader("Content-Type", "application/json")
 
 	u.apiTest.InitializeTest(t, "update scope", "features/update_scope.feature", u.InitializeScenario)
 }
@@ -138,7 +137,8 @@ func (u *updateScopeTest) theUpdateShouldFailWithMessage(message string) error {
 }
 
 func (u *updateScopeTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	u.apiTest.URL = "/v1/scopes/"
+	u.apiTest.URL = "/v1/oauth/scopes/"
+	u.apiTest.SetHeader("Content-Type", "application/json")
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = u.DB.DeleteScope(ctx, u.scope.Name)
