@@ -403,6 +403,15 @@ definitions:
         description: Status is new status that will replace old status of the user
         type: string
     type: object
+  dto.UpdateRole:
+    properties:
+      name:
+        type: string
+      permissions:
+        items:
+          type: string
+        type: array
+    type: object
   dto.UpdateRoleStatus:
     properties:
       status:
@@ -1682,6 +1691,33 @@ paths:
       security:
       - BearerAuth: []
       summary: returns one by the given role
+      tags:
+      - role
+    put:
+      consumes:
+      - application/json
+      description: updates a role with new permissions
+      parameters:
+      - description: body
+        in: body
+        name: role
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRole'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: updates a role
       tags:
       - role
   /roles/{name}/status:

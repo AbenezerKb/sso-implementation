@@ -192,3 +192,19 @@ func (r *rolePersistence) DeleteRole(ctx context.Context, roleName string) error
 
 	return nil
 }
+
+func (r *rolePersistence) UpdateRole(ctx context.Context, role dto.UpdateRole) (dto.Role, error) {
+	roleDB, err := r.db.UpdateRoleTX(ctx, role)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "role not found")
+			r.logger.Info(ctx, "role was not found for updating role", zap.Error(err), zap.String("role-name", role.Name))
+			return dto.Role{}, err
+		}
+		err := errors.ErrUpdateError.Wrap(err, "error updating role")
+		r.logger.Error(ctx, "error while updating role", zap.Error(err), zap.String("role-name", role.Name))
+		return dto.Role{}, err
+	}
+
+	return roleDB, nil
+}

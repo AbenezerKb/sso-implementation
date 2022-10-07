@@ -69,4 +69,5 @@ type Role interface {
 	UpdateRoleStatus(ctx *gin.Context)
 	GetRoleByName(ctx *gin.Context)
 	DeleteRole(ctx *gin.Context)
+	UpdateRole(ctx *gin.Context)
 }

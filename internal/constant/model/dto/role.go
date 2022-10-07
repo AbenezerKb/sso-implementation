@@ -36,3 +36,15 @@ func (u UpdateRoleStatus) Validate() error {
 		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In(constant.Active, constant.Inactive, constant.Pending).Error("invalid status")),
 	)
 }
+
+type UpdateRole struct {
+	Name        string   `json:"name"`
+	Permissions []string `json:"permissions"`
+}
+
+func (u UpdateRole) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Name, validation.Required.Error("name is required")),
+		validation.Field(&u.Permissions, validation.Required.Error("permissions is required")),
+	)
+}

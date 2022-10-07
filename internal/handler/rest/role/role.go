@@ -1,6 +1,8 @@
 package role
 
 import (
+	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"net/http"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
@@ -9,9 +11,6 @@ import (
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
-
-	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 type role struct {
@@ -197,5 +196,38 @@ func (r *role) GetRoleByName(ctx *gin.Context) {
 	}
 
 	r.logger.Info(ctx, "client fetched", zap.Any("role", role))
+	constant.SuccessResponse(ctx, http.StatusOK, role, nil)
+}
+
+// UpdateRole updates a role
+// @Summary      updates a role
+// @Description  updates a role with new permissions
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param role body dto.UpdateRole true "body"
+// @Success      200  {object}  dto.Role
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles/{name} [put]
+// @Security	BearerAuth
+func (r *role) UpdateRole(ctx *gin.Context) {
+	roleName := ctx.Param("name")
+	requestCtx := ctx.Request.Context()
+	var updateRole dto.UpdateRole
+	err := ctx.ShouldBind(&updateRole)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		r.logger.Info(ctx, "invalid input on update role", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+	updateRole.Name = roleName
+	role, err := r.roleModule.UpdateRole(requestCtx, updateRole)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	r.logger.Info(ctx, "role updated", zap.String("role-name", roleName))
 	constant.SuccessResponse(ctx, http.StatusOK, role, nil)
 }

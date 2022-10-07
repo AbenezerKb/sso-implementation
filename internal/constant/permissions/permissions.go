@@ -126,4 +126,9 @@ var (
 		Name:     "delete a role",
 		Category: "role",
 	}
+	UpdateRole = Permission{
+		ID:       "update_role",
+		Name:     "update a role",
+		Category: "role",
+	}
 )
