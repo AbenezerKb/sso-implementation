@@ -403,6 +403,12 @@ definitions:
         description: Status is new status that will replace old status of the user
         type: string
     type: object
+  dto.UpdateRoleStatus:
+    properties:
+      status:
+        description: Status is new status that will replace old status of the role
+        type: string
+    type: object
   dto.UpdateScopeParam:
     properties:
       description:
@@ -1623,6 +1629,61 @@ paths:
       security:
       - BearerAuth: []
       summary: create role
+      tags:
+      - role
+  /roles/{name}:
+    get:
+      consumes:
+      - application/json
+      description: returns one by the given role
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns one by the given role
+      tags:
+      - role
+  /roles/{name}/status:
+    patch:
+      consumes:
+      - application/json
+      description: changes role status so that they can revoke a role
+      parameters:
+      - description: status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateRoleStatus'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: changes role status
       tags:
       - role
   /roles/permissions:
