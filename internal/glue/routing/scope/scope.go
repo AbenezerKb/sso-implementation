@@ -53,6 +53,16 @@ func InitRoute(group *gin.RouterGroup, handler rest.Scope, authMiddleware middle
 			},
 			Permission: permissions.DeleteScope,
 		},
+		{
+			Method:  "PUT",
+			Path:    "/:name",
+			Handler: handler.UpdateScope,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.UpdateScope,
+		},
 	}
 	routing.RegisterRoutes(scopeGroup, scopeRoutes, enforcer)
 }
