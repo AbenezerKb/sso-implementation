@@ -8,8 +8,8 @@ Feature: Delete Role
       | email           | password | role        |
       | admin@gmail.com | 12345678 | delete_role |
     And there is a role with the following details:
-      | name  | permissions               | status |
-      | role1 | create_user,create_client | ACTIVE |
+      | name  | permissions               |
+      | role1 | create_user,create_client |
     And the following user has the role assigned
       | first_name | middle_name | last_name | phone        | email            | password |
       | abebe      | alemu       | rebuma    | 251923456789 | normal@gmail.com | 123456   |
@@ -23,8 +23,7 @@ Feature: Delete Role
   @failure
   Scenario Outline: I fail to delete the role
     When I request to delete the role "<role>"
-    Then my request should fail with "<message>" and "<field_error>"
+    Then my request should fail with "<message>"
     Examples:
-      | role    | message        | field_error      |
-      |         |                | role is required |
-      | no-role | role not found |                  |
+      | role    | message        |
+      | no-role | role not found |

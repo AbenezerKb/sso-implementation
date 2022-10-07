@@ -64,8 +64,6 @@ func (r *deleteRoleTest) thereIsARoleWithTheFollowingDetails(roleTable *godog.Ta
 		return err
 	}
 
-	r.apiTest.URL += r.role.Name + "/status"
-
 	return nil
 }
 
@@ -98,8 +96,8 @@ func (r *deleteRoleTest) theFollowingUserHasTheRoleAssigned(userTable *godog.Tab
 	return r.PersistDB.AssignRoleForUser(context.Background(), user.ID, r.role.Name)
 }
 
-func (r *deleteRoleTest) iRequestToDeleteTheRole() error {
-	r.apiTest.URL = r.apiTest.URL + r.role.Name
+func (r *deleteRoleTest) iRequestToDeleteTheRole(role string) error {
+	r.apiTest.URL = r.apiTest.URL + role
 	r.apiTest.SendRequest()
 	return nil
 }
@@ -113,35 +111,34 @@ func (r *deleteRoleTest) theRoleShouldBeDeleted() error {
 		return fmt.Errorf("expected to not find the deleted role")
 	}
 
-	_, err = r.Conn.Query(context.Background(), "SELECT * FROM casbin_rule WHERE v0 = $1", r.role.Name)
+	rows, err := r.Conn.Query(context.Background(), "SELECT * FROM casbin_rule WHERE v0 = $1", r.role.Name)
 	if err == nil {
+		return err
+	}
+	if rows.Next() {
 		return fmt.Errorf("expected to not find permissions associated with the deleted role")
 	}
 	return nil
 }
 
 func (r *deleteRoleTest) theUserShouldNoLongerHaveThatRoleAssigned() error {
-	_, err := r.Conn.Query(context.Background(), "SELECT * FROM casbin_rule WHERE v1 = $1", r.role.Name)
-	if err == nil {
-		return fmt.Errorf("expected to not find any users associated with the deleted role")
+	rows, err := r.Conn.Query(context.Background(), "SELECT * FROM casbin_rule WHERE v1 = $1", r.role.Name)
+	if err != nil {
+		return err
 	}
 
+	if rows.Next() {
+		return fmt.Errorf("expected to not find any users associated with the deleted role")
+	}
 	return nil
 }
 
-func (r *deleteRoleTest) myRequestShouldFailWithAnd(message, fieldError string) error {
-	if err := r.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+func (r *deleteRoleTest) myRequestShouldFailWith(message string) error {
+	if err := r.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
 		return err
 	}
-	if message != "" {
-		if err := r.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
-			return err
-		}
-	}
-	if fieldError != "" {
-		if err := r.apiTest.AssertStringValueOnPathInResponse("error.field_error.0.description", fieldError); err != nil {
-			return err
-		}
+	if err := r.apiTest.AssertStringValueOnPathInResponse("error.message", message); err != nil {
+		return err
 	}
 
 	return nil
@@ -165,7 +162,7 @@ func (r *deleteRoleTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, r.iAmLoggedInWithTheFollowingCredentials)
 	ctx.Step(`^I request to delete the role "([^"]*)"$`, r.iRequestToDeleteTheRole)
-	ctx.Step(`^my request should fail with "([^"]*)" and "([^"]*)"$`, r.myRequestShouldFailWithAnd)
+	ctx.Step(`^my request should fail with "([^"]*)"$`, r.myRequestShouldFailWith)
 	ctx.Step(`^the following user has the role assigned$`, r.theFollowingUserHasTheRoleAssigned)
 	ctx.Step(`^the role should be deleted$`, r.theRoleShouldBeDeleted)
 	ctx.Step(`^the user should no longer have that role assigned$`, r.theUserShouldNoLongerHaveThatRoleAssigned)
