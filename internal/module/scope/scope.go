@@ -65,3 +65,16 @@ func (s *scopeModule) GetAllScopes(ctx context.Context, filtersQuery request_mod
 func (s *scopeModule) DeleteScopeByName(ctx context.Context, name string) error {
 	return s.scopePersistence.DeleteScopeByName(ctx, name)
 }
+
+func (s *scopeModule) UpdateScope(ctx context.Context, updateScopeParam dto.UpdateScopeParam, scopeName string) error {
+	if err := updateScopeParam.Validate(); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		s.logger.Info(ctx, "invalid input", zap.Error(err))
+		return err
+	}
+
+	return s.scopePersistence.UpdateScope(ctx, dto.Scope{
+		Name:        scopeName,
+		Description: updateScopeParam.Description,
+	})
+}

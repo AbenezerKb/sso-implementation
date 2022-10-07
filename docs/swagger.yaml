@@ -394,6 +394,12 @@ definitions:
         description: Status is new status that will replace old status of the user
         type: string
     type: object
+  dto.UpdateScopeParam:
+    properties:
+      description:
+        description: The scope description.
+        type: string
+    type: object
   dto.User:
     properties:
       created_at:
@@ -1186,6 +1192,40 @@ paths:
       security:
       - BearerAuth: []
       summary: Get a scope
+      tags:
+      - scope
+    put:
+      consumes:
+      - application/json
+      description: update  scope
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: scope
+        in: body
+        name: scope
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateScopeParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: update  scope
       tags:
       - scope
   /oauth/token:

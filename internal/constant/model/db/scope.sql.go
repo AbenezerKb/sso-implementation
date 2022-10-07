@@ -112,3 +112,31 @@ func (q *Queries) GetScopesByResourceServerName(ctx context.Context, resourceSer
 	}
 	return items, nil
 }
+
+const updateScope = `-- name: UpdateScope :one
+UPDATE scopes
+SET 
+ description = $2
+WHERE name = $1
+RETURNING id, name, description, resource_server_id, resource_server_name, status, created_at
+`
+
+type UpdateScopeParams struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func (q *Queries) UpdateScope(ctx context.Context, arg UpdateScopeParams) (Scope, error) {
+	row := q.db.QueryRow(ctx, updateScope, arg.Name, arg.Description)
+	var i Scope
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.ResourceServerID,
+		&i.ResourceServerName,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
