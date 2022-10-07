@@ -1632,6 +1632,32 @@ paths:
       tags:
       - role
   /roles/{name}:
+    delete:
+      consumes:
+      - application/json
+      description: deletes a role and all user associations with the role
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: deletes a role
+      tags:
+      - role
     get:
       consumes:
       - application/json
