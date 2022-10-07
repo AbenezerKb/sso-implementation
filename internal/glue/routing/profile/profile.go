@@ -48,6 +48,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.Profile, authMiddleware mid
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  "PATCH",
+			Path:    "/password",
+			Handler: handler.ChangePassword,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(profile, profileRoutes, enforcer)
 }

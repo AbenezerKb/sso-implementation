@@ -1232,6 +1232,51 @@
                 }
             }
         },
+        "/profile/password": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "change's user password..",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "change's user password..",
+                "parameters": [
+                    {
+                        "description": "ChangePasswordParam",
+                        "name": "ChangePasswordParam",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChangePasswordParam"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile/phone": {
             "patch": {
                 "security": [
@@ -2128,6 +2173,19 @@
                 },
                 "updated_at": {
                     "description": "AuthUpdatedAt is the time this authorization is last updated at",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ChangePasswordParam": {
+            "type": "object",
+            "properties": {
+                "new_password": {
+                    "description": "NewPassword is the new password of the user.",
+                    "type": "string"
+                },
+                "old_password": {
+                    "description": "OldPassword is the previous password of the user.",
                     "type": "string"
                 }
             }
