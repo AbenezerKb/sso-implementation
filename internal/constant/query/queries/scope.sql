@@ -17,3 +17,10 @@ DELETE FROM scopes WHERE name = $1 RETURNING *;
 SELECT *
 FROM scopes
 WHERE resource_server_name = $1;
+
+-- name: UpdateScope :one
+UPDATE scopes
+SET 
+ description = $2
+WHERE name = $1
+RETURNING *;
