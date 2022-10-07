@@ -82,6 +82,15 @@ definitions:
           at
         type: string
     type: object
+  dto.ChangePasswordParam:
+    properties:
+      new_password:
+        description: NewPassword is the new password of the user.
+        type: string
+      old_password:
+        description: OldPassword is the previous password of the user.
+        type: string
+    type: object
   dto.ChangePhoneParam:
     properties:
       otp:
@@ -1343,6 +1352,34 @@ paths:
       security:
       - BearerAuth: []
       summary: update user profile.
+      tags:
+      - profile
+  /profile/password:
+    patch:
+      consumes:
+      - application/json
+      description: change's user password..
+      parameters:
+      - description: ChangePasswordParam
+        in: body
+        name: ChangePasswordParam
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePasswordParam'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: change's user password..
       tags:
       - profile
   /profile/phone:
