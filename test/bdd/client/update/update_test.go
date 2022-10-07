@@ -20,7 +20,7 @@ type updateClientTest struct {
 	updateClient dto.Client
 }
 
-func TestUpdateUserStatus(t *testing.T) {
+func TestUpdateClient(t *testing.T) {
 	u := updateClientTest{}
 	u.TestInstance = test.Initiate("../../../../")
 	u.apiTest.InitializeTest(t, "update client", "features/update.feature", u.InitializeScenario)

@@ -91,6 +91,11 @@ var (
 		Name:     "create a role",
 		Category: "role",
 	}
+	UpdateScope = Permission{
+		ID:       "update_scope",
+		Name:     "Update a scope",
+		Category: "scope",
+	}
 	GetAllRoles = Permission{
 		ID:       "get_all_roles",
 		Name:     "get all roles",

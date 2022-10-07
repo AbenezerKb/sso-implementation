@@ -81,6 +81,7 @@ type ScopePersistence interface {
 	GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error)
 	GetAllScopes(ctx context.Context, filters request_models.FilterParams) ([]dto.Scope, *model.MetaData, error)
 	DeleteScopeByName(ctx context.Context, name string) error
+	UpdateScope(ctx context.Context, scopeUpdateParam dto.Scope) error
 }
 
 type UserPersistence interface {

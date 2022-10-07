@@ -57,6 +57,7 @@ type ScopeModule interface {
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
 	GetAllScopes(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error)
 	DeleteScopeByName(ctx context.Context, name string) error
+	UpdateScope(ctx context.Context, updateScopeParam dto.UpdateScopeParam, scopeName string) error
 }
 
 type ProfileModule interface {
