@@ -118,4 +118,5 @@ type RolePersistence interface {
 	CheckIfPermissionExists(ctx context.Context, permission string) (bool, error)
 	GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error)
 	GetRoleByName(ctx context.Context, roleName string) (dto.Role, error)
+	UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error
 }
