@@ -144,3 +144,41 @@ func (s *scope) DeleteScope(ctx *gin.Context) {
 	s.logger.Info(ctx, "scope deleted", zap.Any("scope", scopeName))
 	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
 }
+
+// UpdateScope is a handler for updating a scope
+// @Summary      update  scope
+// @Description  update  scope
+// @Tags         scope
+// @Accept       json
+// @Produce      json
+// @param name path string true "name"
+// @param scope body dto.UpdateScopeParam true "scope"
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Failure      404  {object}  model.ErrorResponse
+// @Router       /oauth/scopes/{name} [put]
+// @Security	BearerAuth
+func (s *scope) UpdateScope(ctx *gin.Context) {
+	updateScopeParam := dto.UpdateScopeParam{}
+
+	err := ctx.ShouldBind(&updateScopeParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		s.logger.Info(ctx, "couldn't bind", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+
+	scopeName := ctx.Param("name")
+
+	requestCtx := ctx.Request.Context()
+
+	err = s.scopeModule.UpdateScope(requestCtx, updateScopeParam, scopeName)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	s.logger.Info(ctx, "scope updated", zap.String("scope", scopeName), zap.Any("parameter", updateScopeParam))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
