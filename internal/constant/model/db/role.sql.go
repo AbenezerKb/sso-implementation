@@ -107,3 +107,27 @@ func (q *Queries) GetRoleStatus(ctx context.Context, name string) (sql.NullStrin
 	err := row.Scan(&status)
 	return status, err
 }
+
+const updateRoleStatus = `-- name: UpdateRoleStatus :one
+UPDATE roles
+SET status = $2
+WHERE name = $1
+RETURNING name, status, created_at, updated_at
+`
+
+type UpdateRoleStatusParams struct {
+	Name   string         `json:"name"`
+	Status sql.NullString `json:"status"`
+}
+
+func (q *Queries) UpdateRoleStatus(ctx context.Context, arg UpdateRoleStatusParams) (Role, error) {
+	row := q.db.QueryRow(ctx, updateRoleStatus, arg.Name, arg.Status)
+	var i Role
+	err := row.Scan(
+		&i.Name,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
