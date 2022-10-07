@@ -102,3 +102,7 @@ func (r *roleModule) UpdateRoleStatus(ctx context.Context, updateRoleStatusParam
 	}
 	return nil
 }
+
+func (r *roleModule) DeleteRole(ctx context.Context, roleName string) error {
+	return r.rolePersistence.DeleteRole(ctx, roleName)
+}
