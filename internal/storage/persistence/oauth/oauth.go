@@ -299,3 +299,20 @@ func (o *oauth) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid
 		CreatedAt:    refreshToken.CreatedAt,
 	}, nil
 }
+
+func (o *oauth) GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error) {
+	user, err := o.db.GetUserById(ctx, Id)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user found", zap.Error(err), zap.String("id", Id.String()))
+			return "", err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			o.logger.Error(ctx, "unable to get user by id", zap.Error(err), zap.String("id", Id.String()))
+			return "", err
+		}
+	}
+
+	return user.Password, nil
+}
