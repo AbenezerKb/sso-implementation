@@ -24,6 +24,7 @@ type OAuthPersistence interface {
 	GetInternalRefreshToken(ctx context.Context, refreshtoken string) (*dto.InternalRefreshToken, error)
 	UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error)
 	GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (*dto.InternalRefreshToken, error)
+	GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error)
 }
 
 type OTPCache interface {
@@ -95,6 +96,7 @@ type ProfilePersistence interface {
 	GetProfile(ctx context.Context, userID uuid.UUID) (*dto.User, error)
 	UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error
 	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam, userID uuid.UUID) error
+	ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam, userID uuid.UUID) error
 }
 
 type ResourceServerPersistence interface {
