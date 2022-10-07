@@ -128,24 +128,48 @@ func (r *role) GetAllRoles(ctx *gin.Context) {
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /roles/{name}/status [patch]
 // @Security	BearerAuth
-func (c *role) UpdateRoleStatus(ctx *gin.Context) {
+func (r *role) UpdateRoleStatus(ctx *gin.Context) {
 	roleName := ctx.Param("name")
 	updateStatusParam := dto.UpdateRoleStatus{}
 	err := ctx.ShouldBindJSON(&updateStatusParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
-		c.logger.Info(ctx, "unable to bind role status", zap.Error(err))
+		r.logger.Info(ctx, "unable to bind role status", zap.Error(err))
 		_ = ctx.Error(err)
 		return
 	}
 
 	requestCtx := ctx.Request.Context()
-	err = c.roleModule.UpdateRoleStatus(requestCtx, updateStatusParam, roleName)
+	err = r.roleModule.UpdateRoleStatus(requestCtx, updateStatusParam, roleName)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
-	c.logger.Info(ctx, "role status changed", zap.String("role-name", roleName), zap.String("to-status", updateStatusParam.Status))
+	r.logger.Info(ctx, "role status changed", zap.String("role-name", roleName), zap.String("to-status", updateStatusParam.Status))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+// DeleteRole deletes a role
+// @Summary      deletes a role
+// @Description  deletes a role and all user associations with the role
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param name path string true "name"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles/{name} [delete]
+// @Security	BearerAuth
+func (r *role) DeleteRole(ctx *gin.Context) {
+	roleName := ctx.Param("name")
+	requestCtx := ctx.Request.Context()
+	err := r.roleModule.DeleteRole(requestCtx, roleName)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	r.logger.Info(ctx, "role deleted", zap.String("role-name", roleName))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
