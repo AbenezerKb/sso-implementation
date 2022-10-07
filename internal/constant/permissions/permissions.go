@@ -111,4 +111,9 @@ var (
 		Name:     "update user status",
 		Category: "user",
 	}
+	ChangeRoleStatus = Permission{
+		ID:       "change_role_status",
+		Name:     "change role status",
+		Category: "role",
+	}
 )

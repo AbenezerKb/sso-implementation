@@ -116,3 +116,36 @@ func (r *role) GetAllRoles(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, roles, metaData)
 }
+
+// UpdateRoleStatus updates role status
+// @Summary      changes role status
+// @Description  changes role status so that they can revoke a role
+// @Tags         role
+// @Accept       json
+// @Produce      json
+// @param status body dto.UpdateRoleStatus true "status"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /roles/{name}/status [patch]
+// @Security	BearerAuth
+func (c *role) UpdateRoleStatus(ctx *gin.Context) {
+	roleName := ctx.Param("name")
+	updateStatusParam := dto.UpdateRoleStatus{}
+	err := ctx.ShouldBindJSON(&updateStatusParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		c.logger.Info(ctx, "unable to bind role status", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+	err = c.roleModule.UpdateRoleStatus(requestCtx, updateStatusParam, roleName)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	c.logger.Info(ctx, "role status changed", zap.String("role-name", roleName), zap.String("to-status", updateStatusParam.Status))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}

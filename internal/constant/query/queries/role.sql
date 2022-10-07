@@ -22,3 +22,9 @@ WHERE name = $1;
 SELECT status
 FROM roles
 WHERE name = $1;
+
+-- name: UpdateRoleStatus :one
+UPDATE roles
+SET status = $2
+WHERE name = $1
+RETURNING *;

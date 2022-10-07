@@ -2,12 +2,14 @@ package role
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
+	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
@@ -153,4 +155,28 @@ func (r *rolePersistence) GetRoleByName(ctx context.Context, roleName string) (d
 		CreatedAt: role.CreatedAt,
 		UpdatedAt: role.UpdatedAt,
 	}, nil
+}
+
+func (r *rolePersistence) UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error {
+	_, err := r.db.UpdateRoleStatus(ctx, db.UpdateRoleStatusParams{
+		Name: roleName,
+		Status: sql.NullString{
+			String: updateStatusParam.Status,
+			Valid:  true,
+		},
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "role not found")
+			r.logger.Error(ctx, "error changing role's status", zap.Error(err), zap.String("role-name", roleName), zap.String("role-status", updateStatusParam.Status))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error changing role status")
+			r.logger.Error(ctx, "error changing role's status", zap.Error(err), zap.String("role-name", roleName), zap.String("role-status", updateStatusParam.Status))
+			return err
+		}
+	}
+
+	return nil
 }

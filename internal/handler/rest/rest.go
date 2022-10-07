@@ -65,4 +65,5 @@ type Role interface {
 	GetAllPermissions(ctx *gin.Context)
 	CreateRole(ctx *gin.Context)
 	GetAllRoles(ctx *gin.Context)
+	UpdateRoleStatus(ctx *gin.Context)
 }
