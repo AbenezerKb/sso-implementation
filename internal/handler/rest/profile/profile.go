@@ -126,8 +126,9 @@ func (p *profile) ChangePhone(ctx *gin.Context) {
 	changePhoneParam := dto.ChangePhoneParam{}
 	err := ctx.ShouldBind(&changePhoneParam)
 	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		p.logger.Info(ctx, "unable to bind change phone information", zap.Error(err))
-		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -140,5 +141,37 @@ func (p *profile) ChangePhone(ctx *gin.Context) {
 	}
 
 	p.logger.Info(ctx, "user changed phone", zap.Any("phone-to", changePhoneParam.Phone))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+// ChangePassword	 change's user password.
+// @Summary      change's user password..
+// @Description  change's user password..
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @param ChangePasswordParam body dto.ChangePasswordParam true "ChangePasswordParam"
+// @Success      200  {object}  model.Response
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile/password [patch]
+// @Security	BearerAuth
+func (p *profile) ChangePassword(ctx *gin.Context) {
+	changePasswordParam := dto.ChangePasswordParam{}
+	err := ctx.ShouldBind(&changePasswordParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		p.logger.Info(ctx, "unable to bind change password information", zap.Error(err))
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+
+	err = p.profileModule.ChangePassword(requestCtx, changePasswordParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }

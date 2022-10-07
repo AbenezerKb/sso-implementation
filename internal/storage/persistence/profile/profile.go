@@ -104,3 +104,18 @@ func (p *profilePersistence) ChangePhone(ctx context.Context, changePhoneParam d
 	return nil
 
 }
+
+func (p *profilePersistence) ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam, userID uuid.UUID) error {
+	_, err := p.db.UpdateUser(ctx, db.UpdateUserParams{
+		Password: sql.NullString{String: changePasswordParam.NewPassword, Valid: true},
+		ID:       userID,
+	})
+
+	if err != nil {
+		err = errors.ErrWriteError.Wrap(err, "could not change user password")
+		p.logger.Error(ctx, "unable to change user's password", zap.Error(err), zap.Any("user-id", userID))
+		return err
+	}
+
+	return nil
+}

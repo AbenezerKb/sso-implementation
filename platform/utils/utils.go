@@ -29,6 +29,10 @@ func HashAndSalt(ctx context.Context, pwd []byte, logger logger.Logger) (string,
 	}
 	return string(hash), nil
 }
+func CompareHashAndPassword(hashedPwd, plainPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPwd), []byte(plainPassword))
+	return err == nil
+}
 
 func GenerateRandomString(length int, includeSpecial bool) string {
 	str := letterBytes
