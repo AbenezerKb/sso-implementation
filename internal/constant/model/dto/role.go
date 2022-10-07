@@ -2,6 +2,7 @@ package dto
 
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"sso/internal/constant"
 	"time"
 )
 
@@ -23,4 +24,15 @@ func (r Role) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Name, validation.Required.Error("name is required")),
 		validation.Field(&r.Permissions, validation.Required.Error("permissions is required")))
+}
+
+type UpdateRoleStatus struct {
+	// Status is new status that will replace old status of the role
+	Status string `json:"status"`
+}
+
+func (u UpdateRoleStatus) Validate() error {
+	return validation.ValidateStruct(&u,
+		validation.Field(&u.Status, validation.Required.Error("status is required"), validation.In(constant.Active, constant.Inactive, constant.Pending).Error("invalid status")),
+	)
 }
