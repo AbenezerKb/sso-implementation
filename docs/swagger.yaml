@@ -1658,6 +1658,32 @@ paths:
       summary: deletes a role
       tags:
       - role
+    get:
+      consumes:
+      - application/json
+      description: returns one by the given role
+      parameters:
+      - description: name
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.Role'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: returns one by the given role
+      tags:
+      - role
   /roles/{name}/status:
     patch:
       consumes:

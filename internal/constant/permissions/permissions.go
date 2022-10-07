@@ -116,6 +116,11 @@ var (
 		Name:     "change role status",
 		Category: "role",
 	}
+	GetRole = Permission{
+		ID:       "get_role",
+		Name:     "get a role",
+		Category: "role",
+	}
 	DeleteRole = Permission{
 		ID:       "delete_role",
 		Name:     "delete a role",

@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
@@ -17,6 +15,9 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type rolePersistence struct {
@@ -137,7 +138,7 @@ func (r *rolePersistence) GetAllRoles(ctx context.Context, filters request_model
 	}, nil
 }
 func (r *rolePersistence) GetRoleByName(ctx context.Context, roleName string) (dto.Role, error) {
-	role, err := r.db.GetRoleByName(ctx, roleName)
+	role, err := r.db.GetRoleByNameWithPermissions(ctx, roleName)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "role not found")
@@ -149,12 +150,7 @@ func (r *rolePersistence) GetRoleByName(ctx context.Context, roleName string) (d
 		return dto.Role{}, err
 	}
 
-	return dto.Role{
-		Name:      role.Name,
-		Status:    role.Status.String,
-		CreatedAt: role.CreatedAt,
-		UpdatedAt: role.UpdatedAt,
-	}, nil
+	return role, nil
 }
 
 func (r *rolePersistence) UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error {
