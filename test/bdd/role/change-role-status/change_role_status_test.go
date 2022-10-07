@@ -70,6 +70,7 @@ func (r *changeRoleStatusTest) iUpdateTheRolesStatusTo(updatedStatus string) err
 	r.apiTest.SetBodyMap(map[string]interface{}{
 		"status": updatedStatus,
 	})
+	r.apiTest.SetHeader("Authorization", "Bearer "+r.AccessToken)
 	r.apiTest.SendRequest()
 	return nil
 }
@@ -83,7 +84,7 @@ func (r *changeRoleStatusTest) theRoleStatusShouldUpdateTo(updatedStatus string)
 		return err
 	}
 
-	if err := r.apiTest.AssertEqual(updatedRoleData.Status, updatedStatus); err != nil {
+	if err := r.apiTest.AssertEqual(updatedRoleData.Status.String, updatedStatus); err != nil {
 		return err
 	}
 	return nil

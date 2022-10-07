@@ -40,6 +40,6 @@ Feature: Change Role Status
 
     Examples:
       | name  | permissions               | status   | updated_status | message            |
-      | role1 | create_user,create_client | ACTIVE   | INACTIVE       | invalid status     |
-      | role2 | get_all_users,create_role | INACTIVE | ACTIVE         | status is required |
+      | role1 | create_user,create_client | ACTIVE   | good-role      | invalid status     |
+      | role2 | get_all_users,create_role | INACTIVE |                | status is required |
 
