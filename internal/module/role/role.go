@@ -106,3 +106,25 @@ func (r *roleModule) UpdateRoleStatus(ctx context.Context, updateRoleStatusParam
 func (r *roleModule) DeleteRole(ctx context.Context, roleName string) error {
 	return r.rolePersistence.DeleteRole(ctx, roleName)
 }
+
+func (r *roleModule) UpdateRole(ctx context.Context, updateRole dto.UpdateRole) (dto.Role, error) {
+	if err := updateRole.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		r.logger.Info(ctx, "invalid input while updating role", zap.Error(err), zap.Any("role", updateRole))
+		return dto.Role{}, err
+	}
+
+	// check for invalid permissions
+	for i := 0; i < len(updateRole.Permissions); i++ {
+		exists, err := r.rolePersistence.CheckIfPermissionExists(ctx, updateRole.Permissions[i])
+		if err != nil {
+			return dto.Role{}, err
+		}
+		if !exists {
+			err := errors.ErrInvalidUserInput.New(fmt.Sprintf("permission %s does not exist", updateRole.Permissions[i]))
+			r.logger.Info(ctx, "permission doesn't exist")
+			return dto.Role{}, err
+		}
+	}
+	return r.rolePersistence.UpdateRole(ctx, updateRole)
+}
