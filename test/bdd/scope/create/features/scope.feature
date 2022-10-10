@@ -9,7 +9,7 @@ Feature: Create Scope
             | email           | password | role         |
             | admin@gmail.com | iAmAdmin | create_scope |
     @success
-    Scenario Outline: Successfull  Scope Creation
+    Scenario: Successful  Scope Creation
         Given I fill the form with following fields:
             | name    | description  | resource_server |
             | profile | test profile | test_server     |
@@ -17,16 +17,16 @@ Feature: Create Scope
         Then I should have new scope
 
     @failure
-    Scenario Outline: Unsuccessfull Scope Creation
+    Scenario Outline: Unsuccessful Scope Creation
         Given I fill the form with following fields:
             | name   | description   | resource_server   |
             | <name> | <description> | <resource_server> |
         When I create the scope
         Then The creation should fail with "<message>"
-
         Examples:
-            | name   | description | resource_server | message                     |
-            |        | openid      | test_server     | name is required            |
-            | openid |             | test_server     | description is required     |
+            | name    | description | resource_server | message                     |
+            |         | openid      | test_server     | name is required            |
+            | openid  |             | test_server     | description is required     |
+            | open id | openid      | test_server     | name can not contain spaces |
 
 
