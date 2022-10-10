@@ -49,7 +49,7 @@ func (s *scopePersistence) GetListedScopes(ctx context.Context, scopes ...string
 }
 
 func (s *scopePersistence) GetScope(ctx context.Context, scope string) (dto.Scope, error) {
-	createdScope, err := s.db.GetScope(ctx, scope)
+	fetchedScope, err := s.db.GetScope(ctx, scope)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			return dto.Scope{}, errors.ErrNoRecordFound.Wrap(err, "scope not found")
@@ -59,8 +59,9 @@ func (s *scopePersistence) GetScope(ctx context.Context, scope string) (dto.Scop
 		return dto.Scope{}, err
 	}
 	return dto.Scope{
-		Name:        createdScope.Name,
-		Description: createdScope.Description,
+		Name:               fetchedScope.Name,
+		Description:        fetchedScope.Description,
+		ResourceServerName: fetchedScope.ResourceServerName.String,
 	}, nil
 }
 
