@@ -34,6 +34,21 @@ type Client struct {
 	CreatedAt    time.Time `json:"created_at"`
 }
 
+type IdentityProvider struct {
+	ID                  uuid.UUID      `json:"id"`
+	Name                string         `json:"name"`
+	LogoUrl             sql.NullString `json:"logo_url"`
+	ClientID            string         `json:"client_id"`
+	ClientSecret        string         `json:"client_secret"`
+	RedirectUri         string         `json:"redirect_uri"`
+	AuthorizationUri    string         `json:"authorization_uri"`
+	TokenEndpointUrl    string         `json:"token_endpoint_url"`
+	UserInfoEndpointUrl sql.NullString `json:"user_info_endpoint_url"`
+	Status              sql.NullString `json:"status"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
+}
+
 type Internalrefreshtoken struct {
 	ID           uuid.UUID `json:"id"`
 	Refreshtoken string    `json:"refreshtoken"`
@@ -41,6 +56,17 @@ type Internalrefreshtoken struct {
 	ExpiresAt    time.Time `json:"expires_at"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+}
+
+type IpAccessToken struct {
+	ID           uuid.UUID      `json:"id"`
+	UserID       uuid.UUID      `json:"user_id"`
+	IpID         uuid.UUID      `json:"ip_id"`
+	Token        string         `json:"token"`
+	RefreshToken sql.NullString `json:"refresh_token"`
+	Status       sql.NullString `json:"status"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
 type RefreshToken struct {
