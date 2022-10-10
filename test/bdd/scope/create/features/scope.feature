@@ -9,7 +9,7 @@ Feature: Create Scope
             | email           | password | role         |
             | admin@gmail.com | iAmAdmin | create_scope |
     @success
-    Scenario : Successful  Scope Creation
+    Scenario: Successful  Scope Creation
         Given I fill the form with following fields:
             | name    | description  | resource_server |
             | profile | test profile | test_server     |
