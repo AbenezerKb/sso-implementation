@@ -91,3 +91,7 @@ type RoleModule interface {
 	DeleteRole(ctx context.Context, roleName string) error
 	UpdateRole(ctx context.Context, updateRole dto.UpdateRole) (dto.Role, error)
 }
+
+type IdentityProviderModule interface {
+	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+}
