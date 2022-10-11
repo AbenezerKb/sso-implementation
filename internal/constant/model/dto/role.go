@@ -6,6 +6,13 @@ import (
 	"time"
 )
 
+// Permission is a pre-defined permission with an id and category
+type Permission struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
 // Role is a set of defined permissions that are grouped together with a name
 type Role struct {
 	// Name is a unique name for the role

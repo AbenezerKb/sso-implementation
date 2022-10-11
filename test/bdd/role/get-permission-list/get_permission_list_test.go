@@ -35,7 +35,8 @@ func (g *getPermissionsTest) iAmLoggedInWithTheFollowingCredentials(adminCredent
 	if err != nil {
 		return err
 	}
-	return g.GrantRoleForUser(g.Admin.ID.String(), adminCredentials)
+	_, g.GrantRoleAfterFunc, err = g.GrantRoleForUserWithAfter(g.Admin.ID.String(), adminCredentials)
+	return err
 }
 
 func (g *getPermissionsTest) iRequestToGetAllPermissionsWithCategory(category string) error {
@@ -106,6 +107,7 @@ func (g *getPermissionsTest) myRequestShouldFailWithMessage(message string) erro
 func (g *getPermissionsTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = g.DB.DeleteUser(ctx, g.Admin.ID)
+		_ = g.GrantRoleAfterFunc()
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in with the following credentials$`, g.iAmLoggedInWithTheFollowingCredentials)

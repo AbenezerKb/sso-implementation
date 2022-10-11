@@ -2,12 +2,10 @@ package storage
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-	"sso/internal/constant/permissions"
-
-	"github.com/google/uuid"
 )
 
 type OAuthPersistence interface {
@@ -114,7 +112,7 @@ type MiniRidePersistence interface {
 }
 
 type RolePersistence interface {
-	GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error)
+	GetAllPermissions(ctx context.Context, category string) ([]dto.Permission, error)
 	GetRoleStatus(ctx context.Context, roleName string) (string, error)
 	GetRoleForUser(ctx context.Context, userID uuid.UUID) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID uuid.UUID) (string, error)
@@ -125,4 +123,8 @@ type RolePersistence interface {
 	UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error
 	DeleteRole(ctx context.Context, roleName string) error
 	UpdateRole(ctx context.Context, role dto.UpdateRole) (dto.Role, error)
+}
+
+type IdentityProviderPersistence interface {
+	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
 }

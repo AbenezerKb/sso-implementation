@@ -62,7 +62,7 @@ func InitRoute(group *gin.RouterGroup, client rest.Client, authMiddleware middle
 				authMiddleware.Authentication(),
 				authMiddleware.AccessControl(),
 			},
-			Permission: permissions.UpdateClient,
+			Permission: permissions.UpdateClientStatus,
 		},
 		{
 			Method:  http.MethodPut,

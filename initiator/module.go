@@ -4,6 +4,7 @@ import (
 	"context"
 	"sso/internal/module"
 	"sso/internal/module/client"
+	identity_provider "sso/internal/module/identity-provider"
 	"sso/internal/module/mini_ride"
 	"sso/internal/module/oauth"
 	"sso/internal/module/oauth2"
@@ -20,15 +21,16 @@ import (
 )
 
 type Module struct {
-	OAuthModule    module.OAuthModule
-	OAuth2Module   module.OAuth2Module
-	userModule     module.UserModule
-	clientModule   module.ClientModule
-	scopeModule    module.ScopeModule
-	profile        module.ProfileModule
-	resourceServer module.ResourceServerModule
-	MiniRideModule module.MiniRideModule
-	RoleModule     module.RoleModule
+	OAuthModule      module.OAuthModule
+	OAuth2Module     module.OAuth2Module
+	userModule       module.UserModule
+	clientModule     module.ClientModule
+	scopeModule      module.ScopeModule
+	profile          module.ProfileModule
+	resourceServer   module.ResourceServerModule
+	MiniRideModule   module.MiniRideModule
+	RoleModule       module.RoleModule
+	identityProvider module.IdentityProviderModule
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
@@ -80,8 +82,9 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			cache.OTPCacheLayer,
 			viper.GetString("assets.profile_picture_dist"),
 			viper.GetInt("assets.profile_picture_max_size")),
-		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
-		RoleModule:     role.InitRole(log.Named("role-module"), persistence.RolePersistence),
+		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
+		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
+		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
 	}
 }
 
@@ -131,8 +134,9 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			cache.OTPCacheLayer,
 			viper.GetString("assets.profile_picture_dist"),
 			viper.GetInt("assets.profile_picture_max_size")),
-		resourceServer: resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
-		MiniRideModule: mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
-		RoleModule:     role.InitRole(log.Named("role-module"), persistence.RolePersistence),
+		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
+		MiniRideModule:   mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
+		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
+		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
 	}
 }

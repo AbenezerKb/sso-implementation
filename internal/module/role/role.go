@@ -7,7 +7,6 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-	"sso/internal/constant/permissions"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
@@ -28,7 +27,7 @@ func InitRole(logger logger.Logger, rolePersistence storage.RolePersistence) mod
 	}
 }
 
-func (r *roleModule) GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error) {
+func (r *roleModule) GetAllPermissions(ctx context.Context, category string) ([]dto.Permission, error) {
 	return r.rolePersistence.GetAllPermissions(ctx, category)
 }
 
