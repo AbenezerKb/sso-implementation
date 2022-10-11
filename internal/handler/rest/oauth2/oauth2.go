@@ -361,3 +361,23 @@ func (o *oauth2) GetOpenIDAuthorizedClients(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, authorizedClients, nil)
 }
+
+// UserInfo returns claims about the authenticated End-User
+// @Summary      returns claims about the authenticated End-User
+// @Description  It returns profile information of user that got logged in using OpenID Connect
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @Success      200  {object} []dto.UserInfo
+// @Failure      401  {object}  model.ErrorResponse
+// @Router       /oauth/userinfo [get]
+func (o *oauth2) UserInfo(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+	userInfoRsp, err := o.oauth2Module.UserInfo(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, userInfoRsp, nil)
+}
