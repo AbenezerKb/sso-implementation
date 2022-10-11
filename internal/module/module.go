@@ -6,7 +6,6 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-	"sso/internal/constant/permissions"
 	"sync"
 
 	"github.com/joomcode/errorx"
@@ -80,7 +79,7 @@ type MiniRideModule interface {
 }
 
 type RoleModule interface {
-	GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error)
+	GetAllPermissions(ctx context.Context, category string) ([]dto.Permission, error)
 	GetRoleStatus(ctx context.Context, roleName string) (string, error)
 	GetRoleForUser(ctx context.Context, userID string) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID string) (string, error)

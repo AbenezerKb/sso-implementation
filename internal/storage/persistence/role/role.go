@@ -11,7 +11,6 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
-	"sso/internal/constant/permissions"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -32,7 +31,7 @@ func InitRolePersistence(logger logger.Logger, db *persistencedb.PersistenceDB) 
 	}
 }
 
-func (r *rolePersistence) GetAllPermissions(ctx context.Context, category string) ([]permissions.Permission, error) {
+func (r *rolePersistence) GetAllPermissions(ctx context.Context, category string) ([]dto.Permission, error) {
 	if category == "" {
 		perms, err := r.db.GetAllPermissions(ctx)
 		if err != nil {
