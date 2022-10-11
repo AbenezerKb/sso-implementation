@@ -131,4 +131,9 @@ var (
 		Name:     "update a role",
 		Category: "role",
 	}
+	CreateIdentityProvider = Permission{
+		ID:       "create_identity_provider",
+		Name:     "create an identity provider",
+		Category: "identity_provider",
+	}
 )
