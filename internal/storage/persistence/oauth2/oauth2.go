@@ -2,8 +2,6 @@ package oauth2
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
@@ -11,6 +9,9 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type oauth2 struct {
@@ -285,4 +286,29 @@ func (o *oauth2) GetOpenIDAuthorizedClients(ctx context.Context, userID uuid.UUI
 		}
 	}
 	return authorizedClientsDTO, nil
+}
+
+func (o *oauth2) UserInfo(ctx context.Context, userID uuid.UUID) (*dto.UserInfo, error) {
+	user, err := o.db.GetUserById(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no user found")
+			o.logger.Info(ctx, "no user were found", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading users")
+			o.logger.Error(ctx, "error reading users", zap.Error(err), zap.Any("user-id", userID))
+			return nil, err
+		}
+	}
+
+	return &dto.UserInfo{
+		Sub:        user.ID.String(),
+		FirstName:  user.FirstName,
+		MiddleName: user.MiddleName,
+		LastName:   user.LastName,
+		Gender:     user.Gender,
+		Email:      user.Email.String,
+		Phone:      user.Phone,
+	}, nil
 }
