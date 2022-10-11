@@ -125,3 +125,7 @@ type RolePersistence interface {
 	DeleteRole(ctx context.Context, roleName string) error
 	UpdateRole(ctx context.Context, role dto.UpdateRole) (dto.Role, error)
 }
+
+type IdentityProviderPersistence interface {
+	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+}
