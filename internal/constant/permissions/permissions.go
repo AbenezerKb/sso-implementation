@@ -136,4 +136,9 @@ var (
 		Name:     "create an identity provider",
 		Category: "identity_provider",
 	}
+	UpdateClientStatus = Permission{
+		ID:       "update_client_status",
+		Name:     "Update client status",
+		Category: "client",
+	}
 )
