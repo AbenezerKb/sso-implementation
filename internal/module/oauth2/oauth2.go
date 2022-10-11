@@ -651,3 +651,21 @@ func (o *oauth2) GetOpenIDAuthorizedClients(ctx context.Context) ([]dto.Authoriz
 
 	return o.oauth2Persistence.GetOpenIDAuthorizedClients(ctx, userID)
 }
+
+func (o *oauth2) UserInfo(ctx context.Context) (*dto.UserInfo, error) {
+	userIDString, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		o.logger.Warn(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", userIDString))
+		return nil, err
+	}
+
+	userID, err := uuid.Parse(userIDString)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		o.logger.Warn(ctx, "parse error", zap.Error(err), zap.String("user-id", userIDString))
+		return nil, err
+	}
+
+	return o.oauth2Persistence.UserInfo(ctx, userID)
+}

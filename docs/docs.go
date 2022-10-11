@@ -1113,6 +1113,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/oauth/userinfo": {
+            "get": {
+                "description": "It returns profile information of user that got logged in using OpenID Connect",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OAuth2"
+                ],
+                "summary": "returns claims about the authenticated End-User",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.UserInfo"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/otp": {
             "get": {
                 "description": "is used to request otp for login and signup",
@@ -2734,6 +2766,39 @@ const docTemplate = `{
                 },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserInfo": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email is the email of the user.",
+                    "type": "string"
+                },
+                "first_name": {
+                    "description": "FirstName is the first name of the user.",
+                    "type": "string"
+                },
+                "gender": {
+                    "description": "Gender is the gender of the user.",
+                    "type": "string"
+                },
+                "last_name": {
+                    "description": "LastName is the last name of the user.",
+                    "type": "string"
+                },
+                "middle_name": {
+                    "description": "MiddleName is the middle name of the user.",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Phone is the phone of the user.",
+                    "type": "string"
+                },
+                "sub": {
+                    "description": "Sub is unique and never reassigned identifier within for the End-User",
                     "type": "string"
                 }
             }

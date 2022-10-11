@@ -52,6 +52,7 @@ type OAuth2Persistence interface {
 	GetRefreshTokenOfClientByUserID(ctx context.Context, userID, clientID uuid.UUID) (*dto.RefreshToken, error)
 	GetAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]dto.AuthorizedClientsResponse, error)
 	GetOpenIDAuthorizedClients(ctx context.Context, userID uuid.UUID) ([]dto.AuthorizedClientsResponse, error)
+	UserInfo(ctx context.Context, userID uuid.UUID) (*dto.UserInfo, error)
 }
 
 type ConsentCache interface {

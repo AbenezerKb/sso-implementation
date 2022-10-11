@@ -475,6 +475,31 @@ definitions:
           It is currently of no use
         type: string
     type: object
+  dto.UserInfo:
+    properties:
+      email:
+        description: Email is the email of the user.
+        type: string
+      first_name:
+        description: FirstName is the first name of the user.
+        type: string
+      gender:
+        description: Gender is the gender of the user.
+        type: string
+      last_name:
+        description: LastName is the last name of the user.
+        type: string
+      middle_name:
+        description: MiddleName is the middle name of the user.
+        type: string
+      phone:
+        description: Phone is the phone of the user.
+        type: string
+      sub:
+        description: Sub is unique and never reassigned identifier within for the
+          End-User
+        type: string
+    type: object
   model.ErrorResponse:
     properties:
       code:
@@ -1286,6 +1311,28 @@ paths:
       security:
       - BasicAuth: []
       summary: exchange token.
+      tags:
+      - OAuth2
+  /oauth/userinfo:
+    get:
+      consumes:
+      - application/json
+      description: It returns profile information of user that got logged in using
+        OpenID Connect
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.UserInfo'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: returns claims about the authenticated End-User
       tags:
       - OAuth2
   /otp:

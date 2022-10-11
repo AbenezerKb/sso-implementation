@@ -90,6 +90,15 @@ func InitRoute(group *gin.RouterGroup, handler rest.OAuth2, authMiddleware middl
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "/userinfo",
+			Handler: handler.UserInfo,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(oauth2Group, oauth2Routes, enforcer)
 
