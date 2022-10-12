@@ -100,7 +100,7 @@ func (d *deleteIdentityProviderTest) theIdentityProviderShouldBeDeleted() error 
 }
 
 func (d *deleteIdentityProviderTest) theDeleteShouldFailWithErrorMessage(message string) error {
-	if err := d.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+	if err := d.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
 		return err
 	}
 	return d.apiTest.AssertStringValueOnPathInResponse("error.message", message)

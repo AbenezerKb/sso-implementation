@@ -24,6 +24,7 @@ Feature: Delete Identity Provider
         Then The delete should fail with error message "<message>"
 
         Examples:
-            | id                                 | message                     |
-            | 60d56419-c2e9-4ee4-951f-04644d245e | identity provider not found |
-            | 4                                  | identity provider not found |
+            | id                                   | message                      |
+            | 670796e2-db61-4fca-9497-67dd5e8fce44 | identity provider not found  |
+            | 670796e2-db61-4fca-9497-67dd5e8fce   | invalid identity provider id |
+            | 4                                    | invalid identity provider id |
