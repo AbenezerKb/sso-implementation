@@ -5,14 +5,12 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"io"
 )
 
 func Encrypt(stringToEncrypt string, keyString string) (string, error) {
-	key, err := hex.DecodeString(keyString)
-	if err != nil {
-		return "", err
-	}
+	key := []byte(keyString)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -32,19 +30,16 @@ func Encrypt(stringToEncrypt string, keyString string) (string, error) {
 	plainText := []byte(stringToEncrypt)
 	cipherText := gcm.Seal(nonce, nonce, plainText, nil)
 
-	return string(cipherText), nil
-
+	return fmt.Sprintf("%x", cipherText), nil
 }
 
 func Decrypt(encryptedString string, keyString string) (string, error) {
-	key, err := hex.DecodeString(keyString)
-	if err != nil {
-		return "", err
-	}
+	key := []byte(keyString)
 
+	// enc := []byte(encryptedString)
 	enc, err := hex.DecodeString(encryptedString)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	block, err := aes.NewCipher(key)
