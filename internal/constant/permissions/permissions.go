@@ -151,4 +151,9 @@ var (
 		Name:     "get an identity provider",
 		Category: "identity_provider",
 	}
+	DeleteIdentityProvider = Permission{
+		ID:       "delete_identity_provider",
+		Name:     "delete an identity provider",
+		Category: "identity_provider",
+	}
 )
