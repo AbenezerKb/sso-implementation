@@ -94,4 +94,5 @@ type RoleModule interface {
 
 type IdentityProviderModule interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider, idPID string) error
 }
