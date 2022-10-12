@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"net/http"
+	"sso/internal/constant"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/platform/utils"
 	"sso/test"
 	"testing"
 
@@ -96,11 +98,15 @@ func (u *updateIdentityProviderTest) theIdentityProviderShouldBeUpdated() error 
 		return err
 	}
 
-	if err := u.apiTest.AssertEqual(fetchedIdP.ClientID, u.updatedIdentityProvider.ClientID); err != nil {
+	fetchedIdP.ClientSecret, err = utils.Decrypt(fetchedIdP.ClientSecret, constant.ClientSecretKey)
+	if err != nil {
 		return err
 	}
 
 	if err := u.apiTest.AssertEqual(fetchedIdP.ClientSecret, u.updatedIdentityProvider.ClientSecret); err != nil {
+		return err
+	}
+	if err := u.apiTest.AssertEqual(fetchedIdP.ClientID, u.updatedIdentityProvider.ClientID); err != nil {
 		return err
 	}
 
