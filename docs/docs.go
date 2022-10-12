@@ -300,6 +300,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/identityProviders": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "create an identity provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identityProvider"
+                ],
+                "summary": "create identity provider",
+                "operationId": "create-identity-provider",
+                "parameters": [
+                    {
+                        "description": "identityProvider",
+                        "name": "identityProvider",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.IdentityProvider"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.IdentityProvider"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/identityProviders/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "update an identity provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identityProvider"
+                ],
+                "summary": "update identity provider",
+                "operationId": "update-identity-provider",
+                "parameters": [
+                    {
+                        "description": "identityProvider",
+                        "name": "identityProvider",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.IdentityProvider"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.IdentityProvider"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login a user.",
@@ -2463,6 +2555,59 @@ const docTemplate = `{
                 },
                 "user_name": {
                     "description": "UserName is the username of the user.\nIt is currently of no use",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.IdentityProvider": {
+            "type": "object",
+            "properties": {
+                "authorization_uri": {
+                    "description": "AuthorizationURI is the uri to request openid authorization from",
+                    "type": "string"
+                },
+                "client_id": {
+                    "description": "ClientID is the id of the client that is registered on the server of this identity provider.\nRequests to this identity provider are passed on behalf of this client id.",
+                    "type": "string"
+                },
+                "client_secret": {
+                    "description": "ClientSecret is the password to be used with the ClientID",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "CreatedAt is the time this identity provider was created at",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the id of this identity provider",
+                    "type": "string"
+                },
+                "logo_uri": {
+                    "description": "LogoURI is the uri of a logo that will be shown for this identity provider",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is the name of this identity provider.",
+                    "type": "string"
+                },
+                "redirect_uri": {
+                    "description": "RedirectURI is the redirect uri the client with ClientID has registered on the server of this identity provider.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status is the status of this identity provider",
+                    "type": "string"
+                },
+                "token_endpoint_uri": {
+                    "description": "TokenEndpointURI is the uri to exchange code with access token",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "description": "UpdatedAt is the time this identity provider was last updated at",
+                    "type": "string"
+                },
+                "user_info_endpoint_uri": {
+                    "description": "UserInfoEndpointURI is the uri to exchange access token with user profile information",
                     "type": "string"
                 }
             }
