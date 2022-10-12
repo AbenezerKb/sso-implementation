@@ -102,7 +102,7 @@ func (g *getIdentityProviderTest) iShouldSuccessfullyGetTheIdentityProvider() er
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(fetchedIdP.LogoURI, g.identityProvider.LogoUrl); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedIdP.LogoURI, g.identityProvider.LogoUrl.String); err != nil {
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (g *getIdentityProviderTest) iShouldSuccessfullyGetTheIdentityProvider() er
 		return err
 	}
 
-	if err := g.apiTest.AssertEqual(fetchedIdP.UserInfoEndpointURI, g.identityProvider.UserInfoEndpointUrl); err != nil {
+	if err := g.apiTest.AssertEqual(fetchedIdP.UserInfoEndpointURI, g.identityProvider.UserInfoEndpointUrl.String); err != nil {
 		return err
 	}
 
