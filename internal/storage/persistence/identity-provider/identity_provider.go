@@ -123,3 +123,20 @@ func (i *identityProviderPersistence) GetIdentityProvider(ctx context.Context, i
 		CreatedAt:           idP.CreatedAt,
 	}, nil
 }
+
+func (i *identityProviderPersistence) DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error {
+	_, err := i.db.DeleteIdentityProvider(ctx, idPID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "identity provider not found")
+			i.logger.Info(ctx, "identity provider not found", zap.Error(err), zap.Any("idP-id", idPID))
+			return err
+		} else {
+			err = errors.ErrDBDelError.Wrap(err, "error deleting the identity provider")
+			i.logger.Error(ctx, "error deleting the identity provider", zap.Error(err), zap.Any("idP-id", idPID))
+			return err
+		}
+	}
+
+	return nil
+}
