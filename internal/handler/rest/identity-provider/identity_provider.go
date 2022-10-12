@@ -47,7 +47,8 @@ func (i *identityProvider) CreateIdentityProvider(ctx *gin.Context) {
 		return
 	}
 
-	ipCreated, err := i.ipModule.CreateIdentityProvider(ctx, ip)
+	requestCtx := ctx.Request.Context()
+	ipCreated, err := i.ipModule.CreateIdentityProvider(requestCtx, ip)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
@@ -63,8 +64,9 @@ func (i *identityProvider) CreateIdentityProvider(ctx *gin.Context) {
 // @Tags identityProvider
 // @Accept  json
 // @Produce  json
+// @Param id path string true "id"
 // @Param identityProvider body dto.IdentityProvider true "identityProvider"
-// @Success 200 {object} dto.IdentityProvider
+// @Success 200 {object} dto.Response
 // @Failure 400 {object} model.ErrorResponse
 // @Router /identityProviders/{id} [put]
 // @Security BearerAuth
@@ -79,12 +81,37 @@ func (i *identityProvider) UpdateIdentityProvider(ctx *gin.Context) {
 		_ = ctx.Error(err)
 		return
 	}
-
-	err = i.ipModule.UpdateIdentityProvider(ctx, idPParam, idPID)
+	requestCtx := ctx.Request.Context()
+	err = i.ipModule.UpdateIdentityProvider(requestCtx, idPParam, idPID)
 	if err != nil {
 		_ = ctx.Error(err)
 		return
 	}
 
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+// GetIdentityProvider is used to get a particular identity provider
+// @Summary get identity provider
+// @Description get an identity provider
+// @ID get-identity-provider
+// @Tags identityProvider
+// @Accept  json
+// @Produce  json
+// @Param id path string true "id"
+// @Success 200 {object} dto.IdentityProvider
+// @Failure 400 {object} model.ErrorResponse
+// @Router /identityProviders/{id} [get]
+// @Security BearerAuth
+func (i *identityProvider) GetIdentityProvider(ctx *gin.Context) {
+	idPID := ctx.Param("id")
+
+	requestCtx := ctx.Request.Context()
+	idP, err := i.ipModule.GetIdentityProvider(requestCtx, idPID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, idP, nil)
 }
