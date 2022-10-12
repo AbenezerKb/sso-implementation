@@ -2,11 +2,13 @@ package identity_provider
 
 import (
 	"context"
+	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -31,6 +33,13 @@ func (i *identityProviderModule) CreateIdentityProvider(ctx context.Context, ip 
 		return dto.IdentityProvider{}, err
 	}
 
+	var err error
+	ip.ClientSecret, err = utils.Encrypt(ip.ClientSecret, constant.ClientSecretKey)
+	if err != nil {
+		i.logger.Error(ctx, "error encrypting client secret", zap.Any("client-secret-id", ip.ClientSecret), zap.Error(err))
+		return dto.IdentityProvider{}, err
+	}
+
 	return i.ipPersistence.CreateIdentityProvider(ctx, ip)
 }
 
@@ -44,6 +53,12 @@ func (i *identityProviderModule) UpdateIdentityProvider(ctx context.Context, idP
 	if err := idPParam.Validate(); err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		i.logger.Info(ctx, "invalid input", zap.Error(err), zap.Any("identity-provider", idPParam))
+		return err
+	}
+
+	idPParam.ClientSecret, err = utils.Encrypt(idPParam.ClientSecret, constant.ClientSecretKey)
+	if err != nil {
+		i.logger.Error(ctx, "error encrypting client secret", zap.Any("idP-id", idPID), zap.Any("client-secret-id", idPParam.ClientSecret), zap.Error(err))
 		return err
 	}
 
