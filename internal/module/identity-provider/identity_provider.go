@@ -83,3 +83,21 @@ func (i *identityProviderModule) GetIdentityProvider(ctx context.Context, idPID 
 
 	return i.ipPersistence.GetIdentityProvider(ctx, parsedIdPID)
 }
+
+func (i *identityProviderModule) DeleteIdentityProvider(ctx context.Context, idPID string) error {
+	parsedIdPID, err := uuid.Parse(idPID)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "invalid identity provider id")
+		i.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("idP-id", idPID))
+		return err
+	}
+
+	err = i.ipPersistence.DeleteIdentityProvider(ctx, parsedIdPID)
+	if err != nil {
+		return err
+	}
+
+	i.logger.Info(ctx, "identity provider deleted", zap.Any("identity-provider-id", parsedIdPID))
+
+	return nil
+}

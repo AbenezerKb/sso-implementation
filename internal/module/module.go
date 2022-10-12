@@ -96,4 +96,5 @@ type IdentityProviderModule interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider, idPID string) error
 	GetIdentityProvider(ctx context.Context, idPID string) (*dto.IdentityProvider, error)
+	DeleteIdentityProvider(ctx context.Context, idPID string) error
 }
