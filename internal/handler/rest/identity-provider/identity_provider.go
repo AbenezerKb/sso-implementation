@@ -115,3 +115,28 @@ func (i *identityProvider) GetIdentityProvider(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, idP, nil)
 }
+
+// DeleteIdentityProvider is used to delete a particular identity provider
+// @Summary delete identity provider
+// @Description delete an identity provider
+// @ID delete-identity-provider
+// @Tags identityProvider
+// @Accept  json
+// @Produce  json
+// @Param id path string true "id"
+// @Success 204 {object} model.Response
+// @Failure 400 {object} model.ErrorResponse
+// @Router /identityProviders/{id} [delete]
+// @Security BearerAuth
+func (i *identityProvider) DeleteIdentityProvider(ctx *gin.Context) {
+	idPID := ctx.Param("id")
+
+	requestCtx := ctx.Request.Context()
+	err := i.ipModule.DeleteIdentityProvider(requestCtx, idPID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
+}
