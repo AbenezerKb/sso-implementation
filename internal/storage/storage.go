@@ -129,4 +129,5 @@ type RolePersistence interface {
 type IdentityProviderPersistence interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
+	GetIdentityProvider(ctx context.Context, idPID uuid.UUID) (*dto.IdentityProvider, error)
 }

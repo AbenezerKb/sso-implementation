@@ -146,4 +146,9 @@ var (
 		Name:     "update an identity provider",
 		Category: "identity_provider",
 	}
+	GetIdentityProvider = Permission{
+		ID:       "get_identity_provider",
+		Name:     "get an identity provider",
+		Category: "identity_provider",
+	}
 )

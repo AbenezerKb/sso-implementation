@@ -11,6 +11,7 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -92,4 +93,33 @@ func (i *identityProviderPersistence) UpdateIdentityProvider(ctx context.Context
 	}
 
 	return nil
+}
+
+func (i *identityProviderPersistence) GetIdentityProvider(ctx context.Context, idPID uuid.UUID) (*dto.IdentityProvider, error) {
+	idP, err := i.db.GetIdentityProvider(ctx, idPID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no identity provider found")
+			i.logger.Info(ctx, "identity provider not found", zap.Error(err), zap.Any("idP-id", idPID))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading the identity provider")
+			i.logger.Error(ctx, "error reading the identity provider", zap.Error(err), zap.Any("idP-id", idPID))
+			return nil, err
+		}
+	}
+
+	return &dto.IdentityProvider{
+		ID:                  idP.ID,
+		Name:                idP.Name,
+		LogoURI:             idP.LogoUrl.String,
+		ClientID:            idP.ClientID,
+		ClientSecret:        idP.ClientSecret,
+		RedirectURI:         idP.RedirectUri,
+		AuthorizationURI:    idP.AuthorizationUri,
+		TokenEndpointURI:    idP.TokenEndpointUrl,
+		UserInfoEndpointURI: idP.UserInfoEndpointUrl.String,
+		Status:              idP.Status.String,
+		CreatedAt:           idP.CreatedAt,
+	}, nil
 }
