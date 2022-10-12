@@ -7,10 +7,13 @@ import (
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
+
+const secretKey = "the-key-got-to-be-32-bytes-long!"
 
 type identityProviderModule struct {
 	logger        logger.Logger
@@ -31,6 +34,12 @@ func (i *identityProviderModule) CreateIdentityProvider(ctx context.Context, ip 
 		return dto.IdentityProvider{}, err
 	}
 
+	var err error
+	ip.ClientSecret, err = utils.Encrypt(ip.ClientSecret, secretKey)
+	if err != nil {
+		i.logger.Error(ctx, "error encrypting client secret", zap.Any("client-secret-id", ip.ClientSecret), zap.Error(err))
+	}
+
 	return i.ipPersistence.CreateIdentityProvider(ctx, ip)
 }
 
@@ -48,6 +57,11 @@ func (i *identityProviderModule) UpdateIdentityProvider(ctx context.Context, idP
 	}
 
 	idPParam.ID = parsedIdPID
+
+	idPParam.ClientSecret, err = utils.Encrypt(idPParam.ClientSecret, secretKey)
+	if err != nil {
+		i.logger.Error(ctx, "error encrypting client secret", zap.Any("idP-id", idPID), zap.Any("client-secret-id", idPParam.ClientSecret), zap.Error(err))
+	}
 
 	err = i.ipPersistence.UpdateIdentityProvider(ctx, idPParam)
 	if err != nil {
