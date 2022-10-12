@@ -2,10 +2,11 @@ package storage
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+
+	"github.com/google/uuid"
 )
 
 type OAuthPersistence interface {
@@ -127,4 +128,5 @@ type RolePersistence interface {
 
 type IdentityProviderPersistence interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
 }

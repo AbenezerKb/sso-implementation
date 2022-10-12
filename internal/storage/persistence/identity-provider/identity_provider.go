@@ -3,13 +3,15 @@ package identity_provider
 import (
 	"context"
 	"database/sql"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
+
+	"go.uber.org/zap"
 )
 
 type identityProviderPersistence struct {
@@ -62,4 +64,32 @@ func (i *identityProviderPersistence) CreateIdentityProvider(ctx context.Context
 		CreatedAt:           ipDB.CreatedAt,
 		UpdatedAt:           ipDB.UpdatedAt,
 	}, nil
+}
+
+func (i *identityProviderPersistence) UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error {
+	_, err := i.db.UpdateIdentityProvider(ctx, db.UpdateIdentityProviderParams{
+		Name:                idPParam.Name,
+		LogoUrl:             sql.NullString{String: idPParam.LogoURI, Valid: true},
+		ClientID:            idPParam.ClientID,
+		ClientSecret:        idPParam.ClientSecret,
+		RedirectUri:         idPParam.RedirectURI,
+		AuthorizationUri:    idPParam.AuthorizationURI,
+		TokenEndpointUrl:    idPParam.TokenEndpointURI,
+		UserInfoEndpointUrl: sql.NullString{String: idPParam.UserInfoEndpointURI, Valid: true},
+		ID:                  idPParam.ID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "identity provider not found")
+			i.logger.Error(ctx, "error updating identity provider, ", zap.Error(err), zap.Any("idP-param", idPParam))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error updating identity provider")
+			i.logger.Error(ctx, "error updating identity provider", zap.Error(err), zap.Any("idP-param", idPParam))
+			return err
+		}
+	}
+
+	return nil
 }
