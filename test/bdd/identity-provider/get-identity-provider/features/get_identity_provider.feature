@@ -6,8 +6,8 @@ Feature: Get Identity Provider
 
     Background:
         Given I am logged in as admin user
-            | email           | password      | role       |
-            | admin@gmail.com | adminPassword | super-user |
+            | email           | password      | role                  |
+            | admin@gmail.com | adminPassword | get_identity_provider |
 
     @success
     Scenario: Successful get identity provider
