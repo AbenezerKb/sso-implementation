@@ -862,12 +862,44 @@ paths:
       tags:
       - identityProvider
   /identityProviders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: get an identity provider
+      operationId: get-identity-provider
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.IdentityProvider'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get identity provider
+      tags:
+      - identityProvider
     put:
       consumes:
       - application/json
       description: update an identity provider
       operationId: update-identity-provider
       parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       - description: identityProvider
         in: body
         name: identityProvider
@@ -880,7 +912,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.IdentityProvider'
+            $ref: '#/definitions/model.Response'
         "400":
           description: Bad Request
           schema:

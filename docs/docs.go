@@ -347,6 +347,48 @@ const docTemplate = `{
             }
         },
         "/identityProviders/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "get an identity provider",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identityProvider"
+                ],
+                "summary": "get identity provider",
+                "operationId": "get-identity-provider",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.IdentityProvider"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -367,6 +409,13 @@ const docTemplate = `{
                 "operationId": "update-identity-provider",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
                         "description": "identityProvider",
                         "name": "identityProvider",
                         "in": "body",
@@ -380,7 +429,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.IdentityProvider"
+                            "$ref": "#/definitions/model.Response"
                         }
                     },
                     "400": {

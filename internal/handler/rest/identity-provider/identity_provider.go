@@ -66,7 +66,7 @@ func (i *identityProvider) CreateIdentityProvider(ctx *gin.Context) {
 // @Produce  json
 // @Param id path string true "id"
 // @Param identityProvider body dto.IdentityProvider true "identityProvider"
-// @Success 200 {object} dto.Response
+// @Success 200 {object} model.Response
 // @Failure 400 {object} model.ErrorResponse
 // @Router /identityProviders/{id} [put]
 // @Security BearerAuth
