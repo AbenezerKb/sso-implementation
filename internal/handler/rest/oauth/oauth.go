@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -171,4 +172,38 @@ func (o *oauth) RefreshToken(ctx *gin.Context) {
 		return
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
+}
+
+// LoginWithIP logs in a user with an identity provider.
+// @Summary      Login a user with an identity provider.
+// @Description  Login a user with an identity provider.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param login_with_ip body request_models.LoginWithIP true "login_with_ip"
+// @Success      200  {object}  dto.TokenResponse
+// @Failure      401  {object}  model.ErrorResponse "invalid credentials"
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /loginWithIP [post]
+func (o *oauth) LoginWithIP(ctx *gin.Context) {
+	var login request_models.LoginWithIP
+	err := ctx.ShouldBind(&login)
+	if err != nil {
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+		return
+	}
+
+	loginRsp, err := o.oauthModule.LoginWithIdentityProvider(ctx.Request.Context(), login)
+
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	ctx.SetCookie("ab_fen", loginRsp.RefreshToken, 12000, "/", "", false, true)
+	o.logger.Info(ctx, "user logged in")
+
+	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }

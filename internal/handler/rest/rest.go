@@ -8,6 +8,7 @@ type OAuth interface {
 	RequestOTP(ctx *gin.Context)
 	Logout(ctx *gin.Context)
 	RefreshToken(ctx *gin.Context)
+	LoginWithIP(ctx *gin.Context)
 }
 
 type OAuth2 interface {
