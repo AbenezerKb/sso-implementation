@@ -846,6 +846,29 @@ paths:
       tags:
       - client
   /identityProviders:
+    get:
+      consumes:
+      - application/json
+      description: get all identity providers
+      operationId: get-identity-providers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.IdentityProvider'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get all identity providers
+      tags:
+      - identityProvider
     post:
       consumes:
       - application/json

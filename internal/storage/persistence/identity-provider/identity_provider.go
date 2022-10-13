@@ -3,15 +3,19 @@ package identity_provider
 import (
 	"context"
 	"database/sql"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
+	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type identityProviderPersistence struct {
@@ -233,4 +237,40 @@ func (i *identityProviderPersistence) DeleteIdentityProvider(ctx context.Context
 	}
 
 	return nil
+}
+
+func (i *identityProviderPersistence) GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error) {
+	idPs, total, err := i.db.GetAllIdentityProviders(ctx, utils.ComposeFilterSQL(ctx, filters, i.logger))
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "no identity providers found")
+			i.logger.Info(ctx, "no identity provider were found", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading identity providers")
+			i.logger.Error(ctx, "error reading identity providers", zap.Error(err), zap.Any("filters", filters))
+			return nil, nil, err
+		}
+	}
+	idpPsDTO := make([]dto.IdentityProvider, len(idPs))
+	for k, v := range idPs {
+		idpPsDTO[k] = dto.IdentityProvider{
+			ID:                  v.ID,
+			Name:                v.Name,
+			Status:              v.Status.String,
+			LogoURI:             v.LogoUrl.String,
+			ClientSecret:        v.ClientSecret,
+			ClientID:            v.ClientID,
+			RedirectURI:         v.RedirectUri,
+			AuthorizationURI:    v.AuthorizationUri,
+			TokenEndpointURI:    v.TokenEndpointUrl,
+			UserInfoEndpointURI: v.UserInfoEndpointUrl.String,
+			CreatedAt:           v.CreatedAt,
+		}
+	}
+	return idpPsDTO, &model.MetaData{
+		FilterParams: filters,
+		Total:        total,
+		Extra:        nil,
+	}, nil
 }

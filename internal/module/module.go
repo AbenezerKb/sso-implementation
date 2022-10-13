@@ -98,4 +98,5 @@ type IdentityProviderModule interface {
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider, idPID string) error
 	GetIdentityProvider(ctx context.Context, idPID string) (dto.IdentityProvider, error)
 	DeleteIdentityProvider(ctx context.Context, idPID string) error
+	GetAllIdentityProviders(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }

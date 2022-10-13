@@ -133,4 +133,5 @@ type IdentityProviderPersistence interface {
 	UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
 	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
+	GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }
