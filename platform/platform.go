@@ -40,3 +40,8 @@ type Kafka interface {
 	ReadMessage(ctx context.Context) (*request_models.MinRideEvent, error)
 	Close() error
 }
+
+type IdentityProvider interface {
+	GetAccessToken(ctx context.Context, endPoint, redirectURI, clientID, clientSecret, code string) (string, string, error)
+	GetUserInfo(ctx context.Context, endPoint, accessToken string) (dto.UserInfo, error)
+}
