@@ -73,12 +73,12 @@ func (i *identityProviderModule) UpdateIdentityProvider(ctx context.Context, idP
 	return nil
 }
 
-func (i *identityProviderModule) GetIdentityProvider(ctx context.Context, idPID string) (*dto.IdentityProvider, error) {
+func (i *identityProviderModule) GetIdentityProvider(ctx context.Context, idPID string) (dto.IdentityProvider, error) {
 	parsedIdPID, err := uuid.Parse(idPID)
 	if err != nil {
 		err := errors.ErrNoRecordFound.Wrap(err, "invalid identity provider id")
 		i.logger.Error(ctx, "parse error", zap.Error(err), zap.Any("idP-id", idPID))
-		return nil, err
+		return dto.IdentityProvider{}, err
 	}
 
 	return i.ipPersistence.GetIdentityProvider(ctx, parsedIdPID)
