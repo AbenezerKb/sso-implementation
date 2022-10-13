@@ -9,3 +9,8 @@ DELETE
 FROM identity_providers
 WHERE id = $1
 RETURNING *;
+
+-- name: GetIdentityProvider :one
+SELECT *
+FROM identity_providers
+WHERE id = $1;
