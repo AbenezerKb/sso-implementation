@@ -75,7 +75,10 @@ func (o *oauth) Login(ctx *gin.Context) {
 		return
 	}
 
-	loginRsp, err := o.oauthModule.Login(ctx.Request.Context(), userParam)
+	loginRsp, err := o.oauthModule.Login(ctx.Request.Context(), userParam, dto.UserDeviceAddress{
+		UserAgent: ctx.Request.UserAgent(),
+		IPAddress: ctx.ClientIP(),
+	})
 
 	if err != nil {
 		_ = ctx.Error(err)
@@ -194,7 +197,10 @@ func (o *oauth) LoginWithIP(ctx *gin.Context) {
 		return
 	}
 
-	loginRsp, err := o.oauthModule.LoginWithIdentityProvider(ctx.Request.Context(), login)
+	loginRsp, err := o.oauthModule.LoginWithIdentityProvider(ctx.Request.Context(), login, dto.UserDeviceAddress{
+		UserAgent: ctx.Request.UserAgent(),
+		IPAddress: ctx.ClientIP(),
+	})
 
 	if err != nil {
 		_ = ctx.Error(err)

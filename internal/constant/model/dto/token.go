@@ -100,13 +100,17 @@ type InternalRefreshToken struct {
 	// ID is the unique identifier for the refresh token.
 	// It is automatically generated when the refresh token is created.
 	ID uuid.UUID `json:"id"`
-	// Refreshtoken is the opaque string users uses to refresh access token.
-	Refreshtoken string `json:"refreshtoken"`
+	// RefreshToken is the opaque string users uses to refresh access token.
+	RefreshToken string `json:"refresh_token"`
 	// ExpiresAt is time the refresh token is going to be expired.
 	// UserID is the id of the user who granted access to the client.
 	UserID uuid.UUID `json:"user_id"`
 	// ExpiresAt is time the refresh token is going to be expired.
 	ExpiresAt time.Time `json:"expires_at"`
+	// User Agent is http header to identify user's device
+	UserAgent string `json:"user_agent,omitempty"`
+	// Ip address is unique address that identifies a device on the internet
+	IPAddress string `json:"ip_address,omitempty"`
 	// CreatedAt is the time when the refresh token is created.
 	// It is automatically set when the refresh token is created.
 	CreatedAt time.Time `json:"created_at"`
