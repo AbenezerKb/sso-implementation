@@ -7,8 +7,8 @@ Feature: Get Identity Providers
 
     Background:
         Given I am logged in as admin user
-            | email           | password      | role                     |
-            | admin@gmail.com | adminPassword | update_identity_provider |
+            | email           | password      | role                       |
+            | admin@gmail.com | adminPassword | get_all_identity_providers |
         And There are identity provider with the following details
             | name | logo_uri                                       | client_id | client_secret | redirect_uri         | authorization_uri    | token_endpoint_uri | user_info_endpoint_uri |
             | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      | https://redirect.com | http://authorize.com | http://token.com   | http.userinfo.com      |
