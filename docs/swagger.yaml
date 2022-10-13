@@ -540,6 +540,9 @@ definitions:
       phone:
         description: Phone is the phone of the user.
         type: string
+      profile_picture:
+        description: ProfilePicture is the profile image url for the user
+        type: string
       sub:
         description: Sub is unique and never reassigned identifier within for the
           End-User
@@ -630,6 +633,16 @@ definitions:
       operator_value:
         type: string
       value:
+        type: string
+    type: object
+  request_models.LoginWithIP:
+    properties:
+      code:
+        description: Code is the authorization code from the identity provider
+        type: string
+      ip:
+        description: IdentityProvider is the id of the identity provider to log in
+          with
         type: string
     type: object
   request_models.RevokeClientBody:
@@ -862,6 +875,33 @@ paths:
       tags:
       - identityProvider
   /identityProviders/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: delete an identity provider
+      operationId: delete-identity-provider
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            $ref: '#/definitions/model.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: delete identity provider
+      tags:
+      - identityProvider
     get:
       consumes:
       - application/json
@@ -950,6 +990,36 @@ paths:
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: Login a user.
+      tags:
+      - auth
+  /loginWithIP:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with an identity provider.
+      parameters:
+      - description: login_with_ip
+        in: body
+        name: login_with_ip
+        required: true
+        schema:
+          $ref: '#/definitions/request_models.LoginWithIP'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.TokenResponse'
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "401":
+          description: invalid credentials
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Login a user with an identity provider.
       tags:
       - auth
   /logout:

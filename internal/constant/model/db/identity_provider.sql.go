@@ -115,14 +115,14 @@ func (q *Queries) GetIdentityProvider(ctx context.Context, id uuid.UUID) (Identi
 const updateIdentityProvider = `-- name: UpdateIdentityProvider :one
 UPDATE identity_providers
 SET
- name = $2,
- logo_url = $3,
- client_id = $4,
- client_secret = $5,
- redirect_uri = $6,
- authorization_uri = $7,
- token_endpoint_url = $8,
- user_info_endpoint_url = $9
+    name = $2,
+    logo_url = $3,
+    client_id = $4,
+    client_secret = $5,
+    redirect_uri = $6,
+    authorization_uri = $7,
+    token_endpoint_url = $8,
+    user_info_endpoint_url = $9
 WHERE id = $1
 RETURNING id, name, logo_url, client_id, client_secret, redirect_uri, authorization_uri, token_endpoint_url, user_info_endpoint_url, status, created_at, updated_at
 `
