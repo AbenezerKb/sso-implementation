@@ -42,6 +42,8 @@ type User struct {
 	// CreatedAt is the time when the user is created.
 	// It is automatically set when the user is created.
 	CreatedAt time.Time `json:"created_at,omitempty"`
+	// Role is the role of this user. It will only have value for users that are assigned a role.
+	Role string `json:"role"`
 }
 
 type RegisterUser struct {
