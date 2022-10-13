@@ -18,7 +18,7 @@ func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt string)
 	var totalCount int
 	for rows.Next() {
 		var i dto.User
-		var email, profilePicture, status sql.NullString
+		var email, profilePicture, status, role sql.NullString
 		if err := rows.Scan(
 			&i.ID,
 			&i.FirstName,
@@ -30,13 +30,14 @@ func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt string)
 			&profilePicture,
 			&status,
 			&i.CreatedAt,
-			&i.Role,
+			&role,
 			&totalCount); err != nil {
 			return nil, 0, err
 		}
 		i.Email = email.String
 		i.ProfilePicture = profilePicture.String
 		i.Status = status.String
+		i.Role = role.String
 		users = append(users, i)
 	}
 	if err := rows.Err(); err != nil {
