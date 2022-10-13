@@ -214,7 +214,9 @@ func (o *oauth) GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error
 func (o *oauth) SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error {
 	_, err := o.db.SaveInternalRefreshToken(ctx, db.SaveInternalRefreshTokenParams{
 		UserID:       rf.UserID,
-		Refreshtoken: rf.Refreshtoken,
+		RefreshToken: rf.RefreshToken,
+		IpAddress:    rf.IPAddress,
+		UserAgent:    rf.UserAgent,
 		ExpiresAt:    rf.ExpiresAt,
 	})
 
@@ -252,8 +254,10 @@ func (o *oauth) GetInternalRefreshToken(ctx context.Context, token string) (*dto
 	}
 	return &dto.InternalRefreshToken{
 		ID:           refreshToken.ID,
-		Refreshtoken: refreshToken.Refreshtoken,
+		RefreshToken: refreshToken.RefreshToken,
 		ExpiresAt:    refreshToken.ExpiresAt,
+		UserAgent:    refreshToken.UserAgent,
+		IPAddress:    refreshToken.IpAddress,
 		UserID:       refreshToken.UserID,
 		CreatedAt:    refreshToken.CreatedAt,
 	}, nil
@@ -262,7 +266,7 @@ func (o *oauth) GetInternalRefreshToken(ctx context.Context, token string) (*dto
 func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error) {
 	refreshToken, err := o.db.UpdateRefreshToken(ctx, db.UpdateRefreshTokenParams{
 		ExpiresAt:    param.ExpiresAt,
-		Refreshtoken: param.Refreshtoken,
+		RefreshToken: param.RefreshToken,
 		ID:           param.ID,
 	})
 	if err != nil {
@@ -272,7 +276,7 @@ func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.Intern
 	}
 	return &dto.InternalRefreshToken{
 		ID:           refreshToken.ID,
-		Refreshtoken: refreshToken.Refreshtoken,
+		RefreshToken: refreshToken.RefreshToken,
 		ExpiresAt:    refreshToken.ExpiresAt,
 		UserID:       refreshToken.UserID,
 		CreatedAt:    refreshToken.CreatedAt,
@@ -293,7 +297,7 @@ func (o *oauth) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid
 	}
 	return &dto.InternalRefreshToken{
 		ID:           refreshToken.ID,
-		Refreshtoken: refreshToken.Refreshtoken,
+		RefreshToken: refreshToken.RefreshToken,
 		ExpiresAt:    refreshToken.ExpiresAt,
 		UserID:       refreshToken.UserID,
 		CreatedAt:    refreshToken.CreatedAt,

@@ -141,3 +141,10 @@ func (r AssignRole) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.Role, validation.Required.Error("role is required")))
 }
+
+type UserDeviceAddress struct {
+	// UserAgent from request header
+	UserAgent string `json:"user_agent,omitempty"`
+	// Ip address of the device that user is trying to sign in
+	IPAddress string `json:"ip_address,omitempty"`
+}

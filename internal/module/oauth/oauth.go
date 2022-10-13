@@ -3,7 +3,6 @@ package oauth
 import (
 	"context"
 	"fmt"
-	"github.com/joomcode/errorx"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -14,6 +13,8 @@ import (
 	"sso/platform/logger"
 	"sso/platform/utils"
 	"time"
+
+	"github.com/joomcode/errorx"
 
 	"github.com/dongri/phonenumber"
 	"github.com/google/uuid"
@@ -117,7 +118,7 @@ func (o *oauth) Register(ctx context.Context, userParam dto.RegisterUser) (*dto.
 	return user, nil
 }
 
-func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.TokenResponse, error) {
+func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential, userDeviceAddress dto.UserDeviceAddress) (*dto.TokenResponse, error) {
 	if err := userParam.ValidateLoginCredential(); err != nil {
 		err = errors.ErrInvalidUserInput.Wrap(err, "invalid input")
 		o.logger.Info(ctx, "invalid input", zap.Error(err))
@@ -163,38 +164,17 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 	if err != nil {
 		return nil, err
 	}
-	oldRfToken, err := o.oauthPersistence.GetInternalRefreshTokenByUserID(ctx, user.ID)
-	refreshToken := ""
+
+	refreshToken := o.token.GenerateRefreshToken(ctx)
+	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+		RefreshToken: refreshToken,
+		UserID:       user.ID,
+		UserAgent:    userDeviceAddress.UserAgent,
+		IPAddress:    userDeviceAddress.IPAddress,
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+	})
 	if err != nil {
-		refreshToken = o.token.GenerateRefreshToken(ctx)
-
-		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
-			Refreshtoken: refreshToken,
-			UserID:       user.ID,
-			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-		})
-
-		if err != nil {
-			return nil, err
-		}
-	} else if time.Now().After(oldRfToken.ExpiresAt) {
-		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRfToken.Refreshtoken); err != nil {
-			return nil, err
-		}
-		refreshToken = o.token.GenerateRefreshToken(ctx)
-
-		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
-			Refreshtoken: refreshToken,
-			UserID:       user.ID,
-			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-		})
-
-		if err != nil {
-			return nil, err
-		}
-
-	} else {
-		refreshToken = oldRfToken.Refreshtoken
+		return nil, err
 	}
 
 	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)
@@ -256,7 +236,7 @@ func (o *oauth) Logout(ctx context.Context, param dto.InternalRefreshTokenReques
 		return err
 	}
 
-	if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+	if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
 		return err
 	}
 
@@ -270,12 +250,12 @@ func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.Tok
 	}
 
 	if time.Now().After(oldRefreshToken.ExpiresAt) {
-		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.Refreshtoken); err != nil {
+		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
 			return nil, err
 		}
 
 		err := errors.ErrAuthError.New("internal refresh token expired")
-		o.logger.Warn(ctx, "internal token expired", zap.Error(err), zap.String("internal refresh token", oldRefreshToken.Refreshtoken))
+		o.logger.Warn(ctx, "internal token expired", zap.Error(err), zap.String("internal refresh token", oldRefreshToken.RefreshToken))
 		return nil, err
 	}
 
@@ -298,14 +278,14 @@ func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.Tok
 	}
 	return &dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: oldRefreshToken.Refreshtoken,
+		RefreshToken: oldRefreshToken.RefreshToken,
 		TokenType:    constant.BearerToken,
 		IDToken:      idToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
 	}, nil
 }
 
-func (o *oauth) LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP) (dto.TokenResponse, error) {
+func (o *oauth) LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP, userDeviceAddress dto.UserDeviceAddress) (dto.TokenResponse, error) {
 	// validate
 	if err := login.Validate(); err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
@@ -412,46 +392,23 @@ func (o *oauth) LoginWithIdentityProvider(ctx context.Context, login request_mod
 		}
 	}
 
-	// generate access token, refresh_token, id_token
-	// save
-	// return
-
 	internalAccessToken, err := o.token.GenerateAccessToken(ctx, user.ID.String(), o.options.AccessTokenExpireTime)
 	if err != nil {
 		return dto.TokenResponse{}, err
 	}
-	oldRfToken, err := o.oauthPersistence.GetInternalRefreshTokenByUserID(ctx, user.ID)
-	var internalRefreshToken string
+
+	internalRefreshToken := o.token.GenerateRefreshToken(ctx)
+
+	err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+		RefreshToken: internalRefreshToken,
+		UserID:       user.ID,
+		UserAgent:    userDeviceAddress.UserAgent,
+		IPAddress:    userDeviceAddress.IPAddress,
+		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+	})
+
 	if err != nil {
-		internalRefreshToken = o.token.GenerateRefreshToken(ctx)
-
-		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
-			Refreshtoken: internalRefreshToken,
-			UserID:       user.ID,
-			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-		})
-
-		if err != nil {
-			return dto.TokenResponse{}, err
-		}
-	} else if time.Now().After(oldRfToken.ExpiresAt) {
-		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRfToken.Refreshtoken); err != nil {
-			return dto.TokenResponse{}, err
-		}
-		internalRefreshToken = o.token.GenerateRefreshToken(ctx)
-
-		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
-			Refreshtoken: internalRefreshToken,
-			UserID:       user.ID,
-			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-		})
-
-		if err != nil {
-			return dto.TokenResponse{}, err
-		}
-
-	} else {
-		internalRefreshToken = oldRfToken.Refreshtoken
+		return dto.TokenResponse{}, err
 	}
 
 	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)

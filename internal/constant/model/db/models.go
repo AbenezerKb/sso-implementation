@@ -51,8 +51,10 @@ type IdentityProvider struct {
 
 type Internalrefreshtoken struct {
 	ID           uuid.UUID `json:"id"`
-	Refreshtoken string    `json:"refreshtoken"`
+	RefreshToken string    `json:"refresh_token"`
 	UserID       uuid.UUID `json:"user_id"`
+	IpAddress    string    `json:"ip_address"`
+	UserAgent    string    `json:"user_agent"`
 	ExpiresAt    time.Time `json:"expires_at"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`

@@ -8,7 +8,7 @@ Feature: Refresh Token
       | first_name | middle_name | last_name | phone      | email            | password |
       | testuser1  | testuser1   | testuser1 | 0925252595 | test11@gmail.com | 1234567  |
     And I am logged in to the system and have a refresh token:
-      | refreshtoken   | expires_at                          |
+      | refresh_token   | expires_at                          |
       | myR1fr35h70k3n | 2023-09-26T09:06:36.525293389+03:00 |
     When  I refresh my access token using my refresh token
       | refresh_token  |

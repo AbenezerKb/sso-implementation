@@ -46,12 +46,12 @@ func (r *refreshSSOTokenTest) iAmLoggedInToTheSystemAndHaveARefreshToken(interna
 	rfData, err := r.DB.SaveInternalRefreshToken(context.Background(), db.SaveInternalRefreshTokenParams{
 		UserID:       r.user.ID,
 		ExpiresAt:    r.refreshToken.ExpiresAt,
-		Refreshtoken: r.refreshToken.Refreshtoken,
+		RefreshToken: r.refreshToken.RefreshToken,
 	})
 	if err != nil {
 		return err
 	}
-	r.refreshToken.Refreshtoken = rfData.Refreshtoken
+	r.refreshToken.RefreshToken = rfData.RefreshToken
 	return nil
 }
 
@@ -132,7 +132,7 @@ func (r *refreshSSOTokenTest) InitializeScenario(ctx *godog.ScenarioContext) {
 
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = r.DB.DeleteUser(context.Background(), r.user.ID)
-		_ = r.DB.RemoveInternalRefreshToken(context.Background(), r.refreshToken.Refreshtoken)
+		_ = r.DB.RemoveInternalRefreshToken(context.Background(), r.refreshToken.RefreshToken)
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in to the system and have a refresh token:$`, r.iAmLoggedInToTheSystemAndHaveARefreshToken)

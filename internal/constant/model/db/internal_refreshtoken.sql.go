@@ -13,16 +13,18 @@ import (
 )
 
 const getInternalRefreshToken = `-- name: GetInternalRefreshToken :one
-SELECT id, refreshtoken, user_id, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE refreshtoken = $1
+SELECT id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE refresh_token = $1
 `
 
-func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshtoken string) (Internalrefreshtoken, error) {
-	row := q.db.QueryRow(ctx, getInternalRefreshToken, refreshtoken)
+func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshToken string) (Internalrefreshtoken, error) {
+	row := q.db.QueryRow(ctx, getInternalRefreshToken, refreshToken)
 	var i Internalrefreshtoken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
 		&i.UserID,
+		&i.IpAddress,
+		&i.UserAgent,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -31,7 +33,7 @@ func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshtoken stri
 }
 
 const getInternalRefreshTokenByUserID = `-- name: GetInternalRefreshTokenByUserID :one
-SELECT id, refreshtoken, user_id, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE user_id = $1
+SELECT id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE user_id = $1
 `
 
 func (q *Queries) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (Internalrefreshtoken, error) {
@@ -39,8 +41,10 @@ func (q *Queries) GetInternalRefreshTokenByUserID(ctx context.Context, userID uu
 	var i Internalrefreshtoken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
 		&i.UserID,
+		&i.IpAddress,
+		&i.UserAgent,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -49,11 +53,11 @@ func (q *Queries) GetInternalRefreshTokenByUserID(ctx context.Context, userID uu
 }
 
 const removeInternalRefreshToken = `-- name: RemoveInternalRefreshToken :exec
-DELETE FROM internalrefreshtokens WHERE refreshtoken =$1
+DELETE FROM internalrefreshtokens WHERE refresh_token =$1
 `
 
-func (q *Queries) RemoveInternalRefreshToken(ctx context.Context, refreshtoken string) error {
-	_, err := q.db.Exec(ctx, removeInternalRefreshToken, refreshtoken)
+func (q *Queries) RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error {
+	_, err := q.db.Exec(ctx, removeInternalRefreshToken, refreshToken)
 	return err
 }
 
@@ -61,26 +65,38 @@ const saveInternalRefreshToken = `-- name: SaveInternalRefreshToken :one
 INSERT INTO internalrefreshtokens (
     expires_at,
     user_id,
-    refreshtoken
+    refresh_token,
+    ip_address,
+    user_agent
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4, $5
 )
-RETURNING id, refreshtoken, user_id, expires_at, created_at, updated_at
+RETURNING id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
 `
 
 type SaveInternalRefreshTokenParams struct {
 	ExpiresAt    time.Time `json:"expires_at"`
 	UserID       uuid.UUID `json:"user_id"`
-	Refreshtoken string    `json:"refreshtoken"`
+	RefreshToken string    `json:"refresh_token"`
+	IpAddress    string    `json:"ip_address"`
+	UserAgent    string    `json:"user_agent"`
 }
 
 func (q *Queries) SaveInternalRefreshToken(ctx context.Context, arg SaveInternalRefreshTokenParams) (Internalrefreshtoken, error) {
-	row := q.db.QueryRow(ctx, saveInternalRefreshToken, arg.ExpiresAt, arg.UserID, arg.Refreshtoken)
+	row := q.db.QueryRow(ctx, saveInternalRefreshToken,
+		arg.ExpiresAt,
+		arg.UserID,
+		arg.RefreshToken,
+		arg.IpAddress,
+		arg.UserAgent,
+	)
 	var i Internalrefreshtoken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
 		&i.UserID,
+		&i.IpAddress,
+		&i.UserAgent,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -89,22 +105,24 @@ func (q *Queries) SaveInternalRefreshToken(ctx context.Context, arg SaveInternal
 }
 
 const updateRefreshToken = `-- name: UpdateRefreshToken :one
-Update internalrefreshtokens set expires_at = $2, refreshtoken= $3 WHERE id= $1 RETURNING id, refreshtoken, user_id, expires_at, created_at, updated_at
+Update internalrefreshtokens set expires_at = $2, refresh_token= $3 WHERE id= $1 RETURNING id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
 `
 
 type UpdateRefreshTokenParams struct {
 	ID           uuid.UUID `json:"id"`
 	ExpiresAt    time.Time `json:"expires_at"`
-	Refreshtoken string    `json:"refreshtoken"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 func (q *Queries) UpdateRefreshToken(ctx context.Context, arg UpdateRefreshTokenParams) (Internalrefreshtoken, error) {
-	row := q.db.QueryRow(ctx, updateRefreshToken, arg.ID, arg.ExpiresAt, arg.Refreshtoken)
+	row := q.db.QueryRow(ctx, updateRefreshToken, arg.ID, arg.ExpiresAt, arg.RefreshToken)
 	var i Internalrefreshtoken
 	err := row.Scan(
 		&i.ID,
-		&i.Refreshtoken,
+		&i.RefreshToken,
 		&i.UserID,
+		&i.IpAddress,
+		&i.UserAgent,
 		&i.ExpiresAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
