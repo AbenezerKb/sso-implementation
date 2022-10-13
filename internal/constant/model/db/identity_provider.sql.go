@@ -85,3 +85,29 @@ func (q *Queries) DeleteIdentityProvider(ctx context.Context, id uuid.UUID) (Ide
 	)
 	return i, err
 }
+
+const getIdentityProvider = `-- name: GetIdentityProvider :one
+SELECT id, name, logo_url, client_id, client_secret, redirect_uri, authorization_uri, token_endpoint_url, user_info_endpoint_url, status, created_at, updated_at
+FROM identity_providers
+WHERE id = $1
+`
+
+func (q *Queries) GetIdentityProvider(ctx context.Context, id uuid.UUID) (IdentityProvider, error) {
+	row := q.db.QueryRow(ctx, getIdentityProvider, id)
+	var i IdentityProvider
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.LogoUrl,
+		&i.ClientID,
+		&i.ClientSecret,
+		&i.RedirectUri,
+		&i.AuthorizationUri,
+		&i.TokenEndpointUrl,
+		&i.UserInfoEndpointUrl,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

@@ -61,6 +61,7 @@ type Internalrefreshtoken struct {
 type IpAccessToken struct {
 	ID           uuid.UUID      `json:"id"`
 	UserID       uuid.UUID      `json:"user_id"`
+	SubID        string         `json:"sub_id"`
 	IpID         uuid.UUID      `json:"ip_id"`
 	Token        string         `json:"token"`
 	RefreshToken sql.NullString `json:"refresh_token"`
