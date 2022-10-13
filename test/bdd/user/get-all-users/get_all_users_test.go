@@ -162,6 +162,7 @@ func (c *getUsersTest) InitializeScenario(ctx *godog.ScenarioContext) {
 			_, _ = c.DB.DeleteUser(ctx, v.ID)
 		}
 		_, _ = c.DB.DeleteUser(ctx, c.Admin.ID)
+		_ = c.GrantRoleAfterFunc()
 		return ctx, nil
 	})
 	ctx.Step(`^I am logged in as admin user$`, c.iAmLoggedInAsAdminUser)
