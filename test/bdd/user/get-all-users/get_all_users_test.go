@@ -27,7 +27,7 @@ type preferenceData struct {
 	PerPage int `json:"per_page"`
 }
 
-func TestGetClients(t *testing.T) {
+func TestGetUsers(t *testing.T) {
 	c := getUsersTest{}
 	c.apiTest.URL = "/v1/users"
 	c.apiTest.Method = http.MethodGet
@@ -72,7 +72,8 @@ func (c *getUsersTest) iAmLoggedInAsAdminUser(adminCredentials *godog.Table) err
 	if err != nil {
 		return err
 	}
-	return c.GrantRoleForUser(c.Admin.ID.String(), adminCredentials)
+	_, c.GrantRoleAfterFunc, err = c.GrantRoleForUserWithAfter(c.Admin.ID.String(), adminCredentials)
+	return err
 }
 
 func (c *getUsersTest) iRequestToGetAllTheUsersWithTheFollowingPreferences(preferences *godog.Table) error {
