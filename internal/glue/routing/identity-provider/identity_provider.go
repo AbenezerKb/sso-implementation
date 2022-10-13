@@ -54,6 +54,16 @@ func InitRoute(group *gin.RouterGroup, identityProvider rest.IdentityProvider, a
 			},
 			Permission: permissions.DeleteIdentityProvider,
 		},
+		{
+			Method:  http.MethodGet,
+			Path:    "",
+			Handler: identityProvider.GetAllIdentityProviders,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.GetAllIdentityProviders,
+		},
 	}
 
 	routing.RegisterRoutes(identityProviders, identityProviderRoutes, enforcer)
