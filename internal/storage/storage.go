@@ -131,4 +131,5 @@ type IdentityProviderPersistence interface {
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
 	GetIdentityProvider(ctx context.Context, idPID uuid.UUID) (*dto.IdentityProvider, error)
 	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
+	GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }
