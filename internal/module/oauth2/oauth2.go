@@ -387,7 +387,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 	}
 
 	if param.RedirectURI != "" {
-		if authcode.RedirectURI == param.RedirectURI {
+		if authcode.RedirectURI != param.RedirectURI {
 			err := errors.ErrAuthError.New("redirect uri mismatch")
 			o.logger.Warn(ctx, "redirect uri mismatch", zap.Error(err), zap.String("code-redirect-uri", authcode.RedirectURI), zap.String("given-redirect-uri", param.RedirectURI))
 			return nil, err
