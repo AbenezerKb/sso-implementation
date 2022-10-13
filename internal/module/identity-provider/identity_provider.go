@@ -4,7 +4,9 @@ import (
 	"context"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
+	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
@@ -100,4 +102,14 @@ func (i *identityProviderModule) DeleteIdentityProvider(ctx context.Context, idP
 	i.logger.Info(ctx, "identity provider deleted", zap.Any("identity-provider-id", parsedIdPID))
 
 	return nil
+}
+
+func (i *identityProviderModule) GetAllIdentityProviders(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams(dto.IdentityProvider{})
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
+		i.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))
+		return nil, nil, err
+	}
+	return i.ipPersistence.GetAllIdentityProviders(ctx, filters)
 }
