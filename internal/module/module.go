@@ -21,6 +21,7 @@ type OAuthModule interface {
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenResponse, error)
+	LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP) (dto.TokenResponse, error)
 }
 
 type OAuth2Module interface {

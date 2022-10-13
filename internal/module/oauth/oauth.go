@@ -3,9 +3,11 @@ package oauth
 import (
 	"context"
 	"fmt"
+	"github.com/joomcode/errorx"
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -22,11 +24,13 @@ import (
 type oauth struct {
 	logger           logger.Logger
 	oauthPersistence storage.OAuthPersistence
+	ipPersistence    storage.IdentityProviderPersistence
 	otpCache         storage.OTPCache
 	sessionCache     storage.SessionCache
 	token            platform.Token
 	smsClient        platform.SMSClient
 	options          Options
+	selfIP           platform.IdentityProvider
 }
 
 type Options struct {
@@ -47,15 +51,25 @@ func SetOptions(options Options) Options {
 	}
 	return options
 }
-func InitOAuth(logger logger.Logger, oauthPersistence storage.OAuthPersistence, otpCache storage.OTPCache, sessionCache storage.SessionCache, token platform.Token, smsClient platform.SMSClient, options Options) module.OAuthModule {
+func InitOAuth(logger logger.Logger,
+	oauthPersistence storage.OAuthPersistence,
+	ipPersistence storage.IdentityProviderPersistence,
+	otpCache storage.OTPCache,
+	sessionCache storage.SessionCache,
+	token platform.Token,
+	smsClient platform.SMSClient,
+	selfIP platform.IdentityProvider,
+	options Options) module.OAuthModule {
 	return &oauth{
-		logger,
-		oauthPersistence,
-		otpCache,
-		sessionCache,
-		token,
-		smsClient,
-		options,
+		logger:           logger,
+		oauthPersistence: oauthPersistence,
+		ipPersistence:    ipPersistence,
+		otpCache:         otpCache,
+		sessionCache:     sessionCache,
+		token:            token,
+		smsClient:        smsClient,
+		selfIP:           selfIP,
+		options:          options,
 	}
 }
 
@@ -125,7 +139,7 @@ func (o *oauth) Login(ctx context.Context, userParam dto.LoginCredential) (*dto.
 		return nil, errors.ErrInvalidUserInput.Wrap(err, "invalid credentials")
 	}
 
-	if user.Status != "ACTIVE" {
+	if user.Status != constant.Active {
 		err := errors.ErrInvalidUserInput.New("Account is deactivated")
 		o.logger.Info(ctx, "user is not active", zap.Error(err))
 		return nil, err
@@ -289,4 +303,168 @@ func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.Tok
 		IDToken:      idToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
 	}, nil
+}
+
+func (o *oauth) LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP) (dto.TokenResponse, error) {
+	// validate
+	if err := login.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		o.logger.Info(ctx, "invalid input on login with identity provider", zap.Error(err), zap.Any("login", login))
+		return dto.TokenResponse{}, err
+	}
+	// check and get if ip exists
+	ipID, err := uuid.Parse(login.IdentityProvider)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid identity provider")
+		o.logger.Info(ctx, "invalid identity provider id", zap.Error(err), zap.String("ip-id", login.IdentityProvider))
+		return dto.TokenResponse{}, err
+	}
+	ip, err := o.ipPersistence.GetIdentityProvider(ctx, ipID)
+	if err != nil {
+		if errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			err := errors.ErrInvalidUserInput.Wrap(err, fmt.Sprintf("identity provider with id %s does not exist", ipID.String()))
+			return dto.TokenResponse{}, err
+		}
+		return dto.TokenResponse{}, err
+	}
+	// request platform
+	// FixMe: decrypt client secret
+	accessToken, refreshToken, err := o.selfIP.GetAccessToken(ctx, ip.TokenEndpointURI, ip.RedirectURI, ip.ClientID, ip.ClientSecret, login.Code)
+	if err != nil {
+		err := errors.ErrAuthError.Wrap(err, "authentication failed")
+		o.logger.Info(ctx, "login authentication for identity provider failed", zap.Error(err), zap.Any("login", login), zap.Any("ip", ip))
+		return dto.TokenResponse{}, err
+	}
+	userInfo, err := o.selfIP.GetUserInfo(ctx, ip.UserInfoEndpointURI, accessToken)
+	if err != nil {
+		err := errors.ErrAcessError.Wrap(err, "authorization for user-info failed")
+		o.logger.Warn(ctx, "getting user info from identity provider failed", zap.Error(err), zap.Any("ip", ip))
+		return dto.TokenResponse{}, err
+	}
+	if err := userInfo.Validate(); err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid userinfo")
+		o.logger.Warn(ctx, "invalid userinfo was returned from identity provider", zap.Any("user-info", userInfo), zap.Error(err))
+		return dto.TokenResponse{}, err
+	}
+	// save or update access token
+	ipAT, err := o.ipPersistence.GetIPAccessTokenBySubAndIP(ctx, userInfo.Sub, ip.ID)
+	var user *dto.User
+	if err != nil {
+		if !errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			return dto.TokenResponse{}, err
+		}
+		// check for email uniqueness
+		exists, err := o.oauthPersistence.UserByEmailExists(ctx, userInfo.Email)
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+		if exists {
+			err := errors.ErrInvalidUserInput.Wrap(err, "user with this email already exists")
+			o.logger.Info(ctx, "user with email already exists for login with ip", zap.Error(err), zap.String("email", userInfo.Email))
+			return dto.TokenResponse{}, err
+		}
+		// check for phone uniqueness
+		exists, err = o.oauthPersistence.UserByPhoneExists(ctx, userInfo.Phone)
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+		if exists {
+			err := errors.ErrInvalidUserInput.Wrap(err, "user with this phone already exists")
+			o.logger.Info(ctx, "user with phone already exists for login with ip", zap.Error(err), zap.String("phone", userInfo.Phone))
+			return dto.TokenResponse{}, err
+		}
+		// save user
+		user, err = o.oauthPersistence.Register(ctx, dto.User{
+			FirstName:      userInfo.FirstName,
+			MiddleName:     userInfo.MiddleName,
+			LastName:       userInfo.LastName,
+			Email:          userInfo.Email,
+			Phone:          userInfo.Phone,
+			Gender:         userInfo.Gender,
+			ProfilePicture: userInfo.ProfilePicture,
+		})
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+		// create access token
+		ipAT, err = o.ipPersistence.SaveIPAccessToken(ctx, dto.IPAccessToken{
+			UserID:       user.ID,
+			SubID:        userInfo.Sub,
+			IPID:         ip.ID,
+			Token:        accessToken,
+			RefreshToken: refreshToken,
+		})
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+	} else {
+		// update access token
+		ipAT.Token = accessToken
+		ipAT.RefreshToken = refreshToken
+		ipAT, err = o.ipPersistence.UpdateIpAccessToken(ctx, ipAT)
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+		// get user
+		user, err = o.oauthPersistence.GetUserByID(ctx, ipAT.UserID)
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+	}
+
+	// generate access token, refresh_token, id_token
+	// save
+	// return
+
+	internalAccessToken, err := o.token.GenerateAccessToken(ctx, user.ID.String(), o.options.AccessTokenExpireTime)
+	if err != nil {
+		return dto.TokenResponse{}, err
+	}
+	oldRfToken, err := o.oauthPersistence.GetInternalRefreshTokenByUserID(ctx, user.ID)
+	var internalRefreshToken string
+	if err != nil {
+		internalRefreshToken = o.token.GenerateRefreshToken(ctx)
+
+		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+			Refreshtoken: internalRefreshToken,
+			UserID:       user.ID,
+			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+		})
+
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+	} else if time.Now().After(oldRfToken.ExpiresAt) {
+		if err := o.oauthPersistence.RemoveInternalRefreshToken(ctx, oldRfToken.Refreshtoken); err != nil {
+			return dto.TokenResponse{}, err
+		}
+		internalRefreshToken = o.token.GenerateRefreshToken(ctx)
+
+		err = o.oauthPersistence.SaveInternalRefreshToken(ctx, dto.InternalRefreshToken{
+			Refreshtoken: internalRefreshToken,
+			UserID:       user.ID,
+			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+		})
+
+		if err != nil {
+			return dto.TokenResponse{}, err
+		}
+
+	} else {
+		internalRefreshToken = oldRfToken.Refreshtoken
+	}
+
+	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)
+	if err != nil {
+		return dto.TokenResponse{}, err
+	}
+
+	accessTokenResponse := dto.TokenResponse{
+		AccessToken:  internalAccessToken,
+		RefreshToken: internalRefreshToken,
+		IDToken:      idToken,
+		TokenType:    constant.BearerToken,
+		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),
+	}
+	return accessTokenResponse, nil
 }
