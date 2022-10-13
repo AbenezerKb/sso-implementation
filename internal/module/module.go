@@ -15,13 +15,13 @@ import (
 
 type OAuthModule interface {
 	Register(ctx context.Context, user dto.RegisterUser) (*dto.User, error)
-	Login(ctx context.Context, login dto.LoginCredential) (*dto.TokenResponse, error)
+	Login(ctx context.Context, login dto.LoginCredential, userDeviceAddress dto.UserDeviceAddress) (*dto.TokenResponse, error)
 	ComparePassword(hashedPwd, plainPassword string) bool
 	RequestOTP(ctx context.Context, phone string, rqType string) error
 	GetUserStatus(ctx context.Context, Id string) (string, error)
 	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenResponse, error)
-	LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP) (dto.TokenResponse, error)
+	LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP, userDeviceAddress dto.UserDeviceAddress) (dto.TokenResponse, error)
 }
 
 type OAuth2Module interface {
