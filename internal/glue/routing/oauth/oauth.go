@@ -48,6 +48,12 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middl
 			Handler:     handler.RefreshToken,
 			UnAuthorize: true,
 		},
+		{
+			Method:      "POST",
+			Path:        "/loginWithIP",
+			Handler:     handler.LoginWithIP,
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(router, oauthRoutes, enforcer)
 

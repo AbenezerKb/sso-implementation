@@ -2,11 +2,10 @@ package storage
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-
-	"github.com/google/uuid"
 )
 
 type OAuthPersistence interface {
@@ -128,8 +127,11 @@ type RolePersistence interface {
 
 type IdentityProviderPersistence interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+	GetIdentityProvider(ctx context.Context, ipID uuid.UUID) (dto.IdentityProvider, error)
+	SaveIPAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
+	GetIPAccessTokenBySubAndIP(ctx context.Context, subID string, ipID uuid.UUID) (dto.IPAccessToken, error)
+	UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
-	GetIdentityProvider(ctx context.Context, idPID uuid.UUID) (*dto.IdentityProvider, error)
 	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
 	GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }

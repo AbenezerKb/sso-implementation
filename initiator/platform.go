@@ -5,8 +5,11 @@ import (
 	"crypto/rsa"
 	"io/ioutil"
 	"log"
+	"sso/internal/constant/model/dto"
+	"sso/mocks/platform/identityProvider"
 	sms2 "sso/mocks/platform/sms"
 	"sso/platform"
+	"sso/platform/identityProviders/self"
 	kafka_consumer "sso/platform/kafka"
 	"sso/platform/logger"
 	"sso/platform/sms"
@@ -18,9 +21,10 @@ import (
 )
 
 type PlatformLayer struct {
-	Sms   platform.SMSClient
-	Token platform.Token
-	Kafka platform.Kafka
+	Sms    platform.SMSClient
+	Token  platform.Token
+	Kafka  platform.Kafka
+	SelfIP platform.IdentityProvider
 }
 
 func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
@@ -44,7 +48,8 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
+		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
+		SelfIP: self.Init(),
 	}
 }
 
@@ -58,6 +63,11 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			publicKey(publicKeyPath),
 		),
 		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
+		SelfIP: identityProvider.InitIP("some_id", "some_secret", "veryLegitCode", "legitAccessToken", dto.UserInfo{
+			FirstName: "john",
+			Email:     "john@gmail.com",
+			Phone:     "0912131415",
+		}),
 	}
 }
 

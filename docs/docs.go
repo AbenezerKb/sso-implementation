@@ -565,6 +565,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/loginWithIP": {
+            "post": {
+                "description": "Login a user with an identity provider.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login a user with an identity provider.",
+                "parameters": [
+                    {
+                        "description": "login_with_ip",
+                        "name": "login_with_ip",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_models.LoginWithIP"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "invalid input",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "invalid credentials",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/logout": {
             "post": {
                 "security": [
@@ -3069,6 +3115,10 @@ const docTemplate = `{
                     "description": "Phone is the phone of the user.",
                     "type": "string"
                 },
+                "profile_picture": {
+                    "description": "ProfilePicture is the profile image url for the user",
+                    "type": "string"
+                },
                 "sub": {
                     "description": "Sub is unique and never reassigned identifier within for the End-User",
                     "type": "string"
@@ -3193,6 +3243,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "value": {
+                    "type": "string"
+                }
+            }
+        },
+        "request_models.LoginWithIP": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "Code is the authorization code from the identity provider",
+                    "type": "string"
+                },
+                "ip": {
+                    "description": "IdentityProvider is the id of the identity provider to log in with",
                     "type": "string"
                 }
             }

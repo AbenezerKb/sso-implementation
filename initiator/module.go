@@ -47,10 +47,12 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,
+			persistence.IdentityProviderPersistence,
 			cache.OTPCacheLayer,
 			cache.SessionCacheLayer,
 			platformLayer.Token,
 			platformLayer.Sms,
+			platformLayer.SelfIP,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
@@ -99,10 +101,12 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 		OAuthModule: oauth.InitOAuth(
 			log.Named("oauth-module"),
 			persistence.OAuthPersistence,
+			persistence.IdentityProviderPersistence,
 			cache.OTPCacheLayer,
 			cache.SessionCacheLayer,
 			platformLayer.Token,
 			platformLayer.Sms,
+			platformLayer.SelfIP,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),

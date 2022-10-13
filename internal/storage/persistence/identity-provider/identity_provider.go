@@ -70,6 +70,130 @@ func (i *identityProviderPersistence) CreateIdentityProvider(ctx context.Context
 	}, nil
 }
 
+func (i *identityProviderPersistence) GetIdentityProvider(ctx context.Context, ipID uuid.UUID) (dto.IdentityProvider, error) {
+	ip, err := i.db.GetIdentityProvider(ctx, ipID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "identity provider not found")
+			i.logger.Info(ctx, "identity provider not found", zap.Any("ip-id", ipID), zap.Error(err))
+			return dto.IdentityProvider{}, err
+		}
+		err := errors.ErrReadError.Wrap(err, "error getting identity provider")
+		i.logger.Error(ctx, "error while getting identity provider by id", zap.Error(err), zap.Any("ip-id", ipID))
+		return dto.IdentityProvider{}, err
+	}
+
+	return dto.IdentityProvider{
+		ID:                  ip.ID,
+		Name:                ip.Name,
+		LogoURI:             ip.LogoUrl.String,
+		ClientID:            ip.ClientID,
+		ClientSecret:        ip.ClientSecret,
+		RedirectURI:         ip.RedirectUri,
+		AuthorizationURI:    ip.AuthorizationUri,
+		TokenEndpointURI:    ip.TokenEndpointUrl,
+		UserInfoEndpointURI: ip.UserInfoEndpointUrl.String,
+		Status:              ip.Status.String,
+		CreatedAt:           ip.CreatedAt,
+		UpdatedAt:           ip.UpdatedAt,
+	}, nil
+}
+
+func (i *identityProviderPersistence) SaveIPAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error) {
+	ipAT, err := i.db.SaveIPAccessToken(ctx, db.SaveIPAccessTokenParams{
+		UserID: ipAccessToken.UserID,
+		SubID:  ipAccessToken.SubID,
+		IpID:   ipAccessToken.IPID,
+		Token:  ipAccessToken.Token,
+		RefreshToken: sql.NullString{
+			String: ipAccessToken.RefreshToken,
+			Valid:  true,
+		},
+	})
+
+	if err != nil {
+		err := errors.ErrWriteError.Wrap(err, "error saving ip access token")
+		i.logger.Error(ctx, "error while saving ip access token", zap.Error(err), zap.Any("access-token", ipAccessToken))
+		return dto.IPAccessToken{}, err
+	}
+
+	return dto.IPAccessToken{
+		ID:           ipAT.ID,
+		UserID:       ipAT.UserID,
+		IPID:         ipAT.IpID,
+		Token:        ipAT.Token,
+		RefreshToken: ipAT.RefreshToken.String,
+		Status:       ipAT.Status.String,
+		CreatedAt:    ipAT.CreatedAt,
+		UpdatedAt:    ipAT.UpdatedAt,
+	}, nil
+}
+
+func (i *identityProviderPersistence) GetIPAccessTokenBySubAndIP(ctx context.Context, subID string, ipID uuid.UUID) (dto.IPAccessToken, error) {
+	ipAT, err := i.db.GetIPAccessTokenBySubAndIP(ctx, db.GetIPAccessTokenBySubAndIPParams{
+		SubID: subID,
+		IpID:  ipID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "ip access token not found")
+			i.logger.Info(ctx, "ip access token not found", zap.Error(err), zap.String("sub-id", subID), zap.Any("ip-id", ipID))
+			return dto.IPAccessToken{}, err
+		}
+		err := errors.ErrReadError.Wrap(err, "error reading ip access token")
+		i.logger.Error(ctx, "error while reading ip access token", zap.Error(err), zap.String("sub-id", subID), zap.Any("ip-id", ipID))
+		return dto.IPAccessToken{}, err
+	}
+
+	return dto.IPAccessToken{
+		ID:           ipAT.ID,
+		UserID:       ipAT.UserID,
+		SubID:        ipAT.SubID,
+		IPID:         ipAT.IpID,
+		Token:        ipAT.Token,
+		RefreshToken: ipAT.RefreshToken.String,
+		Status:       ipAT.Status.String,
+		CreatedAt:    ipAT.CreatedAt,
+		UpdatedAt:    ipAT.UpdatedAt,
+	}, nil
+}
+
+func (i *identityProviderPersistence) UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error) {
+	ipAT, err := i.db.UpdateIPAccessToken(ctx, db.UpdateIPAccessTokenParams{
+		Token: ipAccessToken.Token,
+		RefreshToken: sql.NullString{
+			String: ipAccessToken.RefreshToken,
+			Valid:  ipAccessToken.RefreshToken != "",
+		},
+		SubID: ipAccessToken.SubID,
+		IpID:  ipAccessToken.IPID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "ip access token not found")
+			i.logger.Info(ctx, "ip access token not found", zap.Error(err), zap.Any("access-token", ipAccessToken))
+			return dto.IPAccessToken{}, err
+		}
+		err := errors.ErrUpdateError.Wrap(err, "error updating ip access token")
+		i.logger.Error(ctx, "error while updating ip access token", zap.Error(err), zap.Any("access-token", ipAccessToken))
+		return dto.IPAccessToken{}, err
+	}
+
+	return dto.IPAccessToken{
+		ID:           ipAT.ID,
+		UserID:       ipAT.UserID,
+		SubID:        ipAT.SubID,
+		IPID:         ipAT.IpID,
+		Token:        ipAT.Token,
+		RefreshToken: ipAT.RefreshToken.String,
+		Status:       ipAT.Status.String,
+		CreatedAt:    ipAT.CreatedAt,
+		UpdatedAt:    ipAT.UpdatedAt,
+	}, nil
+}
+
 func (i *identityProviderPersistence) UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error {
 	_, err := i.db.UpdateIdentityProvider(ctx, db.UpdateIdentityProviderParams{
 		Name:                idPParam.Name,
@@ -96,35 +220,6 @@ func (i *identityProviderPersistence) UpdateIdentityProvider(ctx context.Context
 	}
 
 	return nil
-}
-
-func (i *identityProviderPersistence) GetIdentityProvider(ctx context.Context, idPID uuid.UUID) (*dto.IdentityProvider, error) {
-	idP, err := i.db.GetIdentityProvider(ctx, idPID)
-	if err != nil {
-		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
-			err := errors.ErrNoRecordFound.Wrap(err, "no identity provider found")
-			i.logger.Info(ctx, "identity provider not found", zap.Error(err), zap.Any("idP-id", idPID))
-			return nil, err
-		} else {
-			err = errors.ErrReadError.Wrap(err, "error reading the identity provider")
-			i.logger.Error(ctx, "error reading the identity provider", zap.Error(err), zap.Any("idP-id", idPID))
-			return nil, err
-		}
-	}
-
-	return &dto.IdentityProvider{
-		ID:                  idP.ID,
-		Name:                idP.Name,
-		LogoURI:             idP.LogoUrl.String,
-		ClientID:            idP.ClientID,
-		ClientSecret:        idP.ClientSecret,
-		RedirectURI:         idP.RedirectUri,
-		AuthorizationURI:    idP.AuthorizationUri,
-		TokenEndpointURI:    idP.TokenEndpointUrl,
-		UserInfoEndpointURI: idP.UserInfoEndpointUrl.String,
-		Status:              idP.Status.String,
-		CreatedAt:           idP.CreatedAt,
-	}, nil
 }
 
 func (i *identityProviderPersistence) DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error {
