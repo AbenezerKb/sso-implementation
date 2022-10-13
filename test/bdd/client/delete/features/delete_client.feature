@@ -17,15 +17,6 @@ Feature: Delete Client
         Then The client should be deleted
 
     @failure
-    Scenario Outline: no client
-        When I delete the client with id "<id>"
-        Then The delete should fail with message "<message>"
-
-        Examples:
-            | id                                   | message          |
-            | 60d56419-c2e9-4ee4-951f-04644d245ee3 | client not found |
-
-    @failure
     Scenario Outline: invalid client id
         When I delete the client with id "<id>"
         Then The delete should fail with error message "<message>"

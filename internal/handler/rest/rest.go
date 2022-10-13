@@ -76,4 +76,7 @@ type Role interface {
 
 type IdentityProvider interface {
 	CreateIdentityProvider(ctx *gin.Context)
+	UpdateIdentityProvider(ctx *gin.Context)
+	GetIdentityProvider(ctx *gin.Context)
+	DeleteIdentityProvider(ctx *gin.Context)
 }

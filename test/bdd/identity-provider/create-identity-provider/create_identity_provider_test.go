@@ -3,14 +3,17 @@ package create_identity_provider
 import (
 	"context"
 	"fmt"
-	"github.com/cucumber/godog"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
 	"reflect"
+	"sso/internal/constant"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/platform/utils"
 	"sso/test"
 	"testing"
+
+	"github.com/cucumber/godog"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
 type createIdentityProviderTest struct {
@@ -74,6 +77,7 @@ func (i *createIdentityProviderTest) theIdentityProviderShouldBeCreated() error 
 	i.identityProvider.CreatedAt = identityProvider.CreatedAt
 	i.identityProvider.UpdatedAt = identityProvider.UpdatedAt
 	i.identityProvider.Status = identityProvider.Status
+	identityProvider.ClientSecret, _ = utils.Decrypt(identityProvider.ClientSecret, constant.ClientSecretKey)
 	if !reflect.DeepEqual(identityProvider, i.identityProvider) {
 		return fmt.Errorf("got %v, \nwant %v", identityProvider, i.identityProvider)
 	}

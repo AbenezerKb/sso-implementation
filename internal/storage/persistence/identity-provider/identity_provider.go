@@ -189,3 +189,48 @@ func (i *identityProviderPersistence) UpdateIpAccessToken(ctx context.Context, i
 		UpdatedAt:    ipAT.UpdatedAt,
 	}, nil
 }
+
+func (i *identityProviderPersistence) UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error {
+	_, err := i.db.UpdateIdentityProvider(ctx, db.UpdateIdentityProviderParams{
+		Name:                idPParam.Name,
+		LogoUrl:             sql.NullString{String: idPParam.LogoURI, Valid: true},
+		ClientID:            idPParam.ClientID,
+		ClientSecret:        idPParam.ClientSecret,
+		RedirectUri:         idPParam.RedirectURI,
+		AuthorizationUri:    idPParam.AuthorizationURI,
+		TokenEndpointUrl:    idPParam.TokenEndpointURI,
+		UserInfoEndpointUrl: sql.NullString{String: idPParam.UserInfoEndpointURI, Valid: true},
+		ID:                  idPParam.ID,
+	})
+
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "identity provider not found")
+			i.logger.Error(ctx, "error updating identity provider, ", zap.Error(err), zap.Any("idP-param", idPParam))
+			return err
+		} else {
+			err = errors.ErrUpdateError.Wrap(err, "error updating identity provider")
+			i.logger.Error(ctx, "error updating identity provider", zap.Error(err), zap.Any("idP-param", idPParam))
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (i *identityProviderPersistence) DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error {
+	_, err := i.db.DeleteIdentityProvider(ctx, idPID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "identity provider not found")
+			i.logger.Info(ctx, "identity provider not found", zap.Error(err), zap.Any("idP-id", idPID))
+			return err
+		} else {
+			err = errors.ErrDBDelError.Wrap(err, "error deleting the identity provider")
+			i.logger.Error(ctx, "error deleting the identity provider", zap.Error(err), zap.Any("idP-id", idPID))
+			return err
+		}
+	}
+
+	return nil
+}

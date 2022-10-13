@@ -111,3 +111,60 @@ func (q *Queries) GetIdentityProvider(ctx context.Context, id uuid.UUID) (Identi
 	)
 	return i, err
 }
+
+const updateIdentityProvider = `-- name: UpdateIdentityProvider :one
+UPDATE identity_providers
+SET
+ name = $2,
+ logo_url = $3,
+ client_id = $4,
+ client_secret = $5,
+ redirect_uri = $6,
+ authorization_uri = $7,
+ token_endpoint_url = $8,
+ user_info_endpoint_url = $9
+WHERE id = $1
+RETURNING id, name, logo_url, client_id, client_secret, redirect_uri, authorization_uri, token_endpoint_url, user_info_endpoint_url, status, created_at, updated_at
+`
+
+type UpdateIdentityProviderParams struct {
+	ID                  uuid.UUID      `json:"id"`
+	Name                string         `json:"name"`
+	LogoUrl             sql.NullString `json:"logo_url"`
+	ClientID            string         `json:"client_id"`
+	ClientSecret        string         `json:"client_secret"`
+	RedirectUri         string         `json:"redirect_uri"`
+	AuthorizationUri    string         `json:"authorization_uri"`
+	TokenEndpointUrl    string         `json:"token_endpoint_url"`
+	UserInfoEndpointUrl sql.NullString `json:"user_info_endpoint_url"`
+}
+
+func (q *Queries) UpdateIdentityProvider(ctx context.Context, arg UpdateIdentityProviderParams) (IdentityProvider, error) {
+	row := q.db.QueryRow(ctx, updateIdentityProvider,
+		arg.ID,
+		arg.Name,
+		arg.LogoUrl,
+		arg.ClientID,
+		arg.ClientSecret,
+		arg.RedirectUri,
+		arg.AuthorizationUri,
+		arg.TokenEndpointUrl,
+		arg.UserInfoEndpointUrl,
+	)
+	var i IdentityProvider
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.LogoUrl,
+		&i.ClientID,
+		&i.ClientSecret,
+		&i.RedirectUri,
+		&i.AuthorizationUri,
+		&i.TokenEndpointUrl,
+		&i.UserInfoEndpointUrl,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

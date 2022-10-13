@@ -131,4 +131,6 @@ type IdentityProviderPersistence interface {
 	SaveIPAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
 	GetIPAccessTokenBySubAndIP(ctx context.Context, subID string, ipID uuid.UUID) (dto.IPAccessToken, error)
 	UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
+	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
+	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
 }

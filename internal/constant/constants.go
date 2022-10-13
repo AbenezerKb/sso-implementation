@@ -23,3 +23,7 @@ const (
 	AuthorizationCode = "authorization_code"
 	RefreshToken      = "refresh_token"
 )
+
+const (
+	ClientSecretKey = "the-key-has-to-be-32-bytes-long!"
+)

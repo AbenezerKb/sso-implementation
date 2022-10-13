@@ -141,4 +141,19 @@ var (
 		Name:     "Update client status",
 		Category: "client",
 	}
+	UpdateIdentityProvider = Permission{
+		ID:       "update_identity_provider",
+		Name:     "update an identity provider",
+		Category: "identity_provider",
+	}
+	GetIdentityProvider = Permission{
+		ID:       "get_identity_provider",
+		Name:     "get an identity provider",
+		Category: "identity_provider",
+	}
+	DeleteIdentityProvider = Permission{
+		ID:       "delete_identity_provider",
+		Name:     "delete an identity provider",
+		Category: "identity_provider",
+	}
 )
