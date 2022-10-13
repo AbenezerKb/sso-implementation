@@ -127,4 +127,8 @@ type RolePersistence interface {
 
 type IdentityProviderPersistence interface {
 	CreateIdentityProvider(ctx context.Context, provider dto.IdentityProvider) (dto.IdentityProvider, error)
+	GetIdentityProvider(ctx context.Context, ipID uuid.UUID) (dto.IdentityProvider, error)
+	SaveIPAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
+	GetIPAccessTokenBySubAndIP(ctx context.Context, subID string, ipID uuid.UUID) (dto.IPAccessToken, error)
+	UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
 }
