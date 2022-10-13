@@ -1,0 +1,16 @@
+CREATE VIEW user_role AS
+SELECT
+    id,
+    first_name,
+    middle_name,
+    last_name,
+    email,
+    phone,
+    gender,
+    profile_picture,
+    status,
+    created_at,
+    (SELECT v1
+        FROM casbin_rule
+        WHERE v0 = cast(users.id as string) and p_type = 'g' limit 1) AS role
+FROM users;
