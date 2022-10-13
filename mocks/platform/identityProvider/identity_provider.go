@@ -21,7 +21,14 @@ func InitIP(clientID, clientSecret, legitCode, accessToken string, user dto.User
 		user:         user,
 	}
 }
-
+func SetUserForProvider(user dto.UserInfo, provider *platform.IdentityProvider) error {
+	p, ok := (*provider).(*identityProvider)
+	if !ok {
+		return fmt.Errorf("invalid provider")
+	}
+	p.user = user
+	return nil
+}
 func (i *identityProvider) GetAccessToken(ctx context.Context, endPoint, redirectURI, clientID, clientSecret, code string) (string, string, error) {
 	if clientID == i.clientID && clientSecret == i.clientSecret {
 		if code == i.legitCode {

@@ -89,6 +89,18 @@ func (l *loginWithIPTest) iHaveGrantedConsentToMyLoginWithCode(code string) erro
 		Gender:         l.ipUser.Gender,
 		ProfilePicture: l.ipUser.ProfilePicture,
 	})
+	if err := identityProvider.SetUserForProvider(dto.UserInfo{
+		Sub:            l.ipUser.ID,
+		FirstName:      l.ipUser.FirstName,
+		MiddleName:     l.ipUser.MiddleName,
+		LastName:       l.ipUser.LastName,
+		Email:          l.ipUser.Email,
+		Phone:          l.ipUser.Phone,
+		Gender:         l.ipUser.Gender,
+		ProfilePicture: l.ipUser.ProfilePicture,
+	}, &l.PlatformLayer.SelfIP); err != nil {
+		return err
+	}
 	l.requestCode = code
 	return nil
 }
@@ -154,6 +166,7 @@ func (l *loginWithIPTest) myRequestShouldFailWith(message string) error {
 func (l *loginWithIPTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
 		_, _ = l.DB.DeleteUser(ctx, l.admin.ID)
+		_, _ = l.Conn.Exec(ctx, "DELETE FROM users WHERE phone = $1", l.ipUser.Phone)
 		_, _ = l.DB.DeleteIdentityProvider(ctx, l.ip.ID)
 		return ctx, nil
 	})
