@@ -49,7 +49,7 @@ func (i *issueAccessTokenCodeGrantTest) theUserGrantedAccessToTheClient(arg1 *go
 	authCode := dto.AuthCode{
 		Code:        code,
 		Scope:       "openid",
-		RedirectURI: "https://google.com",
+		RedirectURI: "https://www.google.com",
 		ClientID:    i.client.ID,
 		UserID:      i.user.ID,
 	}
