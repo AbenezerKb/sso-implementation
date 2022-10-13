@@ -78,4 +78,5 @@ type IdentityProvider interface {
 	UpdateIdentityProvider(ctx *gin.Context)
 	GetIdentityProvider(ctx *gin.Context)
 	DeleteIdentityProvider(ctx *gin.Context)
+	GetAllIdentityProviders(ctx *gin.Context)
 }

@@ -5,6 +5,7 @@ import (
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -139,4 +140,35 @@ func (i *identityProvider) DeleteIdentityProvider(ctx *gin.Context) {
 	}
 
 	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
+}
+
+// GetIdentityProviders is used to get a all identity providers
+// @Summary get all identity providers
+// @Description get all identity providers
+// @ID get-identity-providers
+// @Tags identityProvider
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} []dto.IdentityProvider
+// @Failure 400 {object} model.ErrorResponse
+// @Router /identityProviders [get]
+// @Security BearerAuth
+func (i *identityProvider) GetAllIdentityProviders(ctx *gin.Context) {
+	var filtersParam request_models.PgnFltQueryParams
+	err := ctx.BindQuery(&filtersParam)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
+		i.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
+		_ = ctx.Error(err)
+		return
+	}
+
+	requestCtx := ctx.Request.Context()
+	idPs, metaData, err := i.ipModule.GetAllIdentityProviders(requestCtx, filtersParam)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, idPs, metaData)
 }
