@@ -162,3 +162,20 @@ func (u *user) UpdateUserRole(ctx context.Context, userID string, role dto.Assig
 	}
 	return u.userPersistence.UpdateUserRole(ctx, userIDParsed, role.Role)
 }
+
+func (u *user) RevokeUserRole(ctx context.Context, userID string) error {
+	userIDParsed, err := uuid.Parse(userID)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "invalid user id param on revoke user role", zap.String("user-id", userID), zap.Error(err))
+		return err
+	}
+
+	// check if user is valid
+	_, err = u.oauthPersistence.GetUserByID(ctx, userIDParsed)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "user not found")
+		return err
+	}
+	return u.userPersistence.RevokeUserRole(ctx, userIDParsed)
+}
