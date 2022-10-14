@@ -27,21 +27,21 @@ func ComposeFilterSQL(ctx context.Context, f request_models.FilterParams, logger
 				where += fmt.Sprintf("%v ILIKE '%v'", filter.ColumnField, "%"+filter.Value+"%")
 			case "equals":
 				where += fmt.Sprintf("%v = '%v'", filter.ColumnField, filter.Value)
-			case "starts with":
+			case "startsWith":
 				where += fmt.Sprintf("%v ILIKE '%v'", filter.ColumnField, filter.Value+"%")
-			case "ends with":
+			case "endsWith":
 				where += fmt.Sprintf("%v ILIKE '%v'", filter.ColumnField, "%"+filter.Value)
 			case "is":
 				where += fmt.Sprintf("%v = '%v'", filter.ColumnField, filter.Value)
-			case "is not":
+			case "not":
 				where += fmt.Sprintf("%v != '%v'", filter.ColumnField, filter.Value)
-			case "is after":
+			case "after":
 				where += fmt.Sprintf("%v > TIMESTAMPTZ '%v'", filter.ColumnField, filter.Value)
-			case "is on or after":
+			case "onOrAfter":
 				where += fmt.Sprintf("%v >= TIMESTAMPTZ '%v'", filter.ColumnField, filter.Value)
-			case "is before":
+			case "before":
 				where += fmt.Sprintf("%v < TIMESTAMPTZ '%v'", filter.ColumnField, filter.Value)
-			case "is on or before":
+			case "onOrBefore":
 				where += fmt.Sprintf("%v <= TIMESTAMPTZ '%v'", filter.ColumnField, filter.Value)
 			default:
 				continue
