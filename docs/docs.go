@@ -2340,6 +2340,35 @@ const docTemplate = `{
             }
         },
         "/users/{id}/role": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "revokes the role from the user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "revokes the role from the user",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "patch": {
                 "security": [
                     {
@@ -2882,6 +2911,10 @@ const docTemplate = `{
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
                     "type": "string"
                 },
+                "role": {
+                    "description": "Role is the role of this user. It will only have value for users that are assigned a role.",
+                    "type": "string"
+                },
                 "status": {
                     "description": "Status is the status of the user.\nIt is set to active by default after successful registration.",
                     "type": "string"
@@ -3076,6 +3109,10 @@ const docTemplate = `{
                 },
                 "profile_picture": {
                     "description": "ProfilePicture is the profile picture of the user.\nIt is set on a separate setProfilePicture endpoint.",
+                    "type": "string"
+                },
+                "role": {
+                    "description": "Role is the role of this user. It will only have value for users that are assigned a role.",
                     "type": "string"
                 },
                 "status": {
