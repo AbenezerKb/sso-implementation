@@ -51,11 +51,6 @@ func Initiate() {
 	pgxConn := InitDB(viper.GetString("database.url"), log)
 	log.Info(context.Background(), "database initialized")
 
-	log.Info(context.Background(), "initializing migration")
-	m := InitiateMigration(viper.GetString("migration.path"), viper.GetString("database.url"), log)
-	UpMigration(m, log)
-	log.Info(context.Background(), "migration initialized")
-
 	log.Info(context.Background(), "initializing cache")
 	cache := InitCache(viper.GetString("redis.url"), log)
 	log.Info(context.Background(), "cache initialized")
@@ -63,6 +58,13 @@ func Initiate() {
 	log.Info(context.Background(), "initializing casbin enforcer")
 	enforcer := InitEnforcer(viper.GetString("casbin.path"), pgxConn, log)
 	log.Info(context.Background(), "casbin enforcer initialized")
+
+	if viper.GetBool("migration.active") {
+		log.Info(context.Background(), "initializing migration")
+		m := InitiateMigration(viper.GetString("migration.path"), viper.GetString("database.url"), log)
+		UpMigration(m, log)
+		log.Info(context.Background(), "migration initialized")
+	}
 
 	log.Info(context.Background(), "initializing persistence layer")
 	persistence := InitPersistence(persistencedb.New(pgxConn), log)

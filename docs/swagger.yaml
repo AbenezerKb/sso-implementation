@@ -356,6 +356,10 @@ definitions:
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
         type: string
+      role:
+        description: Role is the role of this user. It will only have value for users
+          that are assigned a role.
+        type: string
       status:
         description: |-
           Status is the status of the user.
@@ -508,6 +512,10 @@ definitions:
         description: |-
           ProfilePicture is the profile picture of the user.
           It is set on a separate setProfilePicture endpoint.
+        type: string
+      role:
+        description: Role is the role of this user. It will only have value for users
+          that are assigned a role.
         type: string
       status:
         description: |-
@@ -2149,6 +2157,24 @@ paths:
       tags:
       - user
   /users/{id}/role:
+    delete:
+      consumes:
+      - application/json
+      description: revokes the role from the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: revokes the role from the user
+      tags:
+      - user
     patch:
       consumes:
       - application/json

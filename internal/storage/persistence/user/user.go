@@ -31,7 +31,7 @@ func InitUserPersistence(logger logger.Logger, db *persistencedb.PersistenceDB) 
 }
 
 func (u *userPersistence) GetAllUsers(ctx context.Context, filters request_models.FilterParams) ([]dto.User, *model.MetaData, error) {
-	users, total, err := u.db.GetAllUsers(ctx, utils.ComposeFilterSQL(ctx, filters, u.logger))
+	users, total, err := u.db.GetAllUsersWithRole(ctx, utils.ComposeFilterSQL(ctx, filters, u.logger))
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no users found")
@@ -43,21 +43,7 @@ func (u *userPersistence) GetAllUsers(ctx context.Context, filters request_model
 			return nil, nil, err
 		}
 	}
-	usersDTO := make([]dto.User, len(users))
-	for k, v := range users {
-		usersDTO[k] = dto.User{
-			ID:         v.ID,
-			Status:     v.Status.String,
-			FirstName:  v.FirstName,
-			MiddleName: v.MiddleName,
-			LastName:   v.LastName,
-			Email:      v.Email.String,
-			Phone:      v.Phone,
-			Gender:     v.Gender,
-			CreatedAt:  v.CreatedAt,
-		}
-	}
-	return usersDTO, &model.MetaData{
+	return users, &model.MetaData{
 		FilterParams: filters,
 		Total:        total,
 		Extra:        nil,
@@ -83,6 +69,17 @@ func (u *userPersistence) UpdateUserRole(ctx context.Context, userID uuid.UUID, 
 	if err != nil {
 		err = errors.ErrUpdateError.Wrap(err, "error updating user role")
 		u.logger.Error(ctx, "error updating user's role", zap.Error(err), zap.Any("user-id", userID), zap.String("role-name", roleName))
+		return err
+	}
+
+	return nil
+}
+
+func (u *userPersistence) RevokeUserRole(ctx context.Context, userID uuid.UUID) error {
+	err := u.db.RemoveRoleOFUser(ctx, userID)
+	if err != nil {
+		err = errors.ErrDBDelError.Wrap(err, "error revoking user role")
+		u.logger.Error(ctx, "error revoking user's role", zap.Error(err), zap.Any("user-id", userID))
 		return err
 	}
 

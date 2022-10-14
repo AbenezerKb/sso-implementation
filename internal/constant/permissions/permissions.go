@@ -161,4 +161,9 @@ var (
 		Name:     "get all identity providers",
 		Category: "identity_provider",
 	}
+	RevokeUserRole = Permission{
+		ID:       "revoke_user_role",
+		Name:     "revoke user's role",
+		Category: "user",
+	}
 )

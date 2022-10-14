@@ -70,14 +70,16 @@ func Initiate(path string) TestInstance {
 	sqlConn := db.New(pgxConn)
 	log.Info(context.Background(), "database initialized")
 
-	log.Info(context.Background(), "initializing migration")
-	m := initiator.InitiateMigration(path+viper.GetString("migration.path"), viper.GetString("database.url"), log)
-	initiator.UpMigration(m, log)
-	log.Info(context.Background(), "migration initialized")
-
 	log.Info(context.Background(), "initializing casbin enforcer")
 	enforcer := initiator.InitEnforcer(path+viper.GetString("casbin.path"), pgxConn, log)
 	log.Info(context.Background(), "casbin enforcer initialized")
+
+	if viper.GetBool("migration.active") {
+		log.Info(context.Background(), "initializing migration")
+		m := initiator.InitiateMigration(path+viper.GetString("migration.path"), viper.GetString("database.url"), log)
+		initiator.UpMigration(m, log)
+		log.Info(context.Background(), "migration initialized")
+	}
 
 	log.Info(context.Background(), "initializing cache")
 	cache := initiator.InitCache(viper.GetString("redis.url"), log)

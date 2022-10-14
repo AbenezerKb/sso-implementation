@@ -3,6 +3,7 @@ dev: true
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
 migration:
+  active: true
   path: internal/constant/query/schemas
 casbin:
   path: config/casbin.conf

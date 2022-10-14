@@ -57,6 +57,9 @@ func (q *PgnFltQueryParams) ToFilterParams(model interface{}) (FilterParams, err
 			return FilterParams{}, err
 		}
 		for k := range res.Sort {
+			if !collection.Contains[string](res.Sort[k].Field, reflect.GetJSONFieldNames(model)) {
+				return FilterParams{}, fmt.Errorf("invalid sort column %s", res.Sort[k].Field)
+			}
 			res.Sort[k].Sort = strings.ToUpper(res.Sort[k].Sort)
 			if err := validation.Validate(res.Sort[k].Sort, validation.In(state.SortAsc, state.SortDesc)); err != nil {
 				res.Sort[k].Sort = state.SortDesc
