@@ -93,7 +93,7 @@ func (r *deleteRoleTest) theFollowingUserHasTheRoleAssigned(userTable *godog.Tab
 	if err != nil {
 		return err
 	}
-	return r.PersistDB.AssignRoleForUser(context.Background(), user.ID, r.role.Name)
+	return r.PersistDB.AssignRoleForUser(context.Background(), r.user.ID, r.role.Name)
 }
 
 func (r *deleteRoleTest) iRequestToDeleteTheRole(role string) error {
