@@ -233,3 +233,11 @@ func (db *PersistenceDB) UpdateRoleTX(ctx context.Context, role dto.UpdateRole) 
 		Permissions: permissions,
 	}, nil
 }
+
+const removeRoleOfUser = `
+DELETE FROM casbin_rule WHERE p_type = 'g' AND v0 = $1`
+
+func (db *PersistenceDB) RemoveRoleOFUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := db.pool.Exec(ctx, removeRoleOfUser, userID)
+	return err
+}
