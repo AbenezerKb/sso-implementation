@@ -74,3 +74,14 @@ func (u *userPersistence) UpdateUserRole(ctx context.Context, userID uuid.UUID, 
 
 	return nil
 }
+
+func (u *userPersistence) RevokeUserRole(ctx context.Context, userID uuid.UUID) error {
+	err := u.db.RemoveRoleOFUser(ctx, userID)
+	if err != nil {
+		err = errors.ErrDBDelError.Wrap(err, "error revoking user role")
+		u.logger.Error(ctx, "error revoking user's role", zap.Error(err), zap.Any("user-id", userID))
+		return err
+	}
+
+	return nil
+}
