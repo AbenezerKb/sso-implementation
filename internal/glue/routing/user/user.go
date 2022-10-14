@@ -64,6 +64,16 @@ func InitRoute(router *gin.RouterGroup, handler rest.User, authMiddleware middle
 			},
 			Permission: permissions.UpdateUserRole,
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "/:id/role",
+			Handler: handler.RevokeUserRole,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+				authMiddleware.AccessControl(),
+			},
+			Permission: permissions.RevokeUserRole,
+		},
 	}
 	routing.RegisterRoutes(users, userRoutes, enforcer)
 }
