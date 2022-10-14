@@ -29,6 +29,7 @@ type User interface {
 	GetAllUsers(ctx *gin.Context)
 	UpdateUserStatus(ctx *gin.Context)
 	UpdateUserRole(ctx *gin.Context)
+	RevokeUserRole(ctx *gin.Context)
 }
 
 type Client interface {

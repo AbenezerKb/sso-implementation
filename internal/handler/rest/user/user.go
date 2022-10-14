@@ -175,3 +175,24 @@ func (u *user) UpdateUserRole(ctx *gin.Context) {
 	u.logger.Info(ctx, "updated role for user", zap.String("user-id", userID))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// RevokeUserRole	 revokes the role from the user
+// @Summary      revokes the role from the user
+// @Description  revokes the role from the user
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users/{id}/role [delete]
+// @Security	BearerAuth
+func (u *user) RevokeUserRole(ctx *gin.Context) {
+	userID := ctx.Param("id")
+	err := u.userModule.RevokeUserRole(ctx.Request.Context(), userID)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+	u.logger.Info(ctx, "revoked role from user", zap.String("user-id", userID))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
