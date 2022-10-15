@@ -33,7 +33,7 @@ func TestComposeFilterSQL(t *testing.T) {
 					},
 					{
 						ColumnField:   "created_at",
-						OperatorValue: "is after",
+						OperatorValue: "after",
 						Value:         "2014-06-06",
 					},
 					{
