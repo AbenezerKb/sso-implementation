@@ -3,6 +3,7 @@ package persistencedb
 import (
 	"context"
 	"database/sql"
+	"github.com/google/uuid"
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
 )
@@ -45,4 +46,45 @@ func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt string)
 	}
 
 	return users, totalCount, nil
+}
+
+const getUserById = `
+SELECT 
+id, 
+first_name, 
+middle_name, 
+last_name, 
+email, 
+phone, 
+password, 
+user_name, 
+gender, 
+profile_picture, 
+status, 
+created_at,
+(select v1 from casbin_rule where v0 = cast(users.id as string) limit 1) as role
+FROM users WHERE id = $1
+`
+
+func (db *PersistenceDB) GetUserByIDWithRole(ctx context.Context, id uuid.UUID) (*dto.User, error) {
+	row := db.pool.QueryRow(ctx, getUserById, id)
+	var i dto.User
+	var role sql.NullString
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+		&role,
+	)
+	i.Role = role.String
+	return &i, err
 }
