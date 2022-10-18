@@ -101,7 +101,7 @@ func (u *user) GetUserByID(ctx context.Context, id string) (*dto.User, error) {
 		return nil, err
 	}
 
-	return u.oauthPersistence.GetUserByID(ctx, userID)
+	return u.userPersistence.GetUserByID(ctx, userID)
 }
 
 func (u *user) GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error) {

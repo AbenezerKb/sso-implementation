@@ -85,3 +85,20 @@ func (u *userPersistence) RevokeUserRole(ctx context.Context, userID uuid.UUID) 
 
 	return nil
 }
+
+func (u *userPersistence) GetUserByID(ctx context.Context, id uuid.UUID) (*dto.User, error) {
+	user, err := u.db.GetUserByIDWithRole(ctx, id)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "no user found")
+			u.logger.Info(ctx, "no user found", zap.Error(err), zap.String("id", id.String()))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read user data")
+			u.logger.Error(ctx, "unable to get user by id", zap.Error(err), zap.String("id", id.String()))
+			return nil, err
+		}
+	}
+
+	return user, nil
+}
