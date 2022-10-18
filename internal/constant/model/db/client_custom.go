@@ -24,6 +24,7 @@ func (q *Queries) GetAllClients(ctx context.Context, pgnFlt string) ([]Client, i
 			&i.LogoUrl,
 			&i.Status,
 			&i.CreatedAt,
+			&i.FirstParty,
 			&totalCount); err != nil {
 			return nil, 0, err
 		}

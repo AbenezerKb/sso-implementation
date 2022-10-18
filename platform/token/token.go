@@ -50,7 +50,7 @@ func (j *Jwt) GenerateAccessTokenForClient(ctx context.Context, userID, clientID
 		Scope: scope,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresAt)),
-			Issuer:    "test",
+			Issuer:    "sso",
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			Subject:   userID,
 			Audience:  jwt.ClaimStrings{clientID},

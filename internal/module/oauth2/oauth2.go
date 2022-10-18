@@ -116,7 +116,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 	}
 
 	scopes, err := o.scopePersistence.GetScopeNameOnly(ctx, strings.Split(authRequestParm.Scope, " ")...)
-	if err != nil || scopes == "" {
+	if (err != nil || scopes == "") && !client.FirstParty {
 		err := errors.ErrInvalidUserInput.New("invalid scope")
 		o.logger.Info(ctx, "invalid scope", zap.Error(err))
 
@@ -126,6 +126,12 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		})
 	}
 
+	prompt := "consent"
+	if client.FirstParty {
+		prompt = "none"
+	} else if authRequestParm.Prompt != "" {
+		prompt = authRequestParm.Prompt
+	}
 	consent := dto.Consent{
 		ID: uuid.New(),
 		AuthorizationRequestParam: dto.AuthorizationRequestParam{
@@ -134,7 +140,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 			RedirectURI:  authRequestParm.RedirectURI,
 			State:        authRequestParm.State,
 			ResponseType: authRequestParm.ResponseType,
-			Prompt:       authRequestParm.Prompt,
+			Prompt:       prompt,
 		},
 		RequestOrigin: requestOrigin,
 	}
@@ -143,10 +149,6 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 			"error":             "server_error",
 			"error_description": "failed to save consent",
 		})
-	}
-	prompt := "consent"
-	if authRequestParm.Prompt != "" {
-		prompt = authRequestParm.Prompt
 	}
 
 	return utils.GenerateRedirectString(o.urls.ConsentURL, map[string]string{
@@ -224,7 +226,7 @@ func (o *oauth2) GetConsentByID(ctx context.Context, consentID string) (dto.Cons
 		ClientName:    client.Name,
 		ClientLogo:    client.LogoURL,
 		ClientType:    client.ClientType,
-		ClientTrusted: false,
+		ClientTrusted: client.FirstParty,
 		ClientID:      client.ID,
 		Approved:      clientStatus,
 		UserID:        user.ID,
@@ -394,7 +396,7 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		}
 	}
 
-	accessToken, err := o.token.GenerateAccessToken(ctx, authcode.UserID.String(), o.options.AccessTokenExpireTime)
+	accessToken, err := o.token.GenerateAccessTokenForClient(ctx, authcode.UserID.String(), client.ID.String(), authcode.Scope, o.options.AccessTokenExpireTime)
 	if err != nil {
 		return nil, err
 	}

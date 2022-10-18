@@ -22,7 +22,7 @@ INSERT INTO clients (
     logo_url
 ) VALUES (
     $1, $2, $3, $4, $5, $6
-) RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+) RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at, first_party
 `
 
 type CreateClientParams struct {
@@ -54,12 +54,13 @@ func (q *Queries) CreateClient(ctx context.Context, arg CreateClientParams) (Cli
 		&i.LogoUrl,
 		&i.Status,
 		&i.CreatedAt,
+		&i.FirstParty,
 	)
 	return i, err
 }
 
 const deleteClient = `-- name: DeleteClient :one
-DELETE FROM clients WHERE id = $1 RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+DELETE FROM clients WHERE id = $1 RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at, first_party
 `
 
 func (q *Queries) DeleteClient(ctx context.Context, id uuid.UUID) (Client, error) {
@@ -75,12 +76,13 @@ func (q *Queries) DeleteClient(ctx context.Context, id uuid.UUID) (Client, error
 		&i.LogoUrl,
 		&i.Status,
 		&i.CreatedAt,
+		&i.FirstParty,
 	)
 	return i, err
 }
 
 const getClientByID = `-- name: GetClientByID :one
-SELECT id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at FROM clients WHERE id = $1
+SELECT id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at, first_party FROM clients WHERE id = $1
 `
 
 func (q *Queries) GetClientByID(ctx context.Context, id uuid.UUID) (Client, error) {
@@ -96,6 +98,7 @@ func (q *Queries) GetClientByID(ctx context.Context, id uuid.UUID) (Client, erro
 		&i.LogoUrl,
 		&i.Status,
 		&i.CreatedAt,
+		&i.FirstParty,
 	)
 	return i, err
 }
@@ -111,7 +114,7 @@ SET
  logo_url = coalesce($6, logo_url),
  status = coalesce($7, status)
 WHERE id = $8
-RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at, first_party
 `
 
 type UpdateClientParams struct {
@@ -147,6 +150,7 @@ func (q *Queries) UpdateClient(ctx context.Context, arg UpdateClientParams) (Cli
 		&i.LogoUrl,
 		&i.Status,
 		&i.CreatedAt,
+		&i.FirstParty,
 	)
 	return i, err
 }
@@ -160,7 +164,7 @@ SET
  scopes = $5,
  logo_url = $6
 WHERE id = $1
-RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at
+RETURNING id, name, client_type, redirect_uris, scopes, secret, logo_url, status, created_at, first_party
 `
 
 type UpdateEntireClientParams struct {
@@ -192,6 +196,7 @@ func (q *Queries) UpdateEntireClient(ctx context.Context, arg UpdateEntireClient
 		&i.LogoUrl,
 		&i.Status,
 		&i.CreatedAt,
+		&i.FirstParty,
 	)
 	return i, err
 }
