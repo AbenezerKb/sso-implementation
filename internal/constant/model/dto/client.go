@@ -20,6 +20,8 @@ type Client struct {
 	// ClientType is the type of the client.
 	// It can be either confidential or public.
 	ClientType string `json:"client_type"`
+	// FirstParty shows if this client is a first party client or not
+	FirstParty bool `json:"first_party"`
 	// RedirectURIs is the list of redirect URIs of the client.
 	// Each redirect URI must be a valid URL and must use HTTPS.
 	RedirectURIs []string `json:"redirect_uris,omitempty"`

@@ -78,6 +78,7 @@ func (c *clientPersistence) GetClientByID(ctx context.Context, id uuid.UUID) (*d
 		RedirectURIs: utils.StringToArray(client.RedirectUris),
 		ClientType:   client.ClientType,
 		LogoURL:      client.LogoUrl,
+		FirstParty:   client.FirstParty,
 	}, nil
 
 }

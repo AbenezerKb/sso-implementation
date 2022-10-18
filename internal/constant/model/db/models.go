@@ -32,6 +32,7 @@ type Client struct {
 	LogoUrl      string    `json:"logo_url"`
 	Status       string    `json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
+	FirstParty   bool      `json:"first_party"`
 }
 
 type IdentityProvider struct {
