@@ -26,7 +26,8 @@ import (
 // @contact.url    http://www.2fcapital.com
 // @contact.email  info@1f-capital.com
 //
-// @host 206.189.54.235:8000
+// @schemes https
+// @host sso.automatrix.et
 // @BasePath  /v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
