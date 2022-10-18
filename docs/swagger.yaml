@@ -668,7 +668,7 @@ definitions:
       sort:
         type: string
     type: object
-host: 206.189.54.235:8000
+host: sso.automatrix.et
 info:
   contact:
     email: info@1f-capital.com
@@ -2259,6 +2259,8 @@ paths:
       summary: check's if phone exists.
       tags:
       - miniRide
+schemes:
+- https
 securityDefinitions:
   BasicAuth:
     type: basic

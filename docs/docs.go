@@ -3333,9 +3333,9 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "0.1",
-	Host:             "206.189.54.235:8000",
+	Host:             "sso.automatrix.et",
 	BasePath:         "/v1",
-	Schemes:          []string{},
+	Schemes:          []string{"https"},
 	Title:            "RidePLUS SSO API",
 	Description:      "This is the RidePLUS sso api.",
 	InfoInstanceName: "swagger",
