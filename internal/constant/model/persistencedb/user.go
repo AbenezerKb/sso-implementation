@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/google/uuid"
+	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
 )
@@ -68,7 +69,7 @@ FROM users WHERE id = $1
 
 func (db *PersistenceDB) GetUserByIDWithRole(ctx context.Context, id uuid.UUID) (*dto.User, error) {
 	row := db.pool.QueryRow(ctx, getUserById, id)
-	var i dto.User
+	var i db2.User
 	var role sql.NullString
 	err := row.Scan(
 		&i.ID,
@@ -85,6 +86,17 @@ func (db *PersistenceDB) GetUserByIDWithRole(ctx context.Context, id uuid.UUID) 
 		&i.CreatedAt,
 		&role,
 	)
-	i.Role = role.String
-	return &i, err
+	return &dto.User{
+		ID:             i.ID,
+		FirstName:      i.FirstName,
+		MiddleName:     i.MiddleName,
+		LastName:       i.LastName,
+		Email:          i.Email.String,
+		Phone:          i.Phone,
+		Gender:         i.Gender,
+		Status:         i.Status.String,
+		ProfilePicture: i.ProfilePicture.String,
+		CreatedAt:      i.CreatedAt,
+		Role:           role.String,
+	}, err
 }
