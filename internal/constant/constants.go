@@ -3,6 +3,10 @@ package constant
 type Context string
 
 const (
+	SuperUserRole = "super-user"
+)
+
+const (
 	Active   = "ACTIVE"
 	Inactive = "INACTIVE"
 	Pending  = "PENDING"

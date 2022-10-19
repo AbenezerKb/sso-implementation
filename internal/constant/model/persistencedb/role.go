@@ -4,12 +4,13 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
+	"sso/internal/constant"
 	"sso/internal/constant/errors/sqlcerr"
 	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 )
 
-const getRoleForUser = "SELECT v1 FROM casbin_rule WHERE v0 = $1"
+const getRoleForUser = "SELECT v1 FROM casbin_rule WHERE v0 = $1 and p_type = 'g'"
 
 func (db *PersistenceDB) GetRoleForUser(ctx context.Context, userID uuid.UUID) (string, error) {
 	row := db.pool.QueryRow(ctx, getRoleForUser, userID)
@@ -127,7 +128,27 @@ const assignRoleForUser = `
 INSERT INTO casbin_rule (p_type,v0,v1) VALUES ('g', $1, $2)`
 
 func (db *PersistenceDB) AssignRoleForUser(ctx context.Context, userID uuid.UUID, roleName string) error {
-	_, err := db.pool.Exec(ctx, assignRoleForUser, userID, roleName)
+	tx, err := db.pool.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	// delete existing role
+	if preRole, err := db.GetRoleForUser(ctx, userID); err == nil {
+		err = db.DeleteRoleTX(ctx, preRole)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = tx.Exec(ctx, assignRoleForUser, userID, roleName)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit(ctx)
 	if err != nil {
 		return err
 	}
@@ -171,9 +192,11 @@ func (db *PersistenceDB) DeleteRoleTX(ctx context.Context, roleName string) erro
 	}()
 	query := db.Queries.WithTx(tx)
 
-	_, err = query.DeleteRole(ctx, roleName)
-	if err != nil {
-		return err
+	if roleName != constant.SuperUserRole {
+		_, err = query.DeleteRole(ctx, roleName)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = tx.Exec(ctx, deleteRolePermissionsAndUsers, roleName)
