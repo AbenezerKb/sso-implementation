@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"net/http"
+	"sso/platform/utils/collection"
 	"strings"
 )
 
@@ -32,7 +33,12 @@ func InitCORS() gin.HandlerFunc {
 		}
 	}
 	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", strings.Join(origins, ","))
+		requestHeader := c.Request.Header.Get("Origin")
+		if collection.Contains(requestHeader, origins) {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", requestHeader)
+		} else {
+			c.Writer.Header().Set("Access-Control-Allow-Origin", strings.Join(origins, ","))
+		}
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", allowCredentials)
 		c.Writer.Header().Set("Access-Control-Allow-Headers", strings.Join(headers, ","))
 		c.Writer.Header().Set("Access-Control-Allow-Methods", strings.Join(methods, ","))
