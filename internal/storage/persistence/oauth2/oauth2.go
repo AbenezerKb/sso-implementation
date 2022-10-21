@@ -2,6 +2,8 @@ package oauth2
 
 import (
 	"context"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
@@ -9,9 +11,6 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
-
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 )
 
 type oauth2 struct {
@@ -310,5 +309,32 @@ func (o *oauth2) UserInfo(ctx context.Context, userID uuid.UUID) (*dto.UserInfo,
 		Gender:     user.Gender,
 		Email:      user.Email.String,
 		Phone:      user.Phone,
+	}, nil
+}
+
+func (o *oauth2) UpdateRefreshToken(ctx context.Context, newRefreshToken, oldRefreshToken string) (*dto.RefreshToken, error) {
+	refreshToken, err := o.db.UpdateOAuthRefreshToken(ctx, db.UpdateOAuthRefreshTokenParams{
+		RefreshToken:   newRefreshToken,
+		RefreshToken_2: oldRefreshToken,
+	})
+
+	if err != nil {
+		err := errors.ErrUpdateError.Wrap(err, "error updating refresh token")
+		o.logger.Error(ctx, "error while updating refresh token for a client access token grant",
+			zap.Any("old-refresh-token", oldRefreshToken),
+			zap.Any("new-refresh-token", newRefreshToken))
+		return nil, err
+	}
+
+	return &dto.RefreshToken{
+		ID:           refreshToken.ID,
+		RefreshToken: refreshToken.RefreshToken,
+		Code:         refreshToken.Code,
+		UserID:       refreshToken.UserID,
+		ClientID:     refreshToken.ClientID,
+		Scope:        refreshToken.Scope.String,
+		RedirectUri:  refreshToken.RedirectUri.String,
+		ExpiresAt:    refreshToken.ExpiresAt,
+		CreatedAt:    refreshToken.CreatedAt,
 	}, nil
 }

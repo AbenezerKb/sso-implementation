@@ -246,3 +246,33 @@ func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenPara
 	)
 	return i, err
 }
+
+const updateOAuthRefreshToken = `-- name: UpdateOAuthRefreshToken :one
+UPDATE refresh_tokens
+SET refresh_token = $1
+WHERE refresh_token = $2
+RETURNING id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
+`
+
+type UpdateOAuthRefreshTokenParams struct {
+	RefreshToken   string `json:"refresh_token"`
+	RefreshToken_2 string `json:"refresh_token_2"`
+}
+
+func (q *Queries) UpdateOAuthRefreshToken(ctx context.Context, arg UpdateOAuthRefreshTokenParams) (RefreshToken, error) {
+	row := q.db.QueryRow(ctx, updateOAuthRefreshToken, arg.RefreshToken, arg.RefreshToken_2)
+	var i RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.RefreshToken,
+		&i.Code,
+		&i.UserID,
+		&i.Scope,
+		&i.RedirectUri,
+		&i.ExpiresAt,
+		&i.ClientID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
