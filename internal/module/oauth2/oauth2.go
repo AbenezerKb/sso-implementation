@@ -401,30 +401,36 @@ func (o *oauth2) authorizationCodeGrant(ctx context.Context, client dto.Client, 
 		return nil, err
 	}
 
-	refreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
-		UserID:       authcode.UserID,
-		RefreshToken: o.token.GenerateRefreshToken(ctx),
-		ClientID:     authcode.ClientID,
-		Scope:        authcode.Scope,
-		RedirectUri:  authcode.RedirectURI,
-		Code:         authcode.Code,
-		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-	})
+	refreshToken, err := o.oauth2Persistence.GetRefreshTokenOfClientByUserID(ctx, authcode.UserID, authcode.ClientID)
 	if err != nil {
-		return nil, err
-	}
-	if _, err := o.oauth2Persistence.AddAuthHistory(
-		ctx,
-		dto.AuthHistory{
-			Code:        authcode.Code,
-			UserID:      authcode.UserID,
-			ClientID:    authcode.ClientID,
-			Scope:       authcode.Scope,
-			RedirectUri: authcode.RedirectURI,
-			Status:      constant.Grant,
-		},
-	); err != nil {
-		return nil, err
+		if !errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			return nil, err
+		}
+		refreshToken, err = o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
+			UserID:       authcode.UserID,
+			RefreshToken: o.token.GenerateRefreshToken(ctx),
+			ClientID:     authcode.ClientID,
+			Scope:        authcode.Scope,
+			RedirectUri:  authcode.RedirectURI,
+			Code:         authcode.Code,
+			ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+		})
+		if err != nil {
+			return nil, err
+		}
+		if _, err := o.oauth2Persistence.AddAuthHistory(
+			ctx,
+			dto.AuthHistory{
+				Code:        authcode.Code,
+				UserID:      authcode.UserID,
+				ClientID:    authcode.ClientID,
+				Scope:       authcode.Scope,
+				RedirectUri: authcode.RedirectURI,
+				Status:      constant.Grant,
+			},
+		); err != nil {
+			return nil, err
+		}
 	}
 	tokenResponse := &dto.TokenResponse{
 		AccessToken:  accessToken,
