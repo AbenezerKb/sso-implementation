@@ -57,3 +57,9 @@ FROM refresh_tokens
          JOIN clients ON refresh_tokens.client_id = clients.id
 WHERE user_id = $1
   AND refresh_tokens.scope ILIKE '%openid%';
+
+-- name: UpdateOAuthRefreshToken :one
+UPDATE refresh_tokens
+SET refresh_token = $1
+WHERE refresh_token = $2
+RETURNING *;

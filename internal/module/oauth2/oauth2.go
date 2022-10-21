@@ -481,18 +481,19 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 		return nil, err
 	}
 
-	if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
-		return nil, err
-	}
+	//if err := o.oauth2Persistence.RemoveRefreshToken(ctx, oldRefreshToken.RefreshToken); err != nil {
+	//	return nil, err
+	//}
 
-	newRefreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
-		UserID:       oldRefreshToken.UserID,
-		RefreshToken: o.token.GenerateRefreshToken(ctx),
-		ClientID:     oldRefreshToken.ClientID,
-		Scope:        oldRefreshToken.Scope,
-		RedirectUri:  oldRefreshToken.RedirectUri,
-		ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
-	})
+	//newRefreshToken, err := o.oauth2Persistence.PersistRefreshToken(ctx, dto.RefreshToken{
+	//	UserID:       oldRefreshToken.UserID,
+	//	RefreshToken: o.token.GenerateRefreshToken(ctx),
+	//	ClientID:     oldRefreshToken.ClientID,
+	//	Scope:        oldRefreshToken.Scope,
+	//	RedirectUri:  oldRefreshToken.RedirectUri,
+	//	ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
+	//})
+	newRefreshToken, err := o.oauth2Persistence.UpdateRefreshToken(ctx, o.token.GenerateRefreshToken(ctx), oldRefreshToken.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
