@@ -32,24 +32,37 @@ func (q *Queries) GetInternalRefreshToken(ctx context.Context, refreshToken stri
 	return i, err
 }
 
-const getInternalRefreshTokenByUserID = `-- name: GetInternalRefreshTokenByUserID :one
+const getInternalRefreshTokensByUserID = `-- name: GetInternalRefreshTokensByUserID :many
 SELECT id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at FROM internalrefreshtokens WHERE user_id = $1
 `
 
-func (q *Queries) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (Internalrefreshtoken, error) {
-	row := q.db.QueryRow(ctx, getInternalRefreshTokenByUserID, userID)
-	var i Internalrefreshtoken
-	err := row.Scan(
-		&i.ID,
-		&i.RefreshToken,
-		&i.UserID,
-		&i.IpAddress,
-		&i.UserAgent,
-		&i.ExpiresAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+func (q *Queries) GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]Internalrefreshtoken, error) {
+	rows, err := q.db.Query(ctx, getInternalRefreshTokensByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Internalrefreshtoken
+	for rows.Next() {
+		var i Internalrefreshtoken
+		if err := rows.Scan(
+			&i.ID,
+			&i.RefreshToken,
+			&i.UserID,
+			&i.IpAddress,
+			&i.UserAgent,
+			&i.ExpiresAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const removeInternalRefreshToken = `-- name: RemoveInternalRefreshToken :exec
@@ -58,6 +71,15 @@ DELETE FROM internalrefreshtokens WHERE refresh_token =$1
 
 func (q *Queries) RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error {
 	_, err := q.db.Exec(ctx, removeInternalRefreshToken, refreshToken)
+	return err
+}
+
+const removeInternalRefreshTokenByUserID = `-- name: RemoveInternalRefreshTokenByUserID :exec
+DELETE FROM internalrefreshtokens WHERE id = $1
+`
+
+func (q *Queries) RemoveInternalRefreshTokenByUserID(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, removeInternalRefreshTokenByUserID, id)
 	return err
 }
 

@@ -60,6 +60,7 @@ func (a *authorizationTest) iHaveTheFollowingParameters(params *godog.Table) err
 	a.apiTest.SetQueryParam("state", a.requestParam.State)
 	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
 	a.apiTest.SetQueryParam("redirect_uri", a.requestParam.RedirectURI)
+	a.apiTest.SetQueryParam("prompt", a.requestParam.Prompt)
 
 	return nil
 }
@@ -78,6 +79,7 @@ func (a *authorizationTest) iHaveTheFollowingParametersWithInvalidClient(params 
 	a.apiTest.SetQueryParam("state", a.requestParam.State)
 	a.apiTest.SetQueryParam("scope", a.requestParam.Scope)
 	a.apiTest.SetQueryParam("redirect_uri", a.requestParam.RedirectURI)
+	a.apiTest.SetQueryParam("prompt", a.requestParam.Prompt)
 
 	return nil
 }

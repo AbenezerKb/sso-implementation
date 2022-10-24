@@ -55,6 +55,7 @@ type Profile interface {
 	UpdateProfilePicture(ctx *gin.Context)
 	ChangePhone(ctx *gin.Context)
 	ChangePassword(ctx *gin.Context)
+	GetAllCurrentSessions(ctx *gin.Context)
 }
 
 type MiniRide interface {

@@ -172,6 +172,7 @@ func (o *oauth) RefreshToken(ctx *gin.Context) {
 	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		_ = ctx.Error(err)
+		ctx.SetCookie("ab_fen", "", -1, "/", "", false, true)
 		return
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)

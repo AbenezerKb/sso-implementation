@@ -2,10 +2,11 @@ package storage
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+
+	"github.com/google/uuid"
 )
 
 type OAuthPersistence interface {
@@ -21,7 +22,7 @@ type OAuthPersistence interface {
 	SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error
 	GetInternalRefreshToken(ctx context.Context, refreshtoken string) (*dto.InternalRefreshToken, error)
 	UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error)
-	GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (*dto.InternalRefreshToken, error)
+	GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]dto.InternalRefreshToken, error)
 	GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error)
 }
 

@@ -32,3 +32,8 @@ const (
 const (
 	ClientSecretKey = "the-key-has-to-be-32-bytes-long!"
 )
+
+const (
+	PromptNone    = "none"
+	PromptConsent = "consent"
+)

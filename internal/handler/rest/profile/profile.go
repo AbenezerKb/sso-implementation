@@ -175,3 +175,25 @@ func (p *profile) ChangePassword(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// GetAllCurrentSessions	 get's all current session of the user.
+// @Summary     get's all current session of the user.
+// @Description  get's all user sessions.
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  dto.InternalRefreshToken
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile/devices [get]
+// @Security	BearerAuth
+func (p *profile) GetAllCurrentSessions(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+
+	sessions, err := p.profileModule.GetAllCurrentSessions(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, sessions, nil)
+}

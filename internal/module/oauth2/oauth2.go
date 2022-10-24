@@ -126,12 +126,6 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 		})
 	}
 
-	prompt := "consent"
-	if client.FirstParty {
-		prompt = "none"
-	} else if authRequestParm.Prompt != "" {
-		prompt = authRequestParm.Prompt
-	}
 	consent := dto.Consent{
 		ID: uuid.New(),
 		AuthorizationRequestParam: dto.AuthorizationRequestParam{
@@ -140,7 +134,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 			RedirectURI:  authRequestParm.RedirectURI,
 			State:        authRequestParm.State,
 			ResponseType: authRequestParm.ResponseType,
-			Prompt:       prompt,
+			Prompt:       authRequestParm.Prompt,
 		},
 		RequestOrigin: requestOrigin,
 	}
@@ -153,7 +147,7 @@ func (o *oauth2) Authorize(ctx context.Context, authRequestParm dto.Authorizatio
 
 	return utils.GenerateRedirectString(o.urls.ConsentURL, map[string]string{
 		"consentId": consent.ID.String(),
-		"prompt":    prompt,
+		"prompt":    authRequestParm.Prompt,
 	})
 }
 
