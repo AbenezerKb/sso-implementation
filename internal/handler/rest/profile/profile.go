@@ -182,7 +182,7 @@ func (p *profile) ChangePassword(ctx *gin.Context) {
 // @Tags         profile
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  dto.InterRefreshToken
+// @Success      200  {object}  dto.InternalRefreshToken
 // @Failure      400  {object}  model.ErrorResponse
 // @Router       /profile/devices [get]
 // @Security	BearerAuth

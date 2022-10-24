@@ -42,6 +42,9 @@ definitions:
       expires_at:
         description: AuthExpiresAt is the time this authorization expires at
         type: string
+      first_party:
+        description: FirstParty shows if this client is a first party client or not
+        type: boolean
       id:
         description: |-
           ID is the unique identifier for the client.
@@ -110,6 +113,9 @@ definitions:
       created_at:
         description: CreatedAt is the time this client was created at
         type: string
+      first_party:
+        description: FirstParty shows if this client is a first party client or not
+        type: boolean
       id:
         description: |-
           ID is the unique identifier for the client.
@@ -275,6 +281,38 @@ definitions:
       user_info_endpoint_uri:
         description: UserInfoEndpointURI is the uri to exchange access token with
           user profile information
+        type: string
+    type: object
+  dto.InternalRefreshToken:
+    properties:
+      created_at:
+        description: |-
+          CreatedAt is the time when the refresh token is created.
+          It is automatically set when the refresh token is created.
+        type: string
+      expires_at:
+        description: ExpiresAt is time the refresh token is going to be expired.
+        type: string
+      id:
+        description: |-
+          ID is the unique identifier for the refresh token.
+          It is automatically generated when the refresh token is created.
+        type: string
+      ip_address:
+        description: Ip address is unique address that identifies a device on the
+          internet
+        type: string
+      refresh_token:
+        description: RefreshToken is the opaque string users uses to refresh access
+          token.
+        type: string
+      user_agent:
+        description: User Agent is http header to identify user's device
+        type: string
+      user_id:
+        description: |-
+          ExpiresAt is time the refresh token is going to be expired.
+          UserID is the id of the user who granted access to the client.
         type: string
     type: object
   dto.InternalRefreshTokenRequestBody:
@@ -1650,6 +1688,27 @@ paths:
       security:
       - BearerAuth: []
       summary: update user profile.
+      tags:
+      - profile
+  /profile/devices:
+    get:
+      consumes:
+      - application/json
+      description: get's all user sessions.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.InternalRefreshToken'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: get's all current session of the user.
       tags:
       - profile
   /profile/password:

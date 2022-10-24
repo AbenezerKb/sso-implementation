@@ -1536,6 +1536,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/profile/devices": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "get's all user sessions.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "profile"
+                ],
+                "summary": "get's all current session of the user.",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.InternalRefreshToken"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/profile/password": {
             "patch": {
                 "security": [
@@ -2557,6 +2591,10 @@ const docTemplate = `{
                     "description": "AuthExpiresAt is the time this authorization expires at",
                     "type": "string"
                 },
+                "first_party": {
+                    "description": "FirstParty shows if this client is a first party client or not",
+                    "type": "boolean"
+                },
                 "id": {
                     "description": "ID is the unique identifier for the client.\nIt is automatically generated when the client is registered.",
                     "type": "string"
@@ -2630,6 +2668,10 @@ const docTemplate = `{
                 "created_at": {
                     "description": "CreatedAt is the time this client was created at",
                     "type": "string"
+                },
+                "first_party": {
+                    "description": "FirstParty shows if this client is a first party client or not",
+                    "type": "boolean"
                 },
                 "id": {
                     "description": "ID is the unique identifier for the client.\nIt is automatically generated when the client is registered.",
@@ -2810,6 +2852,39 @@ const docTemplate = `{
                 },
                 "user_info_endpoint_uri": {
                     "description": "UserInfoEndpointURI is the uri to exchange access token with user profile information",
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InternalRefreshToken": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "description": "CreatedAt is the time when the refresh token is created.\nIt is automatically set when the refresh token is created.",
+                    "type": "string"
+                },
+                "expires_at": {
+                    "description": "ExpiresAt is time the refresh token is going to be expired.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID is the unique identifier for the refresh token.\nIt is automatically generated when the refresh token is created.",
+                    "type": "string"
+                },
+                "ip_address": {
+                    "description": "Ip address is unique address that identifies a device on the internet",
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "description": "RefreshToken is the opaque string users uses to refresh access token.",
+                    "type": "string"
+                },
+                "user_agent": {
+                    "description": "User Agent is http header to identify user's device",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "ExpiresAt is time the refresh token is going to be expired.\nUserID is the id of the user who granted access to the client.",
                     "type": "string"
                 }
             }
