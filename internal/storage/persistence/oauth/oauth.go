@@ -283,8 +283,8 @@ func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.Intern
 	}, nil
 }
 
-func (o *oauth) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid.UUID) (*dto.InternalRefreshToken, error) {
-	refreshToken, err := o.db.GetInternalRefreshTokenByUserID(ctx, userID)
+func (o *oauth) GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]dto.InternalRefreshToken, error) {
+	refreshTokens, err := o.db.GetInternalRefreshTokensByUserID(ctx, userID)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no refresh token found")
@@ -295,13 +295,19 @@ func (o *oauth) GetInternalRefreshTokenByUserID(ctx context.Context, userID uuid
 		o.logger.Error(ctx, "could not found refresh token", zap.Error(err))
 		return nil, err
 	}
-	return &dto.InternalRefreshToken{
-		ID:           refreshToken.ID,
-		RefreshToken: refreshToken.RefreshToken,
-		ExpiresAt:    refreshToken.ExpiresAt,
-		UserID:       refreshToken.UserID,
-		CreatedAt:    refreshToken.CreatedAt,
-	}, nil
+
+	dtoRefreshTokens := make([]dto.InternalRefreshToken, len(refreshTokens))
+	for i := 0; i < len(refreshTokens); i++ {
+		dtoRefreshTokens[i] = dto.InternalRefreshToken{
+			ID:           refreshTokens[i].ID,
+			RefreshToken: refreshTokens[i].RefreshToken,
+			ExpiresAt:    refreshTokens[i].ExpiresAt,
+			UserID:       refreshTokens[i].UserID,
+			CreatedAt:    refreshTokens[i].CreatedAt,
+		}
+	}
+
+	return dtoRefreshTokens, nil
 }
 
 func (o *oauth) GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error) {
