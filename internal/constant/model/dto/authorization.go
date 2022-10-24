@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"sso/internal/constant"
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
@@ -54,6 +55,7 @@ func (a *AuthorizationRequestParam) Validate() error {
 		validation.Field(&a.ResponseType, validation.Required.Error("response_type is required"), validation.In("code", "token")),
 		validation.Field(&a.Scope, validation.Required.Error("scope is required"), validation.In("openid", "profile", "email", "phone", "address", "offline_access")),
 		validation.Field(&a.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL),
+		validation.Field(&a.Prompt, validation.Required.Error("prompt is required"), validation.In(constant.PromptNone, constant.PromptConsent).Error("invalid prompt value")),
 	)
 }
 
