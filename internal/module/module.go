@@ -68,6 +68,7 @@ type ProfileModule interface {
 	UpdateProfilePicture(ctx context.Context, imageFile *multipart.FileHeader) error
 	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam) error
 	ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam) error
+	GetAllCurrentSessions(ctx context.Context) ([]dto.InternalRefreshToken, error)
 }
 
 type ResourceServerModule interface {

@@ -239,3 +239,21 @@ func (p *profileModule) ChangePassword(ctx context.Context, changePasswordParam 
 	p.logger.Info(ctx, "user changed password", zap.Any("user-id", userID))
 	return nil
 }
+
+func (p *profileModule) GetAllCurrentSessions(ctx context.Context) ([]dto.InternalRefreshToken, error) {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		p.logger.Info(ctx, "invalid user id", zap.Error(err), zap.Any("user_id", id))
+		return nil, err
+	}
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		p.logger.Info(ctx, "parse error", zap.Error(err), zap.String("user id", id))
+		return nil, err
+	}
+
+	return p.oauthPersistence.GetInternalRefreshTokensByUserID(ctx, userID)
+}
