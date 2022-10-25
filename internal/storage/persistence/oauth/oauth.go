@@ -302,6 +302,8 @@ func (o *oauth) GetInternalRefreshTokensByUserID(ctx context.Context, userID uui
 			ID:           refreshTokens[i].ID,
 			RefreshToken: refreshTokens[i].RefreshToken,
 			ExpiresAt:    refreshTokens[i].ExpiresAt,
+			UserAgent:    refreshTokens[i].UserAgent,
+			IPAddress:    refreshTokens[i].IpAddress,
 			UserID:       refreshTokens[i].UserID,
 			CreatedAt:    refreshTokens[i].CreatedAt,
 		}
