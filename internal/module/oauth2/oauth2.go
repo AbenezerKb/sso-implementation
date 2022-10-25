@@ -274,7 +274,7 @@ func (o *oauth2) ApproveConsent(ctx context.Context, consentID string, userID uu
 	}
 
 	// calculate session state
-	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs, utils.GenerateRandomString(20, true))
+	sessionState := utils.CalculateSessionState(authCode.ClientID.String(), consent.RequestOrigin, opbs, utils.GenerateRandomString(20, false))
 	queries["session_state"] = sessionState
 
 	return utils.GenerateRedirectString(redirectURI, queries)
