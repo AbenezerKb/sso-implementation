@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto"
 	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -34,11 +33,11 @@ func CompareHashAndPassword(hashedPwd, plainPassword string) bool {
 	return err == nil
 }
 
+// GenerateRandomString generates a random string with the specified length
+//
+// as of oct-25-2022 includeSpecial has no effect on the output
 func GenerateRandomString(length int, includeSpecial bool) string {
 	str := letterBytes
-	if includeSpecial {
-		str += specialBytes
-	}
 
 	randString := make([]byte, length)
 	_, _ = io.ReadAtLeast(rand.Reader, randString, length)
@@ -77,7 +76,7 @@ func GenerateNewOPBS() string {
 func CalculateSessionState(clientID, origin, opbs, salt string) string {
 	hash := crypto.SHA256.New()
 	hash.Write([]byte(fmt.Sprintf("%s %s %s %s", clientID, origin, opbs, salt)))
-	return fmt.Sprintf("%s.%s", base64.URLEncoding.EncodeToString(hash.Sum(nil)), salt)
+	return fmt.Sprintf("%x.%s", hash.Sum(nil), salt)
 }
 
 func GenerateRedirectString(uri *url.URL, queries map[string]string) string {
