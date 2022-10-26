@@ -175,7 +175,6 @@ func (o *oauth2) ApproveConsent(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
 	constant.SuccessResponse(ctx, http.StatusOK,
 		dto.RedirectResponse{
 			Location: o.oauth2Module.ApproveConsent(requestCtx, consentResultRsp.ConsentID, userID, opbs.Value, nil),
