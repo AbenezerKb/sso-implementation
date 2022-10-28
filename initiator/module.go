@@ -82,15 +82,18 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			persistence.OAuthPersistence,
 			persistence.ProfilePersistence,
 			cache.OTPCacheLayer,
-			viper.GetString("assets.profile_picture_dist"),
-			viper.GetInt("assets.profile_picture_max_size")),
+			profile.SetOptions(profile.Options{
+				ProfilePictureDist:    viper.GetString("assets.profile_picture_dst"),
+				PublicAddress:         viper.GetString("server.static_address"),
+				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
+			})),
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
 	}
 }
 
-func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
+func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State, path string) Module {
 	return Module{
 		userModule: user.Init(
 			log.Named("user-module"),
@@ -136,8 +139,11 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			persistence.OAuthPersistence,
 			persistence.ProfilePersistence,
 			cache.OTPCacheLayer,
-			viper.GetString("assets.profile_picture_dist"),
-			viper.GetInt("assets.profile_picture_max_size")),
+			profile.SetOptions(profile.Options{
+				PublicAddress:         viper.GetString("server.static_address"),
+				ProfilePictureDist:    path + viper.GetString("assets.profile_picture_dst"),
+				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
+			})),
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		MiniRideModule:   mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),

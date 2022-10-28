@@ -108,7 +108,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "state initialized")
 
 	log.Info(context.Background(), "initializing module")
-	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state)
+	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state, path)
 	log.Info(context.Background(), "module initialized")
 
 	log.Info(context.Background(), "initializing handler")
