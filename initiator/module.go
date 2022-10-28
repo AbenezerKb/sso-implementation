@@ -84,7 +84,6 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			cache.OTPCacheLayer,
 			profile.SetOptions(profile.Options{
 				ProfilePictureDist:    viper.GetString("assets.profile_picture_dst"),
-				PublicAddress:         viper.GetString("server.static_address"),
 				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
 			})),
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
@@ -140,7 +139,6 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			persistence.ProfilePersistence,
 			cache.OTPCacheLayer,
 			profile.SetOptions(profile.Options{
-				PublicAddress:         viper.GetString("server.static_address"),
 				ProfilePictureDist:    path + viper.GetString("assets.profile_picture_dst"),
 				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
 			})),

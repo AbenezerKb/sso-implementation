@@ -63,5 +63,5 @@ mini_ride:
   password: fbL50Wgr1E7o3vvmR
 
 assets:
-  profile_picture_dist: ../../../../static/profile_picture/
+  profile_picture_dist: static/profile_picture
   profile_picture_max_size: 2000001

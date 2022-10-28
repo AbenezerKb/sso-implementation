@@ -21,16 +21,11 @@ import (
 )
 
 type Options struct {
-	PublicAddress         string
 	ProfilePictureDist    string
 	ProfilePictureMaxSize int
 }
 
 func SetOptions(options Options) Options {
-	if options.PublicAddress == "" {
-		options.PublicAddress = "http://127.0.0.1:8000/assets/"
-	}
-
 	if options.ProfilePictureDist == "" {
 		options.ProfilePictureDist = "../../../../static/profile_picture/"
 	}
@@ -165,7 +160,7 @@ func (p *profileModule) UpdateProfilePicture(ctx context.Context, imageFile *mul
 		p.logger.Error(context.Background(), "error unable to save profile picture to disck", zap.Error(err), zap.Any("image", imageFile))
 	}
 
-	err = p.profilePersistence.UpdateProfilePicture(ctx, p.options.PublicAddress+"/"+finalImageName, userID)
+	err = p.profilePersistence.UpdateProfilePicture(ctx, finalImageName, userID)
 	if err != nil {
 		return err
 	}
