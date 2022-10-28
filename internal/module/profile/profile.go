@@ -20,23 +20,38 @@ import (
 	"go.uber.org/zap"
 )
 
-type profileModule struct {
-	logger                logger.Logger
-	oauthPersistence      storage.OAuthPersistence
-	profilePersistence    storage.ProfilePersistence
-	profilePictureDist    string
-	profilePictureMaxSize int
-	otpCache              storage.OTPCache
+type Options struct {
+	ProfilePictureDist    string
+	ProfilePictureMaxSize int
 }
 
-func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, otpCache storage.OTPCache, profilePictureDist string, profilePictureMaxSize int) module.ProfileModule {
+func SetOptions(options Options) Options {
+	if options.ProfilePictureDist == "" {
+		options.ProfilePictureDist = "../../../../static/profile_picture/"
+	}
+
+	if options.ProfilePictureMaxSize == 0 {
+		options.ProfilePictureMaxSize = 2000001
+	}
+
+	return options
+}
+
+type profileModule struct {
+	logger             logger.Logger
+	oauthPersistence   storage.OAuthPersistence
+	profilePersistence storage.ProfilePersistence
+	otpCache           storage.OTPCache
+	options            Options
+}
+
+func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, otpCache storage.OTPCache, options Options) module.ProfileModule {
 	return &profileModule{
-		logger:                logger,
-		oauthPersistence:      oauthPersistence,
-		profilePersistence:    profilePersistence,
-		profilePictureDist:    profilePictureDist,
-		profilePictureMaxSize: profilePictureMaxSize,
-		otpCache:              otpCache,
+		logger:             logger,
+		oauthPersistence:   oauthPersistence,
+		profilePersistence: profilePersistence,
+		otpCache:           otpCache,
+		options:            options,
 	}
 }
 
@@ -130,7 +145,7 @@ func (p *profileModule) UpdateProfilePicture(ctx context.Context, imageFile *mul
 		return err
 	}
 
-	if imageFile.Size > int64(p.profilePictureMaxSize) {
+	if imageFile.Size > int64(p.options.ProfilePictureMaxSize) {
 		err = errors.ErrInvalidUserInput.New("image size must be less than 2MB")
 		p.logger.Info(ctx, "image size too big", zap.Error(err), zap.String("image", imageFile.Filename), zap.Any("size", imageFile.Size), zap.Any("user-id", id))
 		return err
@@ -139,7 +154,7 @@ func (p *profileModule) UpdateProfilePicture(ctx context.Context, imageFile *mul
 	// final image name
 	finalImageName := fmt.Sprint(time.Now().UnixMilli()) + "_" + id + "_" + imageFile.Filename
 
-	err = utils.SaveMultiPartFile(imageFile, p.profilePictureDist+finalImageName)
+	err = utils.SaveMultiPartFile(imageFile, p.options.ProfilePictureDist+"/"+finalImageName)
 	if err != nil {
 		err = errors.ErrInternalServerError.Wrap(err, "couldn't save profile picture")
 		p.logger.Error(context.Background(), "error unable to save profile picture to disck", zap.Error(err), zap.Any("image", imageFile))
