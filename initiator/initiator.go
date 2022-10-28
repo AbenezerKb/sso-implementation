@@ -110,9 +110,6 @@ func Initiate() {
 	InitMetricsRoute(server, log)
 	log.Info(context.Background(), "metrics route initialized")
 
-	log.Info(context.Background(), "serving static files")
-	server.Static("/static", viper.GetString("assets.profile_picture_dst"))
-
 	log.Info(context.Background(), "initializing router")
 	v1 := server.Group("/v1")
 	InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
