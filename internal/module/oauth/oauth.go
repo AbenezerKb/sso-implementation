@@ -425,3 +425,7 @@ func (o *oauth) LoginWithIdentityProvider(ctx context.Context, login request_mod
 	}
 	return accessTokenResponse, nil
 }
+
+func (o *oauth) GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error) {
+	return o.oauthPersistence.GetAllIdentityProviders(ctx)
+}
