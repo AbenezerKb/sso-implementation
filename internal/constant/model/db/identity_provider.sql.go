@@ -86,6 +86,43 @@ func (q *Queries) DeleteIdentityProvider(ctx context.Context, id uuid.UUID) (Ide
 	return i, err
 }
 
+const getAllIdentityProviders = `-- name: GetAllIdentityProviders :many
+SELECT id, name, logo_url, client_id, client_secret, redirect_uri, authorization_uri, token_endpoint_url, user_info_endpoint_url, status, created_at, updated_at FROM identity_providers
+`
+
+func (q *Queries) GetAllIdentityProviders(ctx context.Context) ([]IdentityProvider, error) {
+	rows, err := q.db.Query(ctx, getAllIdentityProviders)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []IdentityProvider
+	for rows.Next() {
+		var i IdentityProvider
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.LogoUrl,
+			&i.ClientID,
+			&i.ClientSecret,
+			&i.RedirectUri,
+			&i.AuthorizationUri,
+			&i.TokenEndpointUrl,
+			&i.UserInfoEndpointUrl,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getIdentityProvider = `-- name: GetIdentityProvider :one
 SELECT id, name, logo_url, client_id, client_secret, redirect_uri, authorization_uri, token_endpoint_url, user_info_endpoint_url, status, created_at, updated_at
 FROM identity_providers

@@ -28,3 +28,6 @@ SET
     user_info_endpoint_url = $9
 WHERE id = $1
 RETURNING *;
+
+-- name: GetAllIdentityProviders :many
+SELECT * FROM identity_providers;
