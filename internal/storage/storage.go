@@ -24,6 +24,7 @@ type OAuthPersistence interface {
 	UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error)
 	GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]dto.InternalRefreshToken, error)
 	GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error)
+	GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error)
 }
 
 type OTPCache interface {

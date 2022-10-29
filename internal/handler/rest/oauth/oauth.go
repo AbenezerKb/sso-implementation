@@ -214,3 +214,23 @@ func (o *oauth) LoginWithIP(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
 }
+
+// GetIdentityProviders fetches all identity provider that user can login.
+// @Summary      get all identity providers.
+// @Description  get all identity providers.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  []dto.IdentityProvider
+// @Failure 	400 {object} model.ErrorResponse
+// @Router 		/registeredIdentityProviders [get]
+func (o *oauth) GetIdentityProviders(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+	idPs, err := o.oauthModule.GetAllIdentityProviders(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, idPs, nil)
+}

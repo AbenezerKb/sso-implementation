@@ -22,6 +22,7 @@ type OAuthModule interface {
 	Logout(ctx context.Context, param dto.InternalRefreshTokenRequestBody) error
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenResponse, error)
 	LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP, userDeviceAddress dto.UserDeviceAddress) (dto.TokenResponse, error)
+	GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error)
 }
 
 type OAuth2Module interface {

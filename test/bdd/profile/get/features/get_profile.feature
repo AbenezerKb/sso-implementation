@@ -6,7 +6,7 @@ Feature: Get Profile
 
     Scenario: Successful Get Profile
         Given I am logged in user with the following details
-            | first_name | middle_name | last_name | phone        | email            | password | gender |
-            | nati       | nati        | nati      | 251923456789 | normal@gmail.com | 123456   | male   |
+            | first_name | middle_name | last_name | phone        | email            | password | gender | role      |
+            | nati       | nati        | nati      | 251923456789 | normal@gmail.com | 123456   | male   | not-admin |
         When I request to get my profile
         Then I should successfully get my profile

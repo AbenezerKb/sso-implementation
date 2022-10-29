@@ -13,21 +13,21 @@ import (
 func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middleware.AuthMiddleware, enforcer *casbin.Enforcer) {
 	oauthRoutes := []routing.Router{
 		{
-			Method:      "POST",
+			Method:      http.MethodPost,
 			Path:        "/register",
 			Handler:     handler.Register,
 			Middlewares: []gin.HandlerFunc{},
 			UnAuthorize: true,
 		},
 		{
-			Method:      "POST",
+			Method:      http.MethodPost,
 			Path:        "/login",
 			Handler:     handler.Login,
 			Middlewares: []gin.HandlerFunc{},
 			UnAuthorize: true,
 		},
 		{
-			Method:      "GET",
+			Method:      http.MethodGet,
 			Path:        "/otp",
 			Handler:     handler.RequestOTP,
 			Middlewares: []gin.HandlerFunc{},
@@ -49,9 +49,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.OAuth, authMiddleware middl
 			UnAuthorize: true,
 		},
 		{
-			Method:      "POST",
+			Method:      http.MethodPost,
 			Path:        "/loginWithIP",
 			Handler:     handler.LoginWithIP,
+			UnAuthorize: true,
+		},
+		{
+			Method:      http.MethodGet,
+			Path:        "/registeredIdentityProviders",
+			Handler:     handler.GetIdentityProviders,
 			UnAuthorize: true,
 		},
 	}

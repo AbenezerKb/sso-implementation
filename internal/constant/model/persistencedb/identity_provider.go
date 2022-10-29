@@ -18,16 +18,16 @@ func (q *PersistenceDB) GetAllIdentityProviders(ctx context.Context, pgnFlt stri
 	for rows.Next() {
 		var i db.IdentityProvider
 		if err := rows.Scan(&i.ID, &i.Name,
-			&i.AuthorizationUri,
-			&i.RedirectUri,
+			&i.LogoUrl,
 			&i.ClientID,
 			&i.ClientSecret,
+			&i.RedirectUri,
+			&i.AuthorizationUri,
 			&i.TokenEndpointUrl,
 			&i.UserInfoEndpointUrl,
-			&i.LogoUrl,
 			&i.Status,
-			&i.UpdatedAt,
 			&i.CreatedAt,
+			&i.UpdatedAt,
 			&totalCount); err != nil {
 			return nil, 0, err
 		}

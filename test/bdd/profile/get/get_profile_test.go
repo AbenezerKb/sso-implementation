@@ -2,6 +2,7 @@ package get
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
@@ -14,8 +15,9 @@ import (
 
 type getProfileTest struct {
 	test.TestInstance
-	apiTest src.ApiTest
-	user    db.User
+	apiTest  src.ApiTest
+	user     db.User
+	userRole string
 }
 
 func TestGetProfile(t *testing.T) {
@@ -29,7 +31,6 @@ func (g *getProfileTest) iAmLoggedInUserWithTheFollowingDetails(userCredentials 
 	if err != nil {
 		return err
 	}
-
 	userValue := dto.User{}
 	err = g.apiTest.UnmarshalJSON([]byte(body), &userValue)
 	if err != nil {
@@ -41,6 +42,10 @@ func (g *getProfileTest) iAmLoggedInUserWithTheFollowingDetails(userCredentials 
 		return err
 	}
 	g.apiTest.SetHeader("Authorization", "Bearer "+g.AccessToken)
+	g.Conn.Query(context.Background(), fmt.Sprintf("insert into casbin_rule (p_type, v0, v1) values('g','%s', '%s');", g.user.ID, userValue.Role))
+
+	g.userRole = userValue.Role
+
 	return nil
 }
 
@@ -83,6 +88,10 @@ func (g *getProfileTest) iShouldSuccessfullyGetMyProfile() error {
 	}
 
 	if err := g.apiTest.AssertEqual(fetchedUser.Gender, g.user.Gender); err != nil {
+		return err
+	}
+
+	if err := g.apiTest.AssertEqual(fetchedUser.Role, g.userRole); err != nil {
 		return err
 	}
 
