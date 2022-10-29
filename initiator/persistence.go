@@ -32,7 +32,7 @@ type Persistence struct {
 
 func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persistence {
 	return Persistence{
-		OAuthPersistence:            oauth.InitOAuth(log.Named("oauth-persistence"), db.Queries),
+		OAuthPersistence:            oauth.InitOAuth(log.Named("oauth-persistence"), &db),
 		ClientPersistence:           client.InitClient(log.Named("client-persistence"), db.Queries),
 		OAuth2Persistence:           oauth2.InitOAuth2(log.Named("oauth2-persistence"), db.Queries),
 		ScopePersistence:            scope.InitScopePersistence(log.Named("scope-persistence"), db.Queries),

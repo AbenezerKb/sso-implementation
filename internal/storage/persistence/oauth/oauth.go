@@ -6,6 +6,7 @@ import (
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
+	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
@@ -16,10 +17,10 @@ import (
 
 type oauth struct {
 	logger logger.Logger
-	db     *db.Queries
+	db     *persistencedb.PersistenceDB
 }
 
-func InitOAuth(logger logger.Logger, db *db.Queries) storage.OAuthPersistence {
+func InitOAuth(logger logger.Logger, db *persistencedb.PersistenceDB) storage.OAuthPersistence {
 	return &oauth{
 		logger,
 		db,
@@ -327,4 +328,30 @@ func (o *oauth) GetUserPassword(ctx context.Context, Id uuid.UUID) (string, erro
 	}
 
 	return user.Password, nil
+}
+
+func (o *oauth) GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error) {
+	idPs, err := o.db.Queries.GetAllIdentityProviders(ctx)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return []dto.IdentityProvider{}, nil
+		} else {
+			err = errors.ErrReadError.Wrap(err, "error reading identity providers")
+			o.logger.Error(ctx, "error reading identity providers", zap.Error(err))
+			return nil, err
+		}
+	}
+	idpPsDTO := make([]dto.IdentityProvider, len(idPs))
+	for k, v := range idPs {
+		idpPsDTO[k] = dto.IdentityProvider{
+			ID:               v.ID,
+			Name:             v.Name,
+			Status:           v.Status.String,
+			LogoURI:          v.LogoUrl.String,
+			ClientID:         v.ClientID,
+			AuthorizationURI: v.AuthorizationUri,
+			CreatedAt:        v.CreatedAt,
+		}
+	}
+	return idpPsDTO, nil
 }
