@@ -197,3 +197,15 @@ func (p *profile) GetAllCurrentSessions(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, sessions, nil)
 }
+
+func (p *profile) GetUserPermissions(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+
+	permissions, err := p.profileModule.GetUserPermissions(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, permissions, nil)
+}
