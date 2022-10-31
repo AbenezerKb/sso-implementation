@@ -101,6 +101,7 @@ type ProfilePersistence interface {
 	UpdateProfilePicture(ctx context.Context, finalImageName string, userID uuid.UUID) error
 	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam, userID uuid.UUID) error
 	ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam, userID uuid.UUID) error
+	GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error)
 }
 
 type ResourceServerPersistence interface {
