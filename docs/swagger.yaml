@@ -1739,6 +1739,29 @@ paths:
       summary: change's user password..
       tags:
       - profile
+  /profile/permissions:
+    get:
+      consumes:
+      - application/json
+      description: gets all permissions given to this user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              type: string
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: gets all given permissions of this user.
+      tags:
+      - profile
   /profile/phone:
     patch:
       consumes:
