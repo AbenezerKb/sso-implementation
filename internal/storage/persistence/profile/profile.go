@@ -129,3 +129,29 @@ func (p *profilePersistence) ChangePassword(ctx context.Context, changePasswordP
 
 	return nil
 }
+
+func (p *profilePersistence) GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	// get role name of user
+	roleName, err := p.db.GetRoleForUser(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			return nil, nil
+		}
+		err := errors.ErrReadError.Wrap(err, "unable to fetch role for user")
+		p.logger.Error(ctx, "error while fetching role name for user", zap.Error(err), zap.Any("user-id", userID))
+		return nil, err
+	}
+	// get permissions of role
+	role, err := p.db.GetRoleByNameWithPermissions(ctx, roleName)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			p.logger.Warn(ctx, "there was found a role with no permissions", zap.String("role-name", roleName))
+			return nil, nil
+		}
+		err := errors.ErrReadError.Wrap(err, "unable to fetch role for user")
+		p.logger.Error(ctx, "error while fetching role for user", zap.Error(err), zap.Any("user-id", userID), zap.String("role-name", roleName))
+		return nil, err
+	}
+
+	return role.Permissions, nil
+}

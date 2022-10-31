@@ -70,6 +70,7 @@ type ProfileModule interface {
 	ChangePhone(ctx context.Context, changePhoneParam dto.ChangePhoneParam) error
 	ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam) error
 	GetAllCurrentSessions(ctx context.Context) ([]dto.InternalRefreshToken, error)
+	GetUserPermissions(ctx context.Context) ([]string, error)
 }
 
 type ResourceServerModule interface {

@@ -272,3 +272,20 @@ func (p *profileModule) GetAllCurrentSessions(ctx context.Context) ([]dto.Intern
 
 	return p.oauthPersistence.GetInternalRefreshTokensByUserID(ctx, userID)
 }
+func (p *profileModule) GetUserPermissions(ctx context.Context) ([]string, error) {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		p.logger.Warn(ctx, "invalid user id on request context", zap.Error(err), zap.Any("user_id", id))
+		return nil, err
+	}
+
+	userID, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		p.logger.Warn(ctx, "error parsing user id on request context", zap.Error(err), zap.String("user id", id))
+		return nil, err
+	}
+
+	return p.profilePersistence.GetUserPermissions(ctx, userID)
+}

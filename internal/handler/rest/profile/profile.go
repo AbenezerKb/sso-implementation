@@ -197,3 +197,25 @@ func (p *profile) GetAllCurrentSessions(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, sessions, nil)
 }
+
+// GetUserPermissions	 gets all permissions of this user.
+// @Summary     gets all given permissions of this user.
+// @Description  gets all permissions given to this user
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  []string
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile/permissions [get]
+// @Security	BearerAuth
+func (p *profile) GetUserPermissions(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+
+	permissions, err := p.profileModule.GetUserPermissions(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, permissions, nil)
+}
