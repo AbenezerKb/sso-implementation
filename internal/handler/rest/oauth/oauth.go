@@ -85,8 +85,8 @@ func (o *oauth) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
-	ctx.SetCookie("ab_fen", loginRsp.RefreshToken, 12000, "/", "", false, true)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
+	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken)
 	o.logger.Info(ctx, "user logged in")
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
@@ -146,7 +146,7 @@ func (o *oauth) Logout(ctx *gin.Context) {
 	}
 
 	// change opbs
-	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
@@ -172,7 +172,7 @@ func (o *oauth) RefreshToken(ctx *gin.Context) {
 	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		_ = ctx.Error(err)
-		ctx.SetCookie("ab_fen", "", -1, "/", "", false, true)
+		utils.RemoveRefreshTokenCookie(ctx)
 		return
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
@@ -208,8 +208,8 @@ func (o *oauth) LoginWithIP(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
-	ctx.SetCookie("ab_fen", loginRsp.RefreshToken, 12000, "/", "", false, true)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
+	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken)
 	o.logger.Info(ctx, "user logged in")
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
