@@ -5,6 +5,7 @@ import (
 	"crypto"
 	"crypto/rand"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"mime/multipart"
 	"net/url"
@@ -104,4 +105,16 @@ func SaveMultiPartFile(file *multipart.FileHeader, dst string) error {
 	_, err = io.Copy(out, src)
 
 	return err
+}
+
+func SetRefreshTokenCookie(ctx *gin.Context, value string) {
+	ctx.SetCookie("ab_fen", value, 365*24*60*60, "/", "", false, true)
+}
+
+func RemoveRefreshTokenCookie(ctx *gin.Context) {
+	ctx.SetCookie("ab_fen", "", -1, "/", "", false, true)
+}
+
+func SetOPBSCookie(ctx *gin.Context, value string) {
+	ctx.SetCookie("opbs", value, 365*24*60*60, "/", "", true, false)
 }

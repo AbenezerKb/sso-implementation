@@ -290,7 +290,7 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 		return
 	}
 
-	ctx.SetCookie("opbs", utils.GenerateNewOPBS(), 3600, "/", "", true, false)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
 	ctx.Redirect(
 		http.StatusFound,
 		o.oauth2Module.Logout(requestCtx, logoutReqParam, nil))
