@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"mime/multipart"
+	"net/http"
 	"net/url"
 	"os"
 	"sso/platform/logger"
@@ -108,13 +109,40 @@ func SaveMultiPartFile(file *multipart.FileHeader, dst string) error {
 }
 
 func SetRefreshTokenCookie(ctx *gin.Context, value string) {
-	ctx.SetCookie("ab_fen", value, 365*24*60*60, "/", "", false, true)
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "ab_fen",
+		Value:    value,
+		Path:     "/",
+		Domain:   "",
+		MaxAge:   365 * 24 * 60 * 60,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	})
 }
 
 func RemoveRefreshTokenCookie(ctx *gin.Context) {
-	ctx.SetCookie("ab_fen", "", -1, "/", "", false, true)
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "ab_fen",
+		Value:    "",
+		Path:     "/",
+		Domain:   "",
+		MaxAge:   -1,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+	})
 }
 
 func SetOPBSCookie(ctx *gin.Context, value string) {
-	ctx.SetCookie("opbs", value, 365*24*60*60, "/", "", true, false)
+	http.SetCookie(ctx.Writer, &http.Cookie{
+		Name:     "opbs",
+		Value:    value,
+		Path:     "/",
+		Domain:   "",
+		MaxAge:   365 * 24 * 60 * 60,
+		Secure:   true,
+		HttpOnly: false,
+		SameSite: http.SameSiteNoneMode,
+	})
 }
