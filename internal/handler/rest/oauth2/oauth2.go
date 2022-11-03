@@ -91,15 +91,16 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 	}
 
 	requestOrigin := strings.TrimSuffix(ctx.Request.Header.Get("Referer"), "/")
-	if requestOrigin == "" {
-		err := errors.ErrInvalidUserInput.New("invalid request origin")
-		o.logger.Warn(ctx, "a request without a request origin header was made", zap.Error(err))
-
-		ctx.Redirect(
-			http.StatusFound,
-			o.oauth2Module.Authorize(requestCtx, authRequestParam, requestOrigin, err))
-		return
-	}
+	// FIXME: a better solution?
+	//if requestOrigin == "" {
+	//	err := errors.ErrInvalidUserInput.New("invalid request origin")
+	//	o.logger.Warn(ctx, "a request without a request origin header was made", zap.Error(err))
+	//
+	//	ctx.Redirect(
+	//		http.StatusFound,
+	//		o.oauth2Module.Authorize(requestCtx, authRequestParam, requestOrigin, err))
+	//	return
+	//}
 
 	ctx.Redirect(
 		http.StatusFound,
