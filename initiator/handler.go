@@ -1,6 +1,7 @@
 package initiator
 
 import (
+	"github.com/spf13/viper"
 	"sso/internal/handler/rest"
 	"sso/internal/handler/rest/client"
 	"sso/internal/handler/rest/identity-provider"
@@ -13,6 +14,7 @@ import (
 	"sso/internal/handler/rest/scope"
 	"sso/internal/handler/rest/user"
 	"sso/platform/logger"
+	"sso/platform/utils"
 )
 
 type Handler struct {
@@ -30,10 +32,42 @@ type Handler struct {
 
 func InitHandler(module Module, log logger.Logger) Handler {
 	return Handler{
-		oauth:            oauth.InitOAuth(log.Named("oauth-handler"), module.OAuthModule),
-		user:             user.Init(log.Named("user-handler"), module.userModule),
-		client:           client.Init(log.Named("client-handler"), module.clientModule),
-		oauth2:           oauth2.InitOAuth2(log.Named("oauth2-handler"), module.OAuth2Module),
+		oauth: oauth.InitOAuth(
+			log.Named("oauth-handler"),
+			module.OAuthModule,
+			oauth.SetOptions(oauth.Options{
+				RefreshTokenCookie: utils.CookieOptions{
+					Path:     viper.GetString("server.cookies.refresh_token.path"),
+					Domain:   viper.GetString("server.cookies.refresh_token.domain"),
+					MaxAge:   viper.GetInt("server.cookies.refresh_token.max_age"),
+					Secure:   viper.GetBool("server.cookies.refresh_token.secure"),
+					HttpOnly: viper.GetBool("server.cookies.refresh_token.http_only"),
+					SameSite: viper.GetInt("server.cookies.refresh_token.same_site"),
+				},
+				OPBSCookie: utils.CookieOptions{
+					Path:     viper.GetString("server.cookies.opbs.path"),
+					Domain:   viper.GetString("server.cookies.opbs.domain"),
+					MaxAge:   viper.GetInt("server.cookies.opbs.max_age"),
+					Secure:   viper.GetBool("server.cookies.opbs.secure"),
+					HttpOnly: viper.GetBool("server.cookies.opbs.http_only"),
+					SameSite: viper.GetInt("server.cookies.opbs.same_site"),
+				},
+			})),
+		user:   user.Init(log.Named("user-handler"), module.userModule),
+		client: client.Init(log.Named("client-handler"), module.clientModule),
+		oauth2: oauth2.InitOAuth2(
+			log.Named("oauth2-handler"),
+			module.OAuth2Module,
+			oauth2.SetOptions(oauth2.Options{
+				OPBSCookie: utils.CookieOptions{
+					Path:     viper.GetString("server.cookies.opbs.path"),
+					Domain:   viper.GetString("server.cookies.opbs.domain"),
+					MaxAge:   viper.GetInt("server.cookies.opbs.max_age"),
+					Secure:   viper.GetBool("server.cookies.opbs.secure"),
+					HttpOnly: viper.GetBool("server.cookies.opbs.http_only"),
+					SameSite: viper.GetInt("server.cookies.opbs.same_site"),
+				},
+			})),
 		scope:            scope.InitScope(log.Named("scope-handler"), module.scopeModule),
 		profile:          profile.Init(log.Named("profile-handler"), module.profile),
 		miniRide:         mini_ride.Init(log.Named("minRide-handler"), module.MiniRideModule),

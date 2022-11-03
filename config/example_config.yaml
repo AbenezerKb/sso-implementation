@@ -27,6 +27,21 @@ server:
   oauth2:
     error_uri: http://front-end/oauth2/error
     consent_uri: http://front-end/oauth2/consent
+  cookies:
+    refresh_token:
+      path:    "/"
+      domain:   ""
+      max_age:   31536000
+      secure:   true
+      http_only: true
+      same_site: 3
+    opbs:
+      path:    "/"
+      domain:   ""
+      max_age:   31536000
+      secure:   true
+      http_only: false
+      same_site: 4
 frontend:
   error_url: https://www.google.com/
   consent_url: https://www.google.com/
