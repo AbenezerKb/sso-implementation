@@ -18,12 +18,42 @@ import (
 type oauth struct {
 	logger      logger.Logger
 	oauthModule module.OAuthModule
+	options     Options
 }
 
-func InitOAuth(logger logger.Logger, oauthModule module.OAuthModule) rest.OAuth {
+type Options struct {
+	RefreshTokenCookie utils.CookieOptions
+	OPBSCookie         utils.CookieOptions
+}
+
+func SetOptions(options Options) Options {
+	if options.OPBSCookie.Path == "" {
+		options.OPBSCookie.Path = "/"
+	}
+	if options.OPBSCookie.MaxAge == 0 {
+		options.OPBSCookie.MaxAge = 365 * 24 * 60 * 60
+	}
+	if options.OPBSCookie.SameSite < 1 || options.OPBSCookie.SameSite > 4 {
+		options.OPBSCookie.SameSite = 4
+	}
+
+	if options.RefreshTokenCookie.Path == "" {
+		options.RefreshTokenCookie.Path = "/"
+	}
+	if options.RefreshTokenCookie.MaxAge == 0 {
+		options.RefreshTokenCookie.MaxAge = 365 * 24 * 60 * 60
+	}
+	if options.RefreshTokenCookie.SameSite < 1 || options.RefreshTokenCookie.SameSite > 4 {
+		options.RefreshTokenCookie.SameSite = 3
+	}
+
+	return options
+}
+func InitOAuth(logger logger.Logger, oauthModule module.OAuthModule, options Options) rest.OAuth {
 	return &oauth{
-		logger,
-		oauthModule,
+		logger:      logger,
+		oauthModule: oauthModule,
+		options:     options,
 	}
 }
 
@@ -85,8 +115,8 @@ func (o *oauth) Login(ctx *gin.Context) {
 		return
 	}
 
-	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
-	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS(), o.options.OPBSCookie)
+	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken, o.options.RefreshTokenCookie)
 	o.logger.Info(ctx, "user logged in")
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)
@@ -146,7 +176,7 @@ func (o *oauth) Logout(ctx *gin.Context) {
 	}
 
 	// change opbs
-	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS(), o.options.OPBSCookie)
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
@@ -172,7 +202,7 @@ func (o *oauth) RefreshToken(ctx *gin.Context) {
 	resp, err := o.oauthModule.RefreshToken(ctx.Request.Context(), refreshToken)
 	if err != nil {
 		_ = ctx.Error(err)
-		utils.RemoveRefreshTokenCookie(ctx)
+		utils.RemoveRefreshTokenCookie(ctx, o.options.RefreshTokenCookie)
 		return
 	}
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
@@ -208,8 +238,8 @@ func (o *oauth) LoginWithIP(ctx *gin.Context) {
 		return
 	}
 
-	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
-	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken)
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS(), o.options.OPBSCookie)
+	utils.SetRefreshTokenCookie(ctx, loginRsp.RefreshToken, o.options.RefreshTokenCookie)
 	o.logger.Info(ctx, "user logged in")
 
 	constant.SuccessResponse(ctx, http.StatusOK, loginRsp, nil)

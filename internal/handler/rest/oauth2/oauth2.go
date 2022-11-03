@@ -19,12 +19,32 @@ import (
 type oauth2 struct {
 	logger       logger.Logger
 	oauth2Module module.OAuth2Module
+	options      Options
 }
 
-func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module) rest.OAuth2 {
+type Options struct {
+	OPBSCookie utils.CookieOptions
+}
+
+func SetOptions(options Options) Options {
+	if options.OPBSCookie.Path == "" {
+		options.OPBSCookie.Path = "/"
+	}
+	if options.OPBSCookie.MaxAge == 0 {
+		options.OPBSCookie.MaxAge = 365 * 24 * 60 * 60
+	}
+	if options.OPBSCookie.SameSite < 1 || options.OPBSCookie.SameSite > 4 {
+		options.OPBSCookie.SameSite = 4
+	}
+
+	return options
+}
+
+func InitOAuth2(logger logger.Logger, oauth2Module module.OAuth2Module, options Options) rest.OAuth2 {
 	return &oauth2{
 		logger:       logger,
 		oauth2Module: oauth2Module,
+		options:      options,
 	}
 }
 
@@ -290,7 +310,7 @@ func (o *oauth2) Logout(ctx *gin.Context) {
 		return
 	}
 
-	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS())
+	utils.SetOPBSCookie(ctx, utils.GenerateNewOPBS(), o.options.OPBSCookie)
 	ctx.Redirect(
 		http.StatusFound,
 		o.oauth2Module.Logout(requestCtx, logoutReqParam, nil))

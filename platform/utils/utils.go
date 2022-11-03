@@ -22,6 +22,13 @@ import (
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0987654321"
 const specialBytes = `!@#$%^&*:.`
 
+type CookieOptions struct {
+	Path, Domain     string
+	MaxAge           int
+	Secure, HttpOnly bool
+	SameSite         int
+}
+
 func HashAndSalt(ctx context.Context, pwd []byte, logger logger.Logger) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword(pwd, 14)
 	if err != nil {
@@ -108,41 +115,41 @@ func SaveMultiPartFile(file *multipart.FileHeader, dst string) error {
 	return err
 }
 
-func SetRefreshTokenCookie(ctx *gin.Context, value string) {
+func SetRefreshTokenCookie(ctx *gin.Context, value string, options CookieOptions) {
 	http.SetCookie(ctx.Writer, &http.Cookie{
 		Name:     "ab_fen",
 		Value:    value,
-		Path:     "/",
-		Domain:   "",
-		MaxAge:   365 * 24 * 60 * 60,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
+		Path:     options.Path,
+		Domain:   options.Domain,
+		MaxAge:   options.MaxAge,
+		Secure:   options.Secure,
+		HttpOnly: options.HttpOnly,
+		SameSite: http.SameSite(options.SameSite),
 	})
 }
 
-func RemoveRefreshTokenCookie(ctx *gin.Context) {
+func RemoveRefreshTokenCookie(ctx *gin.Context, options CookieOptions) {
 	http.SetCookie(ctx.Writer, &http.Cookie{
 		Name:     "ab_fen",
 		Value:    "",
-		Path:     "/",
-		Domain:   "",
+		Path:     options.Path,
+		Domain:   options.Domain,
 		MaxAge:   -1,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteNoneMode,
+		Secure:   options.Secure,
+		HttpOnly: options.HttpOnly,
+		SameSite: http.SameSite(options.SameSite),
 	})
 }
 
-func SetOPBSCookie(ctx *gin.Context, value string) {
+func SetOPBSCookie(ctx *gin.Context, value string, options CookieOptions) {
 	http.SetCookie(ctx.Writer, &http.Cookie{
 		Name:     "opbs",
 		Value:    value,
-		Path:     "/",
-		Domain:   "",
-		MaxAge:   365 * 24 * 60 * 60,
-		Secure:   true,
-		HttpOnly: false,
-		SameSite: http.SameSiteNoneMode,
+		Path:     options.Path,
+		Domain:   options.Domain,
+		MaxAge:   options.MaxAge,
+		Secure:   options.Secure,
+		HttpOnly: options.HttpOnly,
+		SameSite: http.SameSite(options.SameSite),
 	})
 }
