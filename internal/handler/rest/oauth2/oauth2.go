@@ -10,6 +10,7 @@ import (
 	"sso/internal/module"
 	"sso/platform/logger"
 	"sso/platform/utils"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -89,7 +90,7 @@ func (o *oauth2) Authorize(ctx *gin.Context) {
 		return
 	}
 
-	requestOrigin := ctx.Request.Host
+	requestOrigin := strings.TrimSuffix(ctx.Request.Header.Get("Referer"), "/")
 	if requestOrigin == "" {
 		err := errors.ErrInvalidUserInput.New("invalid request origin")
 		o.logger.Warn(ctx, "a request without a request origin header was made", zap.Error(err))
