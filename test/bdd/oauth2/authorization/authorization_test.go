@@ -85,6 +85,7 @@ func (a *authorizationTest) iHaveTheFollowingParametersWithInvalidClient(params 
 }
 
 func (a *authorizationTest) iSendAPOSTRequest() error {
+	a.apiTest.SetHeader("Referer", "https://www.google.com")
 	a.apiTest.SendRequest()
 	return nil
 }
