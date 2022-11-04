@@ -126,6 +126,31 @@ func (q *Queries) SaveInternalRefreshToken(ctx context.Context, arg SaveInternal
 	return i, err
 }
 
+const updateInternalRefreshToken = `-- name: UpdateInternalRefreshToken :one
+UPDATE internalrefreshtokens SET refresh_token=$2, updated_at=now() WHERE refresh_token=$1 RETURNING id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
+`
+
+type UpdateInternalRefreshTokenParams struct {
+	RefreshToken   string `json:"refresh_token"`
+	RefreshToken_2 string `json:"refresh_token_2"`
+}
+
+func (q *Queries) UpdateInternalRefreshToken(ctx context.Context, arg UpdateInternalRefreshTokenParams) (Internalrefreshtoken, error) {
+	row := q.db.QueryRow(ctx, updateInternalRefreshToken, arg.RefreshToken, arg.RefreshToken_2)
+	var i Internalrefreshtoken
+	err := row.Scan(
+		&i.ID,
+		&i.RefreshToken,
+		&i.UserID,
+		&i.IpAddress,
+		&i.UserAgent,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateRefreshToken = `-- name: UpdateRefreshToken :one
 Update internalrefreshtokens set expires_at = $2, refresh_token= $3 WHERE id= $1 RETURNING id, refresh_token, user_id, ip_address, user_agent, expires_at, created_at, updated_at
 `

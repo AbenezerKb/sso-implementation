@@ -264,21 +264,24 @@ func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.Tok
 		return nil, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	user, err := o.oauthPersistence.GetUserByID(ctx, oldRefreshToken.UserID)
 	if err != nil {
 		return nil, err
 	}
+
 	idToken, err := o.token.GenerateIdToken(ctx, user, "sso", o.options.IDTokenExpireTime)
 	if err != nil {
 		return nil, err
 	}
+
+	newRefreshToken, err := o.oauthPersistence.UpdateInternalRefreshToken(ctx, oldRefreshToken.RefreshToken, o.token.GenerateRefreshToken(ctx))
+	if err != nil {
+		return nil, err
+	}
+
 	return &dto.TokenResponse{
 		AccessToken:  accessToken,
-		RefreshToken: oldRefreshToken.RefreshToken,
+		RefreshToken: newRefreshToken.RefreshToken,
 		TokenType:    constant.BearerToken,
 		IDToken:      idToken,
 		ExpiresIn:    fmt.Sprintf("%vs", o.options.AccessTokenExpireTime.Seconds()),

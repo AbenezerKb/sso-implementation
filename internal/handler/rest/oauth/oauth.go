@@ -205,6 +205,8 @@ func (o *oauth) RefreshToken(ctx *gin.Context) {
 		utils.RemoveRefreshTokenCookie(ctx, o.options.RefreshTokenCookie)
 		return
 	}
+
+	utils.SetRefreshTokenCookie(ctx, resp.RefreshToken, o.options.RefreshTokenCookie)
 	constant.SuccessResponse(ctx, http.StatusOK, resp, nil)
 }
 

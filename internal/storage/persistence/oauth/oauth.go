@@ -264,23 +264,25 @@ func (o *oauth) GetInternalRefreshToken(ctx context.Context, token string) (*dto
 	}, nil
 }
 
-func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error) {
-	refreshToken, err := o.db.UpdateRefreshToken(ctx, db.UpdateRefreshTokenParams{
-		ExpiresAt:    param.ExpiresAt,
-		RefreshToken: param.RefreshToken,
-		ID:           param.ID,
+func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, oldToken, newToken string) (*dto.InternalRefreshToken, error) {
+	refreshToken, err := o.db.UpdateInternalRefreshToken(ctx, db.UpdateInternalRefreshTokenParams{
+		RefreshToken:   oldToken,
+		RefreshToken_2: newToken,
 	})
 	if err != nil {
 		err := errors.ErrWriteError.Wrap(err, "unable to update the refresh token")
-		o.logger.Error(ctx, "error updating the user refresh ytoken", zap.Error(err), zap.String("internal-refresh-token", param.ID.String()))
+		o.logger.Error(ctx, "error updating the user refresh token", zap.Error(err), zap.String("old-token", oldToken), zap.String("new-token", newToken))
 		return nil, err
 	}
 	return &dto.InternalRefreshToken{
 		ID:           refreshToken.ID,
 		RefreshToken: refreshToken.RefreshToken,
-		ExpiresAt:    refreshToken.ExpiresAt,
 		UserID:       refreshToken.UserID,
+		ExpiresAt:    refreshToken.ExpiresAt,
+		UserAgent:    refreshToken.UserAgent,
+		IPAddress:    refreshToken.IpAddress,
 		CreatedAt:    refreshToken.CreatedAt,
+		UpdatedAt:    refreshToken.UpdatedAt,
 	}, nil
 }
 
@@ -307,6 +309,7 @@ func (o *oauth) GetInternalRefreshTokensByUserID(ctx context.Context, userID uui
 			IPAddress:    refreshTokens[i].IpAddress,
 			UserID:       refreshTokens[i].UserID,
 			CreatedAt:    refreshTokens[i].CreatedAt,
+			UpdatedAt:    refreshTokens[i].UpdatedAt,
 		}
 	}
 

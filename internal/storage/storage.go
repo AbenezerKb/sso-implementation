@@ -21,7 +21,7 @@ type OAuthPersistence interface {
 	RemoveInternalRefreshToken(ctx context.Context, refreshToken string) error
 	SaveInternalRefreshToken(ctx context.Context, rf dto.InternalRefreshToken) error
 	GetInternalRefreshToken(ctx context.Context, refreshtoken string) (*dto.InternalRefreshToken, error)
-	UpdateInternalRefreshToken(ctx context.Context, param dto.InternalRefreshToken) (*dto.InternalRefreshToken, error)
+	UpdateInternalRefreshToken(ctx context.Context, oldToken, newToken string) (*dto.InternalRefreshToken, error)
 	GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]dto.InternalRefreshToken, error)
 	GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error)
 	GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error)
