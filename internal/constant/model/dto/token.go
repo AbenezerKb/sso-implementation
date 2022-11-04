@@ -114,6 +114,8 @@ type InternalRefreshToken struct {
 	// CreatedAt is the time when the refresh token is created.
 	// It is automatically set when the refresh token is created.
 	CreatedAt time.Time `json:"created_at"`
+	// UpdatedAt is the time this refresh token was last updated at
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // InternalRefreshTokenRequest
