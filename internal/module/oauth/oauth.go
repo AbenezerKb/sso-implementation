@@ -274,7 +274,7 @@ func (o *oauth) RefreshToken(ctx context.Context, refreshToken string) (*dto.Tok
 		return nil, err
 	}
 
-	newRefreshToken, err := o.oauthPersistence.UpdateInternalRefreshToken(ctx, oldRefreshToken.RefreshToken, o.token.GenerateRefreshToken(ctx))
+	newRefreshToken, err := o.oauthPersistence.UpdateInternalRefreshToken(ctx, oldRefreshToken.RefreshToken, oldRefreshToken.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
