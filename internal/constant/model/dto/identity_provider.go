@@ -43,7 +43,7 @@ func (i IdentityProvider) Validate() error {
 		validation.Field(&i.LogoURI, is.URL.Error("invalid logo_uri"), validation.By(ValidateLogo)),
 		validation.Field(&i.ClientID, validation.Required.Error("client_id is required")),
 		validation.Field(&i.ClientSecret, validation.Required.Error("client_secret is required")),
-		validation.Field(&i.RedirectURI, validation.Required.Error("redirect_uri is required"), is.URL.Error("invalid redirect_uri")),
+		validation.Field(&i.RedirectURI, validation.Required.Error("redirect_uri is required")),
 		validation.Field(&i.AuthorizationURI, validation.Required.Error("authorization_uri is required"), is.URL.Error("invalid authorization_uri")),
 		validation.Field(&i.TokenEndpointURI, validation.Required.Error("token_endpoint_uri is required"), is.URL.Error("invalid token_endpoint_uri")),
 		validation.Field(&i.UserInfoEndpointURI, is.URL.Error("invalid user_info_endpoint_uri")),

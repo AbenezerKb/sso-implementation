@@ -35,8 +35,6 @@ Feature: obtaining authorization
             | response_type      | client_id                            | redirect_uri              | scope    | state | prompt       | error                | error_description         |
             | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 |                           | openid   | 1234  | none         | invalid_request      | redirect_uri is required. |
             | authorization_code | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | openid   | 1234  | consent      | invalid_request      | must be a valid value.    |
-            | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | closedid | 1234  | none         | invalid_request      | must be a valid value.    |
-            | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | localhostts:9000/callback | openid   | 1234  | none         | invalid_redirect_uri | invalid redirect uri      |
             | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | openid   | 1234  |              | invalid_request      | prompt is required        |
             | code               | ca6fed0e-6120-4c9c-be6f-b6dfdf0b3c58 | https://www.google.com/   | openid   | 1234  | none_consent | invalid_request      | invalid prompt value      |
 

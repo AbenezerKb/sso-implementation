@@ -35,7 +35,6 @@ Feature: Create Identity Provider
       | ip_1 | https://www.google.com/images/errors/robot.png |           | secret_1      | https://redirect.com | http://authorize.com | http://token.com   | http.userinfo.com      | client_id is required          |
       | ip_1 | https://www.google.com/images/errors/robot.png | client_1  |               | https://redirect.com | http://authorize.com | http://token.com   | http.userinfo.com      | client_secret is required      |
       | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      |                      | http://authorize.com | http://token.com   | http.userinfo.com      | redirect_uri is required       |
-      | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      | not-valid-uri        | http://authorize.com | http://token.com   | http.userinfo.com      | invalid redirect_uri           |
       | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      | https://redirect.com |                      | http://token.com   | http.userinfo.com      | authorization_uri is required     |
       | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      | https://redirect.com | not-valid-uri        | http://token.com   | http.userinfo.com      | invalid authorization_uri      |
       | ip_1 | https://www.google.com/images/errors/robot.png | client_1  | secret_1      | https://redirect.com | http://authorize.com |                    | http.userinfo.com      | token_endpoint_uri is required |
