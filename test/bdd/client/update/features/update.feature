@@ -40,4 +40,3 @@ Feature: Update Client
             | clientOne |              | https://google.com      | profile email | https://www.google.com/images/errors/robot.png | client_type is required                           |
             | newClient | my_type      | https://google.com      | profile email | https://www.google.com/images/errors/robot.png | client type must be either confidential or public |
             | newClient | confidential | https://google.com      | profile email | my-logo-url                                    | invalid logo_url                                  |
-            | newClient | confidential | https://google.com      | profile email | http://hello-there.com/logo.png                | logo not found                                    |
