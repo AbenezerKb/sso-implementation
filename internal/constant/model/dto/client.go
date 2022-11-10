@@ -44,13 +44,14 @@ func (c Client) ValidateClient() error {
 	return validation.ValidateStruct(&c,
 		validation.Field(&c.Name, validation.Required.Error("name is required"), validation.Length(3, 32).Error("name must be between 3 and 32 characters")),
 		validation.Field(&c.ClientType, validation.Required.Error("client_type is required"), validation.In("confidential", "public").Error("client type must be either confidential or public")),
-		validation.Field(&c.RedirectURIs, validation.Required.Error("redirect_uris is required"), validation.By(ValidateURI)),
+		validation.Field(&c.RedirectURIs, validation.Required.Error("redirect_uris is required")),
 		validation.Field(&c.Scopes, validation.Required.Error("scopes is required")),
-		validation.Field(&c.LogoURL, validation.Required.Error("logo_url is required"), is.URL.Error("invalid logo_url"), validation.By(ValidateLogo)),
+		validation.Field(&c.LogoURL, validation.Required.Error("logo_url is required"), is.URL.Error("invalid logo_url")),
 	)
 
 }
 
+// ValidateURI :- is not currently recommended
 func ValidateURI(uris interface{}) error {
 	urisArray, ok := uris.([]string)
 	if !ok {
