@@ -28,8 +28,6 @@ Feature: Client Registration
       | newClient | confidential | https://google.com      |               | https://www.google.com/images/errors/robot.png | scopes is required                                |
       | newClient | confidential | https://google.com      | profile email |                                                | logo_url is required                              |
       | newClient | my_type      | https://google.com      | profile email | https://www.google.com/images/errors/robot.png | client type must be either confidential or public |
-      | newClient | confidential | my_url                  | profile email | https://www.google.com/images/errors/robot.png | invalid redirect_uris                             |
 #      | newClient | confidential | https://google.com      | not a scope   | https://www.google.com/images/errors/robot.png | invalid scopes                                    |
       | newClient | confidential | https://google.com      | profile email | my-logo-url                                    | invalid logo_url                                  |
-      | newClient | confidential | https://hello-there.com | profile email | https://www.google.com/images/errors/robot.png | redirect_uris not found                           |
       | newClient | confidential | https://google.com      | profile email | http://hello-there.com/logo.png                | logo not found                                    |
