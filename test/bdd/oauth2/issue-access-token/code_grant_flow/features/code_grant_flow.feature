@@ -26,7 +26,6 @@ Feature: Code Grant Flow
       | grant_type         | code                                 | redirect_uri            | field_error              | error_message           |
       | authorization_code |                                      | https://www.google.com/ | code is required         |                         |
       | authorization_code | 002a05af-15ae-4c21-8e4a-d7bde55f6aff |                         | redirect_uri is required |                         |
-      | authorization_code | 002a05af-15ae-4c21-8e4a-d7bde55f6aff | something               | invalid redirect_uri     |                         |
       |                    | 002a05af-15ae-4c21-8e4a-d7bde55f6aff | https://www.google.com/ | grant_type is required   |                         |
       | authorization_code | 002a05af-15ae-4c21-8e4a-d7bde55f6afz | https://www.google.com/ |                          | no record of code found |
       | authorization_code | 002a05af-15ae-4c21-8e4a-d7bde55f6aff | https://www.yahoo.com/  |                          | redirect uri mismatch   |
