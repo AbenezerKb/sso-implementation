@@ -5,7 +5,6 @@ import (
 	"time"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
-	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
@@ -67,7 +66,7 @@ type AccessTokenRequest struct {
 func (a AccessTokenRequest) Validate() error {
 	return validation.ValidateStruct(&a,
 		validation.Field(&a.Code, validation.When(a.GrantType == constant.AuthorizationCode, validation.Required.Error("code is required"))),
-		validation.Field(&a.RedirectURI, validation.When(a.GrantType == constant.AuthorizationCode, validation.Required.Error("redirect_uri is required")), is.URL.Error("invalid redirect_uri")),
+		validation.Field(&a.RedirectURI, validation.When(a.GrantType == constant.AuthorizationCode, validation.Required.Error("redirect_uri is required"))),
 		validation.Field(&a.GrantType, validation.Required.Error("grant_type is required"), validation.In(constant.AuthorizationCode, constant.RefreshToken)),
 		validation.Field(&a.RefreshToken, validation.When(a.GrantType == constant.RefreshToken, validation.Required.Error("refresh_token is required"))),
 	)
