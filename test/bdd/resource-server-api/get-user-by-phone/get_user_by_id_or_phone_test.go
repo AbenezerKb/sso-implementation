@@ -15,28 +15,33 @@ import (
 	"testing"
 )
 
-type getUserByPhone struct {
+type getUserByIDOrPhone struct {
 	test.TestInstance
 	apiTest        src.ApiTest
 	user           db.User
 	resourceServer db.ResourceServer
 }
 
-func TestGetUserByPhone(t *testing.T) {
-	g := getUserByPhone{}
+func TestGetUserByIDOrPhone(t *testing.T) {
+	g := getUserByIDOrPhone{}
 	g.TestInstance = test.Initiate("../../../../")
 	g.apiTest.Server = g.Server
-	g.apiTest.SetHeader("Content-Type", "application/json")
-	g.apiTest.URL = "/v1/internal/users"
-	g.apiTest.InitializeTest(t,
+	g.apiTest.URL = "/v1/internal/user"
+	g.apiTest.RunTest(t,
 		"get user by phone test",
-		"features/get_user_by_phone.feature",
+		&src.TestOptions{
+			Paths: []string{
+				"features/get_user_by_phone.feature",
+				"features/get_user_by_id.feature",
+			},
+		},
 		g.InitializeScenario,
+		nil,
 	)
 }
 
 // given
-func (g *getUserByPhone) iHaveAuthenticatedMySelfAsAResourceServer() error {
+func (g *getUserByIDOrPhone) iHaveAuthenticatedMySelfAsAResourceServer() error {
 	g.resourceServer.ID = uuid.New()
 	g.resourceServer.Name = "resource_server_test"
 	g.resourceServer.Secret = "rs_secret"
@@ -48,7 +53,7 @@ func (g *getUserByPhone) iHaveAuthenticatedMySelfAsAResourceServer() error {
 	return nil
 }
 
-func (g *getUserByPhone) thereIsAUserWithPhoneNumber(phone string) error {
+func (g *getUserByIDOrPhone) thereIsAUserWithPhoneNumber(phone string) error {
 	user, err := g.DB.CreateUser(context.Background(), db.CreateUserParams{
 		FirstName:  "John",
 		MiddleName: "M",
@@ -75,8 +80,24 @@ func (g *getUserByPhone) thereIsAUserWithPhoneNumber(phone string) error {
 }
 
 // when
-func (g *getUserByPhone) iAskForAUserWithPhoneNumber(phone string) error {
-	g.apiTest.SetBodyValue("phone", phone)
+func (g *getUserByIDOrPhone) iAskForAUserWithPhoneNumber(phone string) error {
+	g.apiTest.SetQueryParam("phone", phone)
+	g.apiTest.SetHeader("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(g.resourceServer.ID.String()+":"+g.resourceServer.Secret)))
+	g.apiTest.SendRequest()
+
+	return nil
+}
+
+func (g *getUserByIDOrPhone) iAskForAUserWithId() error {
+	g.apiTest.SetQueryParam("id", g.user.ID.String())
+	g.apiTest.SetHeader("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(g.resourceServer.ID.String()+":"+g.resourceServer.Secret)))
+	g.apiTest.SendRequest()
+
+	return nil
+}
+
+func (g *getUserByIDOrPhone) iAskForAUserWithIncorrectId() error {
+	g.apiTest.SetQueryParam("id", uuid.NewString())
 	g.apiTest.SetHeader("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(g.resourceServer.ID.String()+":"+g.resourceServer.Secret)))
 	g.apiTest.SendRequest()
 
@@ -84,7 +105,7 @@ func (g *getUserByPhone) iAskForAUserWithPhoneNumber(phone string) error {
 }
 
 // then
-func (g *getUserByPhone) iShouldGetTheUserData() error {
+func (g *getUserByIDOrPhone) iShouldGetTheUserData() error {
 	if err := g.apiTest.AssertStatusCode(http.StatusOK); err != nil {
 		return err
 	}
@@ -103,8 +124,8 @@ func (g *getUserByPhone) iShouldGetTheUserData() error {
 	return nil
 }
 
-func (g *getUserByPhone) myRequestShouldFailWithMessage(message string) error {
-	if err := g.apiTest.AssertStatusCode(http.StatusBadRequest); err != nil {
+func (g *getUserByIDOrPhone) myRequestShouldFailWithMessage(message string) error {
+	if err := g.apiTest.AssertStatusCode(http.StatusNotFound); err != nil {
 		return err
 	}
 
@@ -115,13 +136,16 @@ func (g *getUserByPhone) myRequestShouldFailWithMessage(message string) error {
 	return nil
 }
 
-func (g *getUserByPhone) InitializeScenario(ctx *godog.ScenarioContext) {
+func (g *getUserByIDOrPhone) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.Step(`^I ask for a user with incorrect id$`, g.iAskForAUserWithIncorrectId)
+	ctx.Step(`^I ask for a user with id$`, g.iAskForAUserWithId)
 	ctx.Step(`^I ask for a user with phone number "([^"]*)"$`, g.iAskForAUserWithPhoneNumber)
 	ctx.Step(`^I have authenticated my self as a resource server$`, g.iHaveAuthenticatedMySelfAsAResourceServer)
 	ctx.Step(`^I should get the user data$`, g.iShouldGetTheUserData)
 	ctx.Step(`^My request should fail with message "([^"]*)"$`, g.myRequestShouldFailWithMessage)
 	ctx.Step(`^There is a user with phone number "([^"]*)"$`, g.thereIsAUserWithPhoneNumber)
 	ctx.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
+		g.apiTest.QueryParams = nil
 		if _, err := g.Conn.Exec(ctx, fmt.Sprintf("DELETE FROM resource_servers WHERE id='%s'", g.resourceServer.ID.String())); err != nil {
 			return ctx, err
 		}
