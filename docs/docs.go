@@ -519,6 +519,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/internal/users": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "returns a user with id or phone number.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "returns a user with id or phone number",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "id",
+                        "name": "id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "phone",
+                        "name": "phone",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/login": {
             "post": {
                 "description": "Login a user.",
@@ -2948,6 +2998,10 @@ const docTemplate = `{
                     "description": "RefreshToken is the opaque string users uses to refresh access token.",
                     "type": "string"
                 },
+                "updated_at": {
+                    "description": "UpdatedAt is the time this refresh token was last updated at",
+                    "type": "string"
+                },
                 "user_agent": {
                     "description": "User Agent is http header to identify user's device",
                     "type": "string"
@@ -3090,6 +3144,10 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.Scope"
                     }
+                },
+                "secret": {
+                    "description": "Secret is the secret of the resource server that will be used for authentication on the sso.",
+                    "type": "string"
                 },
                 "updated_at": {
                     "description": "UpdatedAt is the time this resource server is updated at",

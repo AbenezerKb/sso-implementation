@@ -21,6 +21,7 @@ type AuthMiddleware interface {
 	AccessControl() gin.HandlerFunc
 	ClientBasicAuth() gin.HandlerFunc
 	MiniRideBasicAuth() gin.HandlerFunc
+	ResourceServerBasicAuth() gin.HandlerFunc
 }
 
 type MiniRideCredential struct {
@@ -35,11 +36,12 @@ type authMiddleware struct {
 	client             module.ClientModule
 	miniRideCredential MiniRideCredential
 	role               module.RoleModule
+	resourceServer     module.ResourceServerModule
 	logger             logger.Logger
 }
 
 func InitAuthMiddleware(enforcer *casbin.Enforcer,
-	auth module.OAuthModule, token platform.Token, client module.ClientModule, miniRideCredential MiniRideCredential, role module.RoleModule, logger logger.Logger) AuthMiddleware {
+	auth module.OAuthModule, token platform.Token, client module.ClientModule, miniRideCredential MiniRideCredential, role module.RoleModule, rsModule module.ResourceServerModule, logger logger.Logger) AuthMiddleware {
 	return &authMiddleware{
 		enforcer,
 		auth,
@@ -47,6 +49,7 @@ func InitAuthMiddleware(enforcer *casbin.Enforcer,
 		client,
 		miniRideCredential,
 		role,
+		rsModule,
 		logger,
 	}
 }
@@ -200,6 +203,39 @@ func (a *authMiddleware) MiniRideBasicAuth() gin.HandlerFunc {
 			return
 		}
 
+		ctx.Next()
+	}
+}
+
+func (a *authMiddleware) ResourceServerBasicAuth() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		rsID, secret, ok := ctx.Request.BasicAuth()
+		if !ok {
+			err := errors.ErrAcessError.New("could not get extract resource server credentials")
+			a.logger.Error(ctx, "resource server authentication failed", zap.Error(err))
+			_ = ctx.Error(err)
+			ctx.Abort()
+			return
+		}
+
+		rs, err := a.resourceServer.GetResourceServerByID(ctx.Request.Context(), rsID)
+		if err != nil {
+			_ = ctx.Error(err)
+			ctx.Abort()
+			return
+		}
+
+		if ok := rs.Secret == secret; !ok {
+			err = errors.ErrAcessError.Wrap(err, "unauthorized")
+			a.logger.Info(ctx, "resource server authentication failed. invalid secret!",
+				zap.Error(err),
+				zap.String("rs-secret", rs.Secret),
+				zap.String("provided-secret", secret))
+			_ = ctx.Error(err)
+			ctx.Abort()
+			return
+		}
+		ctx.Request = ctx.Request.WithContext(context.WithValue(ctx.Request.Context(), constant.Context("x-rs"), rs))
 		ctx.Next()
 	}
 }

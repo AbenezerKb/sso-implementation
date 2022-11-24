@@ -20,6 +20,8 @@ type ResourceServer struct {
 	UpdatedAt time.Time `json:"updated_at"`
 	// Scopes is the scopes of this resource server
 	Scopes []Scope `json:"scopes,omitempty"`
+	// Secret is the secret of the resource server that will be used for authentication on the sso.
+	Secret string `json:"secret,omitempty"`
 }
 
 func (r ResourceServer) Validate() error {
