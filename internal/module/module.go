@@ -108,4 +108,5 @@ type IdentityProviderModule interface {
 
 type RSAPI interface {
 	GetUserByIDOrPhone(ctx context.Context, request request_models.RSAPIUserRequest) (*dto.User, error)
+	GetUsersByIDOrPhone(ctx context.Context, request request_models.RSAPIUsersRequest) (*dto.RSAPIUsersResponse, error)
 }
