@@ -519,7 +519,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/internal/users": {
+        "/internal/user": {
             "get": {
                 "security": [
                     {
@@ -540,17 +540,15 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "id",
+                        "description": "ID is the id of the user to be searched",
                         "name": "id",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "phone",
+                        "description": "Phone is the phone number of the user to be searched",
                         "name": "phone",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -558,6 +556,54 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/internal/users": {
+            "get": {
+                "security": [
+                    {
+                        "BasicAuth": []
+                    }
+                ],
+                "description": "returns user with ids or phone numbers.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "internal"
+                ],
+                "summary": "returns users with ids or phone numbers",
+                "parameters": [
+                    {
+                        "description": "users",
+                        "name": "users",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request_models.RSAPIUsersRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.User"
+                            }
                         }
                     },
                     "400": {
@@ -3496,6 +3542,25 @@ const docTemplate = `{
                 "ip": {
                     "description": "IdentityProvider is the id of the identity provider to log in with",
                     "type": "string"
+                }
+            }
+        },
+        "request_models.RSAPIUsersRequest": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "description": "IDs is the ids of the users to be searched",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "phones": {
+                    "description": "Phones is the phone numbers of the users to be searched",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },

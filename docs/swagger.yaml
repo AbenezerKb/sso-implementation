@@ -698,6 +698,19 @@ definitions:
           with
         type: string
     type: object
+  request_models.RSAPIUsersRequest:
+    properties:
+      ids:
+        description: IDs is the ids of the users to be searched
+        items:
+          type: string
+        type: array
+      phones:
+        description: Phones is the phone numbers of the users to be searched
+        items:
+          type: string
+        type: array
+    type: object
   request_models.RevokeClientBody:
     properties:
       client_id:
@@ -1038,21 +1051,19 @@ paths:
       summary: update identity provider
       tags:
       - identityProvider
-  /internal/users:
+  /internal/user:
     get:
       consumes:
       - application/json
       description: returns a user with id or phone number.
       parameters:
-      - description: id
+      - description: ID is the id of the user to be searched
         in: query
         name: id
-        required: true
         type: string
-      - description: phone
+      - description: Phone is the phone number of the user to be searched
         in: query
         name: phone
-        required: true
         type: string
       produces:
       - application/json
@@ -1068,6 +1079,36 @@ paths:
       security:
       - BasicAuth: []
       summary: returns a user with id or phone number
+      tags:
+      - internal
+  /internal/users:
+    get:
+      consumes:
+      - application/json
+      description: returns user with ids or phone numbers.
+      parameters:
+      - description: users
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/request_models.RSAPIUsersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: returns users with ids or phone numbers
       tags:
       - internal
   /login:
