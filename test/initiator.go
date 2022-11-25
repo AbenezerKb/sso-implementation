@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/segmentio/kafka-go"
 	"net/http"
 	"os"
 	"sso/initiator"
@@ -13,11 +15,9 @@ import (
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/handler/middleware"
 	"sso/platform/logger"
+	"sso/platform/rand"
 	"sso/platform/utils"
 	"strings"
-
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/segmentio/kafka-go"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -48,6 +48,7 @@ type TestInstance struct {
 	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
+	DBCleanUp          func() error
 }
 
 func Initiate(path string) TestInstance {
@@ -67,16 +68,31 @@ func Initiate(path string) TestInstance {
 
 	log.Info(context.Background(), "initializing database")
 	pgxConn := initiator.InitDB(viper.GetString("database.url"), log)
-	sqlConn := db.New(pgxConn)
 	log.Info(context.Background(), "database initialized")
+	// create database for this specific test
+	log.Info(context.Background(), "initializing test database")
+	dbName := rand.GenerateCustomRandomString(rand.SmallLetters, 10)
+	_, err := pgxConn.Exec(context.Background(), fmt.Sprintf("CREATE DATABASE %s", dbName))
+	if err != nil {
+		log.Fatal(context.Background(), "failed to create test database")
+	}
+	testConnURL := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		viper.GetString("test_database.user"),
+		viper.GetString("test_database.password"),
+		viper.GetString("test_database.host"),
+		viper.GetString("test_database.port"),
+		dbName)
+	testConn := initiator.InitDB(testConnURL, log)
+	log.Info(context.Background(), "test database initialized")
+	sqlConn := db.New(testConn)
 
 	log.Info(context.Background(), "initializing casbin enforcer")
-	enforcer := initiator.InitEnforcer(path+viper.GetString("casbin.path"), pgxConn, log)
+	enforcer := initiator.InitEnforcer(path+viper.GetString("casbin.path"), testConn, log)
 	log.Info(context.Background(), "casbin enforcer initialized")
 
 	if viper.GetBool("migration.active") {
 		log.Info(context.Background(), "initializing migration")
-		m := initiator.InitiateMigration(path+viper.GetString("migration.path"), viper.GetString("database.url"), log)
+		m := initiator.InitiateMigration(path+viper.GetString("migration.path"), testConnURL, log)
 		initiator.UpMigration(m, log)
 		log.Info(context.Background(), "migration initialized")
 	}
@@ -86,7 +102,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache initialized")
 
 	log.Info(context.Background(), "initializing persistence layer")
-	persistDB := persistencedb.New(pgxConn)
+	persistDB := persistencedb.New(testConn)
 	persistence := initiator.InitPersistence(persistDB, log)
 	log.Info(context.Background(), "persistence layer initialized")
 
@@ -142,12 +158,21 @@ func Initiate(path string) TestInstance {
 		Module:        module,
 		enforcer:      enforcer,
 		Logger:        log,
-		Conn:          pgxConn,
+		Conn:          testConn,
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
 		KafkaConn:     kafkaConn,
 		KafkaReader:   kafkaReader,
 		PersistDB:     persistDB,
+		DBCleanUp: func() error {
+			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
+			if err != nil {
+				return err
+			}
+			testConn.Close()
+			log.Info(context.Background(), fmt.Sprintf("dropped test database %s", dbName))
+			return nil
+		},
 	}
 }
 func (t *TestInstance) Authenticate(credentials *godog.Table) (db.User, error) {
