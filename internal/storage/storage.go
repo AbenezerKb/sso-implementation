@@ -93,6 +93,9 @@ type UserPersistence interface {
 	UpdateUserRole(ctx context.Context, userID uuid.UUID, roleName string) error
 	RevokeUserRole(ctx context.Context, userID uuid.UUID) error
 	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
+	GetUserByPhone(ctx context.Context, phone string) (*dto.User, error)
+	GetUsersByPhone(ctx context.Context, phones []string) ([]dto.User, error)
+	GetUsersByID(ctx context.Context, ids []string) ([]dto.User, error)
 }
 
 type ProfilePersistence interface {
@@ -108,6 +111,7 @@ type ResourceServerPersistence interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
 	GetResourceServerByName(ctx context.Context, name string) (dto.ResourceServer, error)
 	GetAllResourceServers(ctx context.Context, filters request_models.FilterParams) ([]dto.ResourceServer, *model.MetaData, error)
+	GetResourceServerByID(ctx context.Context, rsID uuid.UUID) (*dto.ResourceServer, error)
 }
 
 type MiniRidePersistence interface {

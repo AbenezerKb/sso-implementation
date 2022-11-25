@@ -85,3 +85,8 @@ type IdentityProvider interface {
 	DeleteIdentityProvider(ctx *gin.Context)
 	GetAllIdentityProviders(ctx *gin.Context)
 }
+
+type RSAPI interface {
+	GetUserByPhoneOrID(ctx *gin.Context)
+	GetUsersByPhoneOrID(ctx *gin.Context)
+}

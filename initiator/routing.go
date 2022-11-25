@@ -7,6 +7,7 @@ import (
 	"sso/internal/glue/routing/mini_ride"
 	resource_server "sso/internal/glue/routing/resource-server"
 	"sso/internal/glue/routing/role"
+	rs_api "sso/internal/glue/routing/rs-api"
 
 	"sso/docs"
 
@@ -39,6 +40,7 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 			UserName: viper.GetString("mini_ride.username"),
 			Password: viper.GetString("mini_ride.password")},
 		module.RoleModule,
+		module.resourceServer,
 		log.Named("auth-middleware"))
 
 	docs.SwaggerInfo.BasePath = "/v1"
@@ -54,4 +56,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	resource_server.InitRoute(group, handler.resourceServer, authMiddleware, enforcer)
 	role.InitRoute(group, handler.role, authMiddleware, enforcer)
 	identity_provider.InitRoute(group, handler.identityProvider, authMiddleware, enforcer)
+	rs_api.InitRoute(group, handler.rsAPI, authMiddleware, enforcer)
 }

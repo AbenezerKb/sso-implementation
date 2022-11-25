@@ -2,6 +2,11 @@ debug: false
 dev: true
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
+test_database:
+  user: root
+  password:
+  host: db
+  port: 26257
 migration:
   active: true
   path: internal/constant/query/schemas

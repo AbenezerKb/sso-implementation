@@ -11,6 +11,7 @@ import (
 	"sso/internal/module/profile"
 	resource_server "sso/internal/module/resource-server"
 	"sso/internal/module/role"
+	rs_api "sso/internal/module/rs-api"
 	"sso/internal/module/scope"
 	"sso/internal/module/user"
 	"sso/platform/logger"
@@ -31,6 +32,7 @@ type Module struct {
 	MiniRideModule   module.MiniRideModule
 	RoleModule       module.RoleModule
 	identityProvider module.IdentityProviderModule
+	rsAPI            module.RSAPI
 }
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
@@ -89,6 +91,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
+		rsAPI:            rs_api.Init(log.Named("rs_api_module"), persistence.UserPersistence),
 	}
 }
 
@@ -146,5 +149,6 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 		MiniRideModule:   mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
+		rsAPI:            rs_api.Init(log.Named("rs_api_module"), persistence.UserPersistence),
 	}
 }

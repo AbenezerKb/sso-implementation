@@ -2,6 +2,7 @@ package resource_server
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
@@ -59,4 +60,15 @@ func (r *resourceServerModule) GetAllResourceServers(ctx context.Context, filter
 		return nil, nil, err
 	}
 	return r.resourceServerPersistence.GetAllResourceServers(ctx, filters)
+}
+
+func (r *resourceServerModule) GetResourceServerByID(ctx context.Context, rsID string) (*dto.ResourceServer, error) {
+	userID, err := uuid.Parse(rsID)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "resource server not found")
+		r.logger.Info(ctx, "parse error", zap.Error(err), zap.String("resource-server-id", rsID))
+		return nil, err
+	}
+
+	return r.resourceServerPersistence.GetResourceServerByID(ctx, userID)
 }

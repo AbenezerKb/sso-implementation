@@ -11,6 +11,7 @@ import (
 	"sso/internal/handler/rest/profile"
 	resource_server "sso/internal/handler/rest/resource-server"
 	"sso/internal/handler/rest/role"
+	rs_api "sso/internal/handler/rest/rs-api"
 	"sso/internal/handler/rest/scope"
 	"sso/internal/handler/rest/user"
 	"sso/platform/logger"
@@ -28,6 +29,7 @@ type Handler struct {
 	resourceServer   rest.ResourceServer
 	role             rest.Role
 	identityProvider rest.IdentityProvider
+	rsAPI            rest.RSAPI
 }
 
 func InitHandler(module Module, log logger.Logger) Handler {
@@ -74,5 +76,6 @@ func InitHandler(module Module, log logger.Logger) Handler {
 		resourceServer:   resource_server.Init(log.Named("resource-server-handler"), module.resourceServer),
 		role:             role.InitRole(log.Named("role-handler"), module.RoleModule),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-handler"), module.identityProvider),
+		rsAPI:            rs_api.Init(log.Named("rs_api"), module.rsAPI),
 	}
 }

@@ -13,3 +13,8 @@ RETURNING *;
 SELECT *
 FROM resource_servers
 WHERE name = $1;
+
+-- name: GetResourceServerByID :one
+SELECT *
+FROM resource_servers
+WHERE id = $1;

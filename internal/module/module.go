@@ -76,6 +76,7 @@ type ProfileModule interface {
 type ResourceServerModule interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
 	GetAllResourceServers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error)
+	GetResourceServerByID(ctx context.Context, rsID string) (*dto.ResourceServer, error)
 }
 
 type MiniRideModule interface {
@@ -103,4 +104,9 @@ type IdentityProviderModule interface {
 	GetIdentityProvider(ctx context.Context, idPID string) (dto.IdentityProvider, error)
 	DeleteIdentityProvider(ctx context.Context, idPID string) error
 	GetAllIdentityProviders(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error)
+}
+
+type RSAPI interface {
+	GetUserByIDOrPhone(ctx context.Context, request request_models.RSAPIUserRequest) (*dto.User, error)
+	GetUsersByIDOrPhone(ctx context.Context, request request_models.RSAPIUsersRequest) (*dto.RSAPIUsersResponse, error)
 }

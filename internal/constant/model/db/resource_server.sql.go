@@ -14,7 +14,7 @@ import (
 const createResourceServer = `-- name: CreateResourceServer :one
 INSERT INTO resource_servers (name)
 VALUES ($1)
-RETURNING id, name, created_at, updated_at
+RETURNING id, name, created_at, updated_at, secret
 `
 
 func (q *Queries) CreateResourceServer(ctx context.Context, name string) (ResourceServer, error) {
@@ -25,6 +25,7 @@ func (q *Queries) CreateResourceServer(ctx context.Context, name string) (Resour
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Secret,
 	)
 	return i, err
 }
@@ -33,7 +34,7 @@ const deleteResourceServer = `-- name: DeleteResourceServer :one
 DELETE
 FROM resource_servers
 WHERE id = $1
-RETURNING id, name, created_at, updated_at
+RETURNING id, name, created_at, updated_at, secret
 `
 
 func (q *Queries) DeleteResourceServer(ctx context.Context, id uuid.UUID) (ResourceServer, error) {
@@ -44,12 +45,32 @@ func (q *Queries) DeleteResourceServer(ctx context.Context, id uuid.UUID) (Resou
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Secret,
+	)
+	return i, err
+}
+
+const getResourceServerByID = `-- name: GetResourceServerByID :one
+SELECT id, name, created_at, updated_at, secret
+FROM resource_servers
+WHERE id = $1
+`
+
+func (q *Queries) GetResourceServerByID(ctx context.Context, id uuid.UUID) (ResourceServer, error) {
+	row := q.db.QueryRow(ctx, getResourceServerByID, id)
+	var i ResourceServer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Secret,
 	)
 	return i, err
 }
 
 const getResourceServerByName = `-- name: GetResourceServerByName :one
-SELECT id, name, created_at, updated_at
+SELECT id, name, created_at, updated_at, secret
 FROM resource_servers
 WHERE name = $1
 `
@@ -62,6 +83,7 @@ func (q *Queries) GetResourceServerByName(ctx context.Context, name string) (Res
 		&i.Name,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Secret,
 	)
 	return i, err
 }

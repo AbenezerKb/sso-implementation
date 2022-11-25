@@ -306,6 +306,9 @@ definitions:
         description: RefreshToken is the opaque string users uses to refresh access
           token.
         type: string
+      updated_at:
+        description: UpdatedAt is the time this refresh token was last updated at
+        type: string
       user_agent:
         description: User Agent is http header to identify user's device
         type: string
@@ -427,6 +430,10 @@ definitions:
         items:
           $ref: '#/definitions/dto.Scope'
         type: array
+      secret:
+        description: Secret is the secret of the resource server that will be used
+          for authentication on the sso.
+        type: string
       updated_at:
         description: UpdatedAt is the time this resource server is updated at
         type: string
@@ -690,6 +697,19 @@ definitions:
         description: IdentityProvider is the id of the identity provider to log in
           with
         type: string
+    type: object
+  request_models.RSAPIUsersRequest:
+    properties:
+      ids:
+        description: IDs is the ids of the users to be searched
+        items:
+          type: string
+        type: array
+      phones:
+        description: Phones is the phone numbers of the users to be searched
+        items:
+          type: string
+        type: array
     type: object
   request_models.RevokeClientBody:
     properties:
@@ -1031,6 +1051,66 @@ paths:
       summary: update identity provider
       tags:
       - identityProvider
+  /internal/user:
+    get:
+      consumes:
+      - application/json
+      description: returns a user with id or phone number.
+      parameters:
+      - description: ID is the id of the user to be searched
+        in: query
+        name: id
+        type: string
+      - description: Phone is the phone number of the user to be searched
+        in: query
+        name: phone
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: returns a user with id or phone number
+      tags:
+      - internal
+  /internal/users:
+    get:
+      consumes:
+      - application/json
+      description: returns user with ids or phone numbers.
+      parameters:
+      - description: users
+        in: body
+        name: users
+        required: true
+        schema:
+          $ref: '#/definitions/request_models.RSAPIUsersRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.User'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BasicAuth: []
+      summary: returns users with ids or phone numbers
+      tags:
+      - internal
   /login:
     post:
       consumes:

@@ -2,6 +2,7 @@ package resource_server
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
@@ -75,5 +76,28 @@ func (r *resourceServerPersistence) GetAllResourceServers(ctx context.Context, f
 		FilterParams: filters,
 		Total:        total,
 		Extra:        nil,
+	}, nil
+}
+
+func (r *resourceServerPersistence) GetResourceServerByID(ctx context.Context, rsID uuid.UUID) (*dto.ResourceServer, error) {
+	rs, err := r.db.GetResourceServerByID(ctx, rsID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err = errors.ErrNoRecordFound.Wrap(err, "resource server not found")
+			r.logger.Info(ctx, "resource server was not found", zap.Error(err), zap.String("rs-id", rsID.String()))
+			return nil, err
+		} else {
+			err = errors.ErrReadError.Wrap(err, "could not read resource server")
+			r.logger.Error(ctx, "unable to get resource server by id", zap.Error(err), zap.String("rs-id", rsID.String()))
+			return nil, err
+		}
+	}
+
+	return &dto.ResourceServer{
+		ID:        rs.ID,
+		Name:      rs.Name,
+		CreatedAt: rs.CreatedAt,
+		UpdatedAt: rs.UpdatedAt,
+		Secret:    rs.Secret,
 	}, nil
 }
