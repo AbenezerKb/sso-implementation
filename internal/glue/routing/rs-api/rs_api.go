@@ -21,6 +21,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.RSAPI, authMiddleware middl
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  http.MethodPost,
+			Path:    "users",
+			Handler: handler.GetUsersByPhoneOrID,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.ResourceServerBasicAuth(),
+			},
+			UnAuthorize: true,
+		},
 	}
 
 	routing.RegisterRoutes(internal, internalRoutes, enforcer)
