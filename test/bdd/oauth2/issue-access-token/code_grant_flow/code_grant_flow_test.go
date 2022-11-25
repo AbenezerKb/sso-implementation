@@ -111,10 +111,18 @@ func basicAuth(username, password string) string {
 	return base64.StdEncoding.EncodeToString([]byte(auth))
 }
 func (i *issueAccessTokenCodeGrantTest) theRequestShouldFailWithFieldErrorAndMessage(fieldMessage, errorMessage string) error {
-	if err := i.apiTest.AssertBodyColumn("error.message", errorMessage); err != nil {
-		return err
+	if errorMessage != "" {
+		if err := i.apiTest.AssertBodyColumn("error.message", errorMessage); err != nil {
+			return err
+		}
 	}
-	return i.apiTest.AssertBodyColumn("error.field_error.0.description", fieldMessage)
+	if fieldMessage != "" {
+		if err := i.apiTest.AssertBodyColumn("error.field_error.0.description", fieldMessage); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (i *issueAccessTokenCodeGrantTest) aClientIsRegisteredOnTheSystem() error {
