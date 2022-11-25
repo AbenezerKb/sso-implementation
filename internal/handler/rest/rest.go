@@ -88,4 +88,5 @@ type IdentityProvider interface {
 
 type RSAPI interface {
 	GetUserByPhoneOrID(ctx *gin.Context)
+	GetUsersByPhoneOrID(ctx *gin.Context)
 }

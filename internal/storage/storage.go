@@ -94,6 +94,8 @@ type UserPersistence interface {
 	RevokeUserRole(ctx context.Context, userID uuid.UUID) error
 	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
 	GetUserByPhone(ctx context.Context, phone string) (*dto.User, error)
+	GetUsersByPhone(ctx context.Context, phones []string) ([]dto.User, error)
+	GetUsersByID(ctx context.Context, ids []string) ([]dto.User, error)
 }
 
 type ProfilePersistence interface {

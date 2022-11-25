@@ -130,3 +130,23 @@ func (u *userPersistence) GetUserByPhone(ctx context.Context, phone string) (*dt
 		CreatedAt:      user.CreatedAt,
 	}, nil
 }
+func (u *userPersistence) GetUsersByPhone(ctx context.Context, phones []string) ([]dto.User, error) {
+	users, err := u.db.GetUsersByParsedField(ctx, "phone", phones)
+	if err != nil {
+		err := errors.ErrReadError.Wrap(err, "error fetching users")
+		u.logger.Error(ctx, "error while fetching users by phone number")
+		return nil, err
+	}
+
+	return users, nil
+}
+func (u *userPersistence) GetUsersByID(ctx context.Context, ids []string) ([]dto.User, error) {
+	users, err := u.db.GetUsersByParsedField(ctx, "id", ids)
+	if err != nil {
+		err := errors.ErrReadError.Wrap(err, "error fetching users")
+		u.logger.Error(ctx, "error while fetching users by id")
+		return nil, err
+	}
+
+	return users, nil
+}
