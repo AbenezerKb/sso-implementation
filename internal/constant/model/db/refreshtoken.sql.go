@@ -249,7 +249,7 @@ func (q *Queries) SaveRefreshToken(ctx context.Context, arg SaveRefreshTokenPara
 
 const updateOAuthRefreshToken = `-- name: UpdateOAuthRefreshToken :one
 UPDATE refresh_tokens
-SET refresh_token = $1
+SET refresh_token = $1, updated_at = now()
 WHERE refresh_token = $2
 RETURNING id, refresh_token, code, user_id, scope, redirect_uri, expires_at, client_id, created_at, updated_at
 `

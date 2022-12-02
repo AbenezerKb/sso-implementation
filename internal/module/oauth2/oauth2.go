@@ -487,7 +487,7 @@ func (o *oauth2) refreshToken(ctx context.Context, client dto.Client, param dto.
 	//	RedirectUri:  oldRefreshToken.RedirectUri,
 	//	ExpiresAt:    time.Now().Add(o.options.RefreshTokenExpireTime),
 	//})
-	newRefreshToken, err := o.oauth2Persistence.UpdateRefreshToken(ctx, o.token.GenerateRefreshToken(ctx), oldRefreshToken.RefreshToken)
+	newRefreshToken, err := o.oauth2Persistence.UpdateRefreshToken(ctx, oldRefreshToken.RefreshToken, oldRefreshToken.RefreshToken)
 	if err != nil {
 		return nil, err
 	}
