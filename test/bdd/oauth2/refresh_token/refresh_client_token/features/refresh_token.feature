@@ -17,8 +17,7 @@ Feature: Refresh Token
         When I refresh the access token:
             | grant_type    | refresh_token            |
             | refresh_token | +toNc!tKC8q;,SXt7h%iu#aX |
-        Then I should get a new access token with a new refresh token
-        And The old refresh token should be deleted
+        Then I should get a new access token with the old refresh token
 
     Scenario Outline:missing required inputs
         When I refresh the access token:
@@ -30,7 +29,7 @@ Feature: Refresh Token
             | refresh_token |                          | refresh_token is required |
             |               | +toNc!tKC8q;,SXt7h%iu#aX | grant_type is required    |
 
-    Scenario: Refresh Token is  expired
+    Scenario Outline: Refresh Token is  expired
         Given I have an expired refresh token:
             | refresh_token            | expires_at                          | scope        |
             | 0ohn8ktKC8q;,SXt7h%iu#aX | 2022-08-26T09:06:36.525293389+03:00 | openid email |

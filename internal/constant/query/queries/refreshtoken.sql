@@ -60,6 +60,6 @@ WHERE user_id = $1
 
 -- name: UpdateOAuthRefreshToken :one
 UPDATE refresh_tokens
-SET refresh_token = $1
+SET refresh_token = $1, updated_at = now()
 WHERE refresh_token = $2
 RETURNING *;
