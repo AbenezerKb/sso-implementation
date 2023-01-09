@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
@@ -201,14 +202,15 @@ func (o *oauth) GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error
 	}
 
 	return &dto.User{
-		ID:         user.ID,
-		Status:     user.Status.String,
-		UserName:   user.UserName,
-		FirstName:  user.FirstName,
-		MiddleName: user.MiddleName,
-		LastName:   user.LastName,
-		Email:      user.Email.String,
-		Phone:      user.Phone,
+		ID:             user.ID,
+		Status:         user.Status.String,
+		UserName:       user.UserName,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName,
+		LastName:       user.LastName,
+		Email:          user.Email.String,
+		Phone:          user.Phone,
+		ProfilePicture: user.ProfilePicture.String,
 	}, nil
 }
 
