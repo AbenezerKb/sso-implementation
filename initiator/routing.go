@@ -1,8 +1,6 @@
 package initiator
 
 import (
-	"context"
-
 	"sso/internal/glue/routing/asset"
 	"sso/internal/glue/routing/client"
 	identity_provider "sso/internal/glue/routing/identity-provider"
@@ -29,9 +27,6 @@ import (
 )
 
 func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, module Module, log logger.Logger, enforcer *casbin.Enforcer, platformLayer PlatformLayer) {
-
-	log.Info(context.Background(), "serving static files")
-	group.Static("/static", viper.GetString("assets.profile_picture_dst"))
 
 	authMiddleware := middleware.InitAuthMiddleware(
 		enforcer,

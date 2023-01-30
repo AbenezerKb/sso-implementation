@@ -53,7 +53,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 		),
 		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
 		SelfIP: self.Init(),
-		Asset:  asset.Init(logger.Named("asset-platform"), viper.GetString("assets")),
+		Asset:  asset.Init(logger.Named("asset-platform"), "assets"),
 	}
 }
 
@@ -72,7 +72,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			Email:     "john@gmail.com",
 			Phone:     "0912131415",
 		}),
-		Asset: asset.Init(logger.Named("asset-platform"), viper.GetString("assets")),
+		Asset: asset.Init(logger.Named("asset-platform"), "../../../../assets"),
 	}
 }
 
