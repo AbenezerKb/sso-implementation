@@ -2,17 +2,31 @@ package initiator
 
 import (
 	"context"
-	"github.com/spf13/viper"
 	"net/url"
+
 	"sso/internal/constant/state"
+	"sso/platform/asset"
 	"sso/platform/logger"
+
+	"github.com/spf13/viper"
 )
 
 type State struct {
-	URLs state.URLs
+	URLs         state.URLs
+	UploadParams state.UploadParams
 }
 
 func InitState(logger logger.Logger) State {
+	assets := GetMapSlice("assets")
+	fileTypes := make([]state.FileType, 0, len(assets))
+
+	for _, v := range assets {
+		var fileType state.FileType
+
+		fileType.SetValues(v)
+		fileTypes = append(fileTypes, fileType)
+	}
+
 	errorURLString := viper.GetString("frontend.error_url")
 	if errorURLString == "" {
 		logger.Fatal(context.Background(), "unable to read frontend.error_url in viper")
@@ -44,5 +58,8 @@ func InitState(logger logger.Logger) State {
 			ConsentURL: consentURL,
 			LogoutURL:  logoutURL,
 		},
+		UploadParams: asset.SetParams(logger, state.UploadParams{
+			FileTypes: fileTypes,
+		}),
 	}
 }

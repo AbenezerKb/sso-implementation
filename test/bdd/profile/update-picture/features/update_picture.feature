@@ -27,7 +27,7 @@ Feature: Update Profile Picture
         Then The update should fail with message "<message>"
 
         Examples:
-            | picture             | message                          |
-            | ./assets/links.txt  | invalid picture                  |
-            | ./assets/sample.pdf | invalid picture                  |
-            | ./assets/big.jpg    | image size must be less than 2MB |
+            | picture             | message                                                 |
+            | ./assets/links.txt  | profile_picture must be one of types (png,jpg,jpeg)     |
+            | ./assets/sample.pdf | profile_picture must be one of types (png,jpg,jpeg)     |
+            | ./assets/big.jpg    | profile_picture size must be less than 1MB              |

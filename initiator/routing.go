@@ -2,6 +2,8 @@ package initiator
 
 import (
 	"context"
+
+	"sso/internal/glue/routing/asset"
 	"sso/internal/glue/routing/client"
 	identity_provider "sso/internal/glue/routing/identity-provider"
 	"sso/internal/glue/routing/mini_ride"
@@ -57,4 +59,5 @@ func InitRouter(router *gin.Engine, group *gin.RouterGroup, handler Handler, mod
 	role.InitRoute(group, handler.role, authMiddleware, enforcer)
 	identity_provider.InitRoute(group, handler.identityProvider, authMiddleware, enforcer)
 	rs_api.InitRoute(group, handler.rsAPI, authMiddleware, enforcer)
+	asset.InitRoute(group, handler.asset, authMiddleware, enforcer)
 }

@@ -5,10 +5,12 @@ import (
 	"crypto/rsa"
 	"io/ioutil"
 	"log"
+
 	"sso/internal/constant/model/dto"
 	"sso/mocks/platform/identityProvider"
 	sms2 "sso/mocks/platform/sms"
 	"sso/platform"
+	"sso/platform/asset"
 	"sso/platform/identityProviders/self"
 	kafka_consumer "sso/platform/kafka"
 	"sso/platform/logger"
@@ -25,6 +27,7 @@ type PlatformLayer struct {
 	Token  platform.Token
 	Kafka  platform.Kafka
 	SelfIP platform.IdentityProvider
+	Asset  platform.Asset
 }
 
 func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
@@ -50,6 +53,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 		),
 		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
 		SelfIP: self.Init(),
+		Asset:  asset.Init(logger.Named("asset-platform"), viper.GetString("assets")),
 	}
 }
 
@@ -68,6 +72,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			Email:     "john@gmail.com",
 			Phone:     "0912131415",
 		}),
+		Asset: asset.Init(logger.Named("asset-platform"), viper.GetString("assets")),
 	}
 }
 

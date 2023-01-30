@@ -90,3 +90,7 @@ type RSAPI interface {
 	GetUserByPhoneOrID(ctx *gin.Context)
 	GetUsersByPhoneOrID(ctx *gin.Context)
 }
+
+type Asset interface {
+	UploadAsset(ctx *gin.Context)
+}

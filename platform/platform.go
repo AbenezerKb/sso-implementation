@@ -2,9 +2,11 @@ package platform
 
 import (
 	"context"
+	"mime/multipart"
+	"time"
+
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -44,4 +46,8 @@ type Kafka interface {
 type IdentityProvider interface {
 	GetAccessToken(ctx context.Context, endPoint, redirectURI, clientID, clientSecret, code string) (string, string, error)
 	GetUserInfo(ctx context.Context, endPoint, accessToken string) (dto.UserInfo, error)
+}
+
+type Asset interface {
+	SaveAsset(ctx context.Context, asset multipart.File, dst string) error
 }
