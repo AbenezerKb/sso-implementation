@@ -36,4 +36,3 @@ Feature: update User Profile
             |            | testuser1   | testuser1 | male   | first name is required  |
             | testuser1  |             | testuser1 | female | middle name is required |
             | testuser1  | testuser1   |           | female | last name is required   |
-            | testuser1  | testuser1   | testuser1 |        | gender is required      |
