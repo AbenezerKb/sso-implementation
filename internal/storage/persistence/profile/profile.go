@@ -3,6 +3,7 @@ package profile
 import (
 	"context"
 	"database/sql"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model/db"
@@ -34,6 +35,10 @@ func (p *profilePersistence) UpdateProfile(ctx context.Context, userParam dto.Us
 		LastName:   userParam.LastName,
 		Gender:     userParam.Gender,
 		ID:         userParam.ID,
+		ProfilePicture: sql.NullString{
+			String: userParam.ProfilePicture,
+			Valid:  true,
+		},
 	})
 
 	if err != nil {

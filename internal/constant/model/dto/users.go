@@ -121,7 +121,6 @@ func (u User) ValidateUpdateProfile() error {
 		validation.Field(&u.FirstName, validation.Required.Error("first name is required")),
 		validation.Field(&u.MiddleName, validation.Required.Error("middle name is required")),
 		validation.Field(&u.LastName, validation.Required.Error("last name is required")),
-		validation.Field(&u.Gender, validation.Required.Error("gender is required")),
 	)
 }
 

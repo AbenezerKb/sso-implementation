@@ -3,10 +3,11 @@ package module
 import (
 	"context"
 	"mime/multipart"
+	"sync"
+
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
-	"sync"
 
 	"github.com/joomcode/errorx"
 
@@ -109,4 +110,8 @@ type IdentityProviderModule interface {
 type RSAPI interface {
 	GetUserByIDOrPhone(ctx context.Context, request request_models.RSAPIUserRequest) (*dto.User, error)
 	GetUsersByIDOrPhone(ctx context.Context, request request_models.RSAPIUsersRequest) (*dto.RSAPIUsersResponse, error)
+}
+
+type Asset interface {
+	UploadAsset(ctx context.Context, param dto.UploadAssetRequest) (string, error)
 }

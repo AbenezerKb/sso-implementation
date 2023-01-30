@@ -8,10 +8,11 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"testing"
+
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
-	"testing"
 
 	"github.com/cucumber/godog"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
@@ -52,14 +53,42 @@ func (u *updateProfilePictureTest) iAmLoggedInUserWithTheFollowingDetails(userDe
 }
 
 func (u *updateProfilePictureTest) iSelectedThisPicture(picPath string) error {
+	u.apiTest.URL = "/v1/assets"
+	u.apiTest.Method = http.MethodPost
 	b, w := u.openMultipartFormData(picPath)
 	u.apiTest.Body = b.String()
 	u.apiTest.SetHeader("Content-Type", w.FormDataContentType())
+	u.apiTest.SendRequest()
+
+	if err := u.apiTest.AssertStatusCode(http.StatusCreated); err != nil {
+		return nil
+	}
+
+	imageName := struct {
+		Data string `json:"data"`
+	}{}
+	err := u.apiTest.UnmarshalResponseBody(&imageName)
+	if err != nil {
+		return err
+	}
+	u.User.ProfilePicture.String = imageName.Data
+	u.apiTest.ResetResponse()
+	u.apiTest.SetBodyMap(map[string]interface{}{
+		"first_name":      u.User.FirstName,
+		"middle_name":     u.User.MiddleName,
+		"last_name":       u.User.LastName,
+		"gender":          u.User.Gender,
+		"profile_picture": imageName.Data,
+	})
+	u.apiTest.SetHeader("Content-Type", "application/json")
+	u.apiTest.URL = "/v1/profile"
+	u.apiTest.Method = http.MethodPut
+	u.apiTest.SendRequest()
 	return nil
 }
 
 func (u *updateProfilePictureTest) iUpdateMyProfilePicture() error {
-	u.apiTest.SendRequest()
+	// 	u.apiTest.SendRequest()
 	return nil
 }
 
@@ -73,7 +102,7 @@ func (u *updateProfilePictureTest) myProfilePictureShouldBeUpdated() error {
 		return err
 	}
 
-	if err := u.apiTest.AssertEqual(updatedUser.ProfilePicture.String, u.User.ProfilePicture.String); err == nil {
+	if err := u.apiTest.AssertEqual(updatedUser.ProfilePicture.String, u.User.ProfilePicture.String); err != nil {
 		return fmt.Errorf("profile picture not updated")
 	}
 	u.User = updatedUser
@@ -97,8 +126,9 @@ func (u *updateProfilePictureTest) openMultipartFormData(filePath string) (*byte
 
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
-	part, _ := w.CreateFormFile("image", file.Name())
+	part, _ := w.CreateFormFile("asset", file.Name())
 	io.Copy(part, file)
+	_ = w.WriteField("type", "profile_picture")
 	w.Close()
 
 	return body, w

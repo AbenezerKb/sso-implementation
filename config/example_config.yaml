@@ -34,17 +34,17 @@ server:
     consent_uri: http://front-end/oauth2/consent
   cookies:
     refresh_token:
-      path:    "/"
-      domain:   ""
-      max_age:   31536000
-      secure:   true
+      path: "/"
+      domain: ""
+      max_age: 31536000
+      secure: true
       http_only: true
       same_site: 3
     opbs:
-      path:    "/"
-      domain:   ""
-      max_age:   31536000
-      secure:   true
+      path: "/"
+      domain: ""
+      max_age: 31536000
+      secure: true
       http_only: false
       same_site: 4
 frontend:
@@ -77,11 +77,19 @@ kafka:
   topic: example-topic
   url: kafka:9092
   group_id: test
-  
+
 mini_ride:
   username: mini-ride
   password: fbL50Wgr1E7o3vvmR
 
+  #assets:
+  #  profile_picture_dist: static/profile_picture
+  #  profile_picture_max_size: 2000001
+
 assets:
-  profile_picture_dist: static/profile_picture
-  profile_picture_max_size: 2000001
+  - name: profile_picture
+    types:
+      - png
+      - jpg
+      - jpeg
+    max_size: 2000001 # bytes

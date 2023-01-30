@@ -1,8 +1,8 @@
 package initiator
 
 import (
-	"github.com/spf13/viper"
 	"sso/internal/handler/rest"
+	"sso/internal/handler/rest/asset"
 	"sso/internal/handler/rest/client"
 	"sso/internal/handler/rest/identity-provider"
 	"sso/internal/handler/rest/mini_ride"
@@ -16,6 +16,8 @@ import (
 	"sso/internal/handler/rest/user"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/spf13/viper"
 )
 
 type Handler struct {
@@ -30,6 +32,7 @@ type Handler struct {
 	role             rest.Role
 	identityProvider rest.IdentityProvider
 	rsAPI            rest.RSAPI
+	asset            rest.Asset
 }
 
 func InitHandler(module Module, log logger.Logger) Handler {
@@ -77,5 +80,6 @@ func InitHandler(module Module, log logger.Logger) Handler {
 		role:             role.InitRole(log.Named("role-handler"), module.RoleModule),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-handler"), module.identityProvider),
 		rsAPI:            rs_api.Init(log.Named("rs_api"), module.rsAPI),
+		asset:            asset.Init(log.Named("asset-handler"), module.asset),
 	}
 }

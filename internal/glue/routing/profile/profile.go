@@ -2,6 +2,7 @@ package profile
 
 import (
 	"net/http"
+
 	"sso/internal/glue/routing"
 	"sso/internal/handler/middleware"
 	"sso/internal/handler/rest"
@@ -31,15 +32,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.Profile, authMiddleware mid
 			},
 			UnAuthorize: true,
 		},
-		{
-			Method:  http.MethodPut,
-			Path:    "/picture",
-			Handler: handler.UpdateProfilePicture,
-			Middlewares: []gin.HandlerFunc{
-				authMiddleware.Authentication(),
-			},
-			UnAuthorize: true,
-		},
+		//{
+		//	Method:  http.MethodPut,
+		//	Path:    "/picture",
+		//	Handler: handler.UpdateProfilePicture,
+		//	Middlewares: []gin.HandlerFunc{
+		//		authMiddleware.Authentication(),
+		//	},
+		//	UnAuthorize: true,
+		//},
 		{
 			Method:  http.MethodPatch,
 			Path:    "/phone",
