@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"net/http"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -194,5 +195,19 @@ func (u *user) RevokeUserRole(ctx *gin.Context) {
 		return
 	}
 	u.logger.Info(ctx, "revoked role from user", zap.String("user-id", userID))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+func (u *user) ResetUserPassword(ctx *gin.Context) {
+	userID := ctx.Param("id")
+
+	err := u.userModule.ResetUserPassword(ctx.Request.Context(), userID)
+	if err != nil {
+		_ = ctx.Error(err)
+
+		return
+	}
+
+	u.logger.Info(ctx, "user password was reset by admin", zap.String("user-id", userID))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }

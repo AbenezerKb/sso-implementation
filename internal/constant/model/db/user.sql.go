@@ -14,9 +14,9 @@ import (
 
 const changeUserPassword = `-- name: ChangeUserPassword :one
 UPDATE users
-set password = $1
-where phone = $2
-returning id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+SET password = $1
+WHERE phone = $2
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
 
 type ChangeUserPasswordParams struct {
@@ -26,6 +26,38 @@ type ChangeUserPasswordParams struct {
 
 func (q *Queries) ChangeUserPassword(ctx context.Context, arg ChangeUserPasswordParams) (User, error) {
 	row := q.db.QueryRow(ctx, changeUserPassword, arg.Password, arg.Phone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const changeUserPasswordByID = `-- name: ChangeUserPasswordByID :one
+UPDATE users
+SET password = $1
+WHERE id = $2
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+type ChangeUserPasswordByIDParams struct {
+	Password string    `json:"password"`
+	ID       uuid.UUID `json:"id"`
+}
+
+func (q *Queries) ChangeUserPasswordByID(ctx context.Context, arg ChangeUserPasswordByIDParams) (User, error) {
+	row := q.db.QueryRow(ctx, changeUserPasswordByID, arg.Password, arg.ID)
 	var i User
 	err := row.Scan(
 		&i.ID,

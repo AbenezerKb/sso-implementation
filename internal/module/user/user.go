@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
@@ -178,4 +179,40 @@ func (u *user) RevokeUserRole(ctx context.Context, userID string) error {
 		return err
 	}
 	return u.userPersistence.RevokeUserRole(ctx, userIDParsed)
+}
+
+func (u *user) ResetUserPassword(ctx context.Context, userID string) error {
+	userIDParsed, err := uuid.Parse(userID)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid input")
+		u.logger.Info(ctx, "invalid user id on reset password by admin",
+			zap.String("user-id", userID),
+			zap.Error(err))
+
+		return err
+	}
+
+	// generate new password
+	newPassword := utils.GenerateRandomString(10, false)
+
+	newPasswordHashed, err := utils.HashAndSalt(ctx,
+		[]byte(newPassword),
+		u.logger)
+	if err != nil {
+		err := errors.ErrInternalServerError.Wrap(err, "error generating password")
+		u.logger.Error(ctx, "unexpected error while generating a new password for user",
+			zap.Error(err),
+			zap.String("user-id", userID))
+
+		return err
+	}
+
+	// save password
+	user, err := u.userPersistence.UpdateUserPassword(ctx, userIDParsed, newPasswordHashed)
+	if err != nil {
+		return err
+	}
+
+	// send sms
+	return u.smsClient.SendSMSWithTemplate(ctx, user.Phone, "reset_password", newPassword)
 }

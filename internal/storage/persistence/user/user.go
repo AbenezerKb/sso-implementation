@@ -3,8 +3,7 @@ package user
 import (
 	"context"
 	"database/sql"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
@@ -15,6 +14,9 @@ import (
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	"go.uber.org/zap"
 )
 
 type userPersistence struct {
@@ -149,4 +151,33 @@ func (u *userPersistence) GetUsersByID(ctx context.Context, ids []string) ([]dto
 	}
 
 	return users, nil
+}
+
+func (u *userPersistence) UpdateUserPassword(ctx context.Context, userID uuid.UUID, newPassword string) (*dto.User, error) {
+	user, err := u.db.ChangeUserPasswordByID(ctx, db.ChangeUserPasswordByIDParams{
+		Password: newPassword,
+		ID:       userID,
+	})
+	if err != nil {
+		err := errors.ErrUpdateError.Wrap(err, "unable to update user password")
+		u.logger.Error(ctx, "error while trying to update user password",
+			zap.Error(err),
+			zap.Any("user-id", userID))
+
+		return nil, err
+	}
+
+	return &dto.User{
+		ID:             user.ID,
+		FirstName:      user.FirstName,
+		MiddleName:     user.MiddleName,
+		LastName:       user.LastName,
+		Email:          user.Email.String,
+		Phone:          user.Phone,
+		UserName:       user.UserName,
+		Gender:         user.Gender,
+		Status:         user.Status.String,
+		ProfilePicture: user.ProfilePicture.String,
+		CreatedAt:      user.CreatedAt,
+	}, nil
 }

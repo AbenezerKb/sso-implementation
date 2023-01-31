@@ -47,6 +47,7 @@ type UserModule interface {
 	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID string) error
 	UpdateUserRole(ctx context.Context, userID string, role dto.AssignRole) error
 	RevokeUserRole(ctx context.Context, userID string) error
+	ResetUserPassword(ctx context.Context, userID string) error
 }
 
 type ClientModule interface {

@@ -104,6 +104,7 @@ type UserPersistence interface {
 	GetUserByPhone(ctx context.Context, phone string) (*dto.User, error)
 	GetUsersByPhone(ctx context.Context, phones []string) ([]dto.User, error)
 	GetUsersByID(ctx context.Context, ids []string) ([]dto.User, error)
+	UpdateUserPassword(ctx context.Context, userID uuid.UUID, newPassword string) (*dto.User, error)
 }
 
 type ProfilePersistence interface {

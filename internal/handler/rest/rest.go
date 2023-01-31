@@ -33,6 +33,7 @@ type User interface {
 	UpdateUserStatus(ctx *gin.Context)
 	UpdateUserRole(ctx *gin.Context)
 	RevokeUserRole(ctx *gin.Context)
+	ResetUserPassword(ctx *gin.Context)
 }
 
 type Client interface {
