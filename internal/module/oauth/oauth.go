@@ -3,6 +3,8 @@ package oauth
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -12,7 +14,6 @@ import (
 	"sso/platform"
 	"sso/platform/logger"
 	"sso/platform/utils"
-	"time"
 
 	"github.com/joomcode/errorx"
 
@@ -32,6 +33,7 @@ type oauth struct {
 	smsClient        platform.SMSClient
 	options          Options
 	selfIP           platform.IdentityProvider
+	resetCodeCache   storage.ResetCodeCache
 }
 
 type Options struct {
@@ -60,6 +62,7 @@ func InitOAuth(logger logger.Logger,
 	token platform.Token,
 	smsClient platform.SMSClient,
 	selfIP platform.IdentityProvider,
+	resetCodeCache storage.ResetCodeCache,
 	options Options) module.OAuthModule {
 	return &oauth{
 		logger:           logger,
@@ -70,6 +73,7 @@ func InitOAuth(logger logger.Logger,
 		token:            token,
 		smsClient:        smsClient,
 		selfIP:           selfIP,
+		resetCodeCache:   resetCodeCache,
 		options:          options,
 	}
 }

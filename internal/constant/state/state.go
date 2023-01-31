@@ -5,8 +5,9 @@ import (
 )
 
 const (
-	ConsentKey  = "consent:%v"
-	AuthCodeKey = "authcode:%v"
+	ConsentKey   = "consent:%v"
+	AuthCodeKey  = "authcode:%v"
+	ResetCodeKey = "resetCode:%v"
 )
 
 const (

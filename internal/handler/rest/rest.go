@@ -10,6 +10,8 @@ type OAuth interface {
 	RefreshToken(ctx *gin.Context)
 	LoginWithIP(ctx *gin.Context)
 	GetIdentityProviders(ctx *gin.Context)
+	RequestResetCode(ctx *gin.Context)
+	ResetPassword(ctx *gin.Context)
 }
 
 type OAuth2 interface {

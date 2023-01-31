@@ -58,6 +58,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			platformLayer.Token,
 			platformLayer.Sms,
 			platformLayer.SelfIP,
+			cache.ResetCodeCacheLayer,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
@@ -116,6 +117,7 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			platformLayer.Token,
 			platformLayer.Sms,
 			platformLayer.SelfIP,
+			cache.ResetCodeCacheLayer,
 			oauth.SetOptions(oauth.Options{
 				AccessTokenExpireTime:  viper.GetDuration("server.login.access_token.expire_time"),
 				RefreshTokenExpireTime: viper.GetDuration("server.login.refresh_token.expire_time"),
