@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"net/http"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
@@ -147,6 +148,57 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 		return
 	}
 	o.logger.Info(ctx, "OTP sent", zap.String("phone", phone))
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+// RequestResetCode is used to request reset code.
+// @Summary      Request reset code.
+// @Description  is used to request reset code for forget password
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param phone query string true "phone"
+// @Success      200  {boolean}  true
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /resetCode [get]
+func (o *oauth) RequestResetCode(ctx *gin.Context) {
+	err := o.oauthModule.RequestResetCode(ctx.Request.Context(), ctx.Query("phone"))
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
+}
+
+// ResetPassword is used to reset password
+// @Summary      reset password.
+// @Description  is used to reset password for forgotten password.
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @param request body dto.ResetPasswordRequest true "request"
+// @Success      200  {boolean}  true
+// @Failure      400  {object}  model.ErrorResponse "invalid input"
+// @Router       /resetPassword [post]
+func (o *oauth) ResetPassword(ctx *gin.Context) {
+	var resetPasswordRequest dto.ResetPasswordRequest
+
+	err := ctx.ShouldBind(&resetPasswordRequest)
+	if err != nil {
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+		_ = ctx.Error(errors.ErrInvalidUserInput.Wrap(err, "invalid input"))
+
+		return
+	}
+
+	err = o.oauthModule.ResetPassword(ctx, resetPasswordRequest)
+	if err != nil {
+		_ = ctx.Error(err)
+
+		return
+	}
+
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 

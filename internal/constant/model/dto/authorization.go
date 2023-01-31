@@ -1,8 +1,9 @@
 package dto
 
 import (
-	"sso/internal/constant"
 	"time"
+
+	"sso/internal/constant"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
@@ -132,4 +133,18 @@ type AuthorizedClientsResponse struct {
 	AuthExpiresAt time.Time `json:"expires_at"`
 	// AuthScopes is the scopes this authorization is given access to
 	AuthScopes []Scope `json:"auth_scopes,omitempty"`
+}
+
+type ResetPasswordRequest struct {
+	ResetCode string `json:"reset_code"`
+	Password  string `json:"password"`
+	Phone     string `json:"phone"`
+}
+
+func (r ResetPasswordRequest) Validate() error {
+	return validation.ValidateStruct(&r,
+		validation.Field(&r.ResetCode, validation.Required.Error("reset code is required")),
+		validation.Field(&r.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
+		validation.Field(&r.Phone, validation.Required.Error("phone is required"), validation.By(validatePhone)),
+	)
 }

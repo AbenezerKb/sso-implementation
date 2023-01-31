@@ -27,6 +27,7 @@ require (
 	github.com/swaggo/swag v1.8.4
 	gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework v0.1.9
 	go.uber.org/zap v1.21.0
+	gorm.io/gorm v1.23.6
 )
 
 require (
@@ -63,7 +64,6 @@ require (
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/tools v0.1.12 // indirect
-	gorm.io/gorm v1.23.6 // indirect
 )
 
 require (

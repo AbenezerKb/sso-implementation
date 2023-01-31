@@ -12,20 +12,49 @@ import (
 	"github.com/google/uuid"
 )
 
+const changeUserPassword = `-- name: ChangeUserPassword :one
+UPDATE users
+set password = $1
+where phone = $2
+returning id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+`
+
+type ChangeUserPasswordParams struct {
+	Password string `json:"password"`
+	Phone    string `json:"phone"`
+}
+
+func (q *Queries) ChangeUserPassword(ctx context.Context, arg ChangeUserPasswordParams) (User, error) {
+	row := q.db.QueryRow(ctx, changeUserPassword, arg.Password, arg.Phone)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (
-    first_name,
-    middle_name,
-    last_name,
-    email,
-    phone,
-    user_name,
-    password,
-    gender,
-    profile_picture
-) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9
-)
+INSERT INTO users (first_name,
+                   middle_name,
+                   last_name,
+                   email,
+                   phone,
+                   user_name,
+                   password,
+                   gender,
+                   profile_picture)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
 
@@ -72,20 +101,17 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const createUserWithID = `-- name: CreateUserWithID :one
-INSERT INTO users (
-    id,
-    first_name,
-    middle_name,
-    last_name,
-    email,
-    user_name,
-    phone,
-    password,
-    gender,
-    profile_picture
-) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
-)
+INSERT INTO users (id,
+                   first_name,
+                   middle_name,
+                   last_name,
+                   email,
+                   user_name,
+                   phone,
+                   password,
+                   gender,
+                   profile_picture)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
 
@@ -134,7 +160,10 @@ func (q *Queries) CreateUserWithID(ctx context.Context, arg CreateUserWithIDPara
 }
 
 const deleteUser = `-- name: DeleteUser :one
-DELETE FROM users WHERE id = $1 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+DELETE
+FROM users
+WHERE id = $1
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -158,7 +187,9 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE email = $1
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+FROM users
+WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email sql.NullString) (User, error) {
@@ -182,7 +213,9 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email sql.NullString) (Use
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE id = $1
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+FROM users
+WHERE id = $1
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -206,7 +239,9 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE phone = $1
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+FROM users
+WHERE phone = $1
 `
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
@@ -230,7 +265,10 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 }
 
 const getUserByPhoneOrEmail = `-- name: GetUserByPhoneOrEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at FROM users WHERE phone = $1 OR email = $1
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+FROM users
+WHERE phone = $1
+   OR email = $1
 `
 
 func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User, error) {
@@ -254,7 +292,9 @@ func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User
 }
 
 const getUserStatus = `-- name: GetUserStatus :one
-SELECT status FROM users WHERE id = $1
+SELECT status
+FROM users
+WHERE id = $1
 `
 
 func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullString, error) {
@@ -266,7 +306,8 @@ func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullStri
 
 const updatePhone = `-- name: UpdatePhone :exec
 UPDATE users
-SET phone = $1 WHERE phone = $2
+SET phone = $1
+WHERE phone = $2
 `
 
 type UpdatePhoneParams struct {
@@ -281,17 +322,16 @@ func (q *Queries) UpdatePhone(ctx context.Context, arg UpdatePhoneParams) error 
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET
- first_name = coalesce($1, first_name),
- middle_name = coalesce($2, middle_name),
- last_name = coalesce($3, last_name),
- email = coalesce($4, email),
- phone = coalesce($5, phone),
- user_name = coalesce($6, user_name),
- password = coalesce($7, password),
- gender = coalesce($8, gender),
- status = coalesce($9, status),
- profile_picture = coalesce($10)
+SET first_name      = coalesce($1, first_name),
+    middle_name     = coalesce($2, middle_name),
+    last_name       = coalesce($3, last_name),
+    email           = coalesce($4, email),
+    phone           = coalesce($5, phone),
+    user_name       = coalesce($6, user_name),
+    password        = coalesce($7, password),
+    gender          = coalesce($8, gender),
+    status          = coalesce($9, status),
+    profile_picture = coalesce($10)
 WHERE id = $11
 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
@@ -344,13 +384,12 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 
 const updateUserByID = `-- name: UpdateUserByID :one
 UPDATE users
-SET
- first_name = $2,
- middle_name = $3,
- last_name = $4,
- status = $5,
- phone = $6,
- profile_picture = $7
+SET first_name      = $2,
+    middle_name     = $3,
+    last_name       = $4,
+    status          = $5,
+    phone           = $6,
+    profile_picture = $7
 WHERE id = $1
 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `

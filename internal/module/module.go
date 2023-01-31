@@ -24,6 +24,8 @@ type OAuthModule interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*dto.TokenResponse, error)
 	LoginWithIdentityProvider(ctx context.Context, login request_models.LoginWithIP, userDeviceAddress dto.UserDeviceAddress) (dto.TokenResponse, error)
 	GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error)
+	RequestResetCode(ctx context.Context, phone string) error
+	ResetPassword(ctx context.Context, request dto.ResetPasswordRequest) error
 }
 
 type OAuth2Module interface {

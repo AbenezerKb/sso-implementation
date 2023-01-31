@@ -412,6 +412,15 @@ definitions:
           It is currently of no use
         type: string
     type: object
+  dto.ResetPasswordRequest:
+    properties:
+      password:
+        type: string
+      phone:
+        type: string
+      reset_code:
+        type: string
+    type: object
   dto.ResourceServer:
     properties:
       created_at:
@@ -736,6 +745,34 @@ info:
   title: RidePLUS SSO API
   version: "0.1"
 paths:
+  /assets:
+    post:
+      consumes:
+      - multipart/form-data
+      description: uploads an asset file to the server storage
+      parameters:
+      - description: type
+        in: body
+        name: type
+        required: true
+        schema:
+          type: string
+      - description: asset
+        in: body
+        name: asset
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            type: string
+      summary: uploads an asset file to the server storage
+      tags:
+      - asset
   /clients:
     get:
       consumes:
@@ -1970,6 +2007,57 @@ paths:
           schema:
             $ref: '#/definitions/model.ErrorResponse'
       summary: get all identity providers.
+      tags:
+      - auth
+  /resetCode:
+    get:
+      consumes:
+      - application/json
+      description: is used to request reset code for forget password
+      parameters:
+      - description: phone
+        in: query
+        name: phone
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: Request reset code.
+      tags:
+      - auth
+  /resetPassword:
+    post:
+      consumes:
+      - application/json
+      description: is used to reset password for forgotten password.
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: boolean
+        "400":
+          description: invalid input
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: reset password.
       tags:
       - auth
   /resourceServers:

@@ -14,18 +14,16 @@ import (
 func InitRoute(
 	group *gin.RouterGroup,
 	asset rest.Asset,
-	auth middleware.AuthMiddleware,
+	_ middleware.AuthMiddleware,
 	enforcer *casbin.Enforcer,
 ) {
 	assetGroup := group.Group("assets")
 	assetGroup.Static("", "assets")
 	assetRoutes := []routing.Router{
 		{
-			Method:  http.MethodPost,
-			Handler: asset.UploadAsset,
-			Middlewares: []gin.HandlerFunc{
-				auth.Authentication(),
-			},
+			Method:      http.MethodPost,
+			Handler:     asset.UploadAsset,
+			Middlewares: []gin.HandlerFunc{},
 			UnAuthorize: true,
 		},
 	}

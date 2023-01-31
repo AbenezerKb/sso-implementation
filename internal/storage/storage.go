@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
@@ -25,6 +26,7 @@ type OAuthPersistence interface {
 	GetInternalRefreshTokensByUserID(ctx context.Context, userID uuid.UUID) ([]dto.InternalRefreshToken, error)
 	GetUserPassword(ctx context.Context, Id uuid.UUID) (string, error)
 	GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProvider, error)
+	ChangeUserPassword(ctx context.Context, phone, newPassword string) error
 }
 
 type OTPCache interface {
@@ -75,6 +77,12 @@ type AuthCodeCache interface {
 	SaveAuthCode(ctx context.Context, authCode dto.AuthCode) error
 	GetAuthCode(ctx context.Context, code string) (dto.AuthCode, error)
 	DeleteAuthCode(ctx context.Context, code string) error
+}
+
+type ResetCodeCache interface {
+	SaveResetCode(ctx context.Context, phone, code string) error
+	GetResetCode(ctx context.Context, phone string) (string, error)
+	DeleteResetCode(ctx context.Context, phone string) error
 }
 
 type ScopePersistence interface {
