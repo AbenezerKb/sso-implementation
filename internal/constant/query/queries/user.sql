@@ -91,6 +91,12 @@ RETURNING *;
 
 -- name: ChangeUserPassword :one
 UPDATE users
-set password = $1
-where phone = $2
-returning *;
+SET password = $1
+WHERE phone = $2
+RETURNING *;
+
+-- name: ChangeUserPasswordByID :one
+UPDATE users
+SET password = $1
+WHERE id = $2
+RETURNING *;

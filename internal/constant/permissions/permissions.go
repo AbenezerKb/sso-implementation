@@ -166,4 +166,9 @@ var (
 		Name:     "revoke user's role",
 		Category: "user",
 	}
+	ResetUserPassword = Permission{
+		ID:       "reset_user_password",
+		Name:     "reset user password",
+		Category: "user",
+	}
 )

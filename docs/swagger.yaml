@@ -2427,6 +2427,25 @@ paths:
       summary: get user details.
       tags:
       - user
+  /users/{id}/password:
+    patch:
+      consumes:
+      - application/json
+      description: resets user password
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: resets user password
+      tags:
+      - user
   /users/{id}/role:
     delete:
       consumes:
