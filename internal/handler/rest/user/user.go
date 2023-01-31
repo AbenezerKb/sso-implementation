@@ -198,6 +198,16 @@ func (u *user) RevokeUserRole(ctx *gin.Context) {
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
 
+// ResetUserPassword	 revokes the role from the user
+// @Summary      resets user password
+// @Description  resets user password
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Success      200
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users/{id}/password [patch]
+// @Security	BearerAuth
 func (u *user) ResetUserPassword(ctx *gin.Context) {
 	userID := ctx.Param("id")
 
