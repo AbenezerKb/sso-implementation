@@ -157,14 +157,15 @@ func (o *oauth) RequestOTP(ctx *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @param phone query string true "phone"
+// @param email query string true "email"
 // @Success      200  {boolean}  true
 // @Failure      400  {object}  model.ErrorResponse "invalid input"
 // @Router       /resetCode [get]
 func (o *oauth) RequestResetCode(ctx *gin.Context) {
-	err := o.oauthModule.RequestResetCode(ctx.Request.Context(), ctx.Query("phone"))
+	err := o.oauthModule.RequestResetCode(ctx.Request.Context(), ctx.Query("email"))
 	if err != nil {
 		_ = ctx.Error(err)
+
 		return
 	}
 

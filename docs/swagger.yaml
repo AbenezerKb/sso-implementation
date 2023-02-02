@@ -414,9 +414,9 @@ definitions:
     type: object
   dto.ResetPasswordRequest:
     properties:
-      password:
+      email:
         type: string
-      phone:
+      password:
         type: string
       reset_code:
         type: string
@@ -2015,9 +2015,9 @@ paths:
       - application/json
       description: is used to request reset code for forget password
       parameters:
-      - description: phone
+      - description: email
         in: query
-        name: phone
+        name: email
         required: true
         type: string
       produces:
