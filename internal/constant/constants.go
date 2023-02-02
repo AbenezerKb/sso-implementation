@@ -34,6 +34,8 @@ const (
 )
 
 const (
-	PromptNone    = "none"
-	PromptConsent = "consent"
+	PromptNone     = "none"
+	PromptConsent  = "consent"
+	PromptEmail    = "email"
+	PromptRegister = "register"
 )
