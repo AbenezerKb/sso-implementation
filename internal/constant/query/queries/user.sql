@@ -92,7 +92,7 @@ RETURNING *;
 -- name: ChangeUserPassword :one
 UPDATE users
 SET password = $1
-WHERE phone = $2
+WHERE email = $2
 RETURNING *;
 
 -- name: ChangeUserPasswordByID :one

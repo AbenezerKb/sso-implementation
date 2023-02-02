@@ -80,9 +80,9 @@ type AuthCodeCache interface {
 }
 
 type ResetCodeCache interface {
-	SaveResetCode(ctx context.Context, phone, code string) error
-	GetResetCode(ctx context.Context, phone string) (string, error)
-	DeleteResetCode(ctx context.Context, phone string) error
+	SaveResetCode(ctx context.Context, email, code string) error
+	GetResetCode(ctx context.Context, email string) (string, error)
+	DeleteResetCode(ctx context.Context, email string) error
 }
 
 type ScopePersistence interface {

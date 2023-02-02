@@ -6,6 +6,7 @@ import (
 	"sso/internal/constant"
 
 	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
 	"github.com/google/uuid"
 )
 
@@ -136,15 +137,18 @@ type AuthorizedClientsResponse struct {
 }
 
 type ResetPasswordRequest struct {
+	// ResetCode is the code sent from the forget password request
 	ResetCode string `json:"reset_code"`
-	Password  string `json:"password"`
-	Phone     string `json:"phone"`
+	// Password is the new password to be set
+	Password string `json:"password"`
+	// Email is the email of the user the password is to be reset for.
+	Email string `json:"email"`
 }
 
 func (r ResetPasswordRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.ResetCode, validation.Required.Error("reset code is required")),
 		validation.Field(&r.Password, validation.Required.Error("password is required"), validation.Length(6, 32).Error("password must be between 6 and 32 characters")),
-		validation.Field(&r.Phone, validation.Required.Error("phone is required"), validation.By(validatePhone)),
+		validation.Field(&r.Email, validation.Required.Error("email is required"), is.Email.Error("invalid email")),
 	)
 }

@@ -30,13 +30,13 @@ func InitMockResetCode(client *redis.Client, log logger.Logger, expireOn time.Du
 	}
 }
 
-func (c *resetCode) GetResetCode(ctx context.Context, phone string) (string, error) {
-	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, phone)
+func (c *resetCode) GetResetCode(ctx context.Context, email string) (string, error) {
+	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, email)
 	resetCodeResult, err := c.client.Get(ctx, resetCodeKey).Result()
 	if err != nil {
 		if err == redis.Nil {
 			err := errors.ErrNoRecordFound.Wrap(err, "no record of reset code found")
-			c.logger.Info(ctx, "reset code not found", zap.Error(err), zap.String("phone", phone))
+			c.logger.Info(ctx, "reset code not found", zap.Error(err), zap.String("email", email))
 			return "", err
 		}
 
@@ -48,24 +48,24 @@ func (c *resetCode) GetResetCode(ctx context.Context, phone string) (string, err
 	return resetCodeResult, nil
 }
 
-func (c *resetCode) SaveResetCode(ctx context.Context, phone, _ string) error {
-	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, phone)
+func (c *resetCode) SaveResetCode(ctx context.Context, email, _ string) error {
+	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, email)
 	err := c.client.Set(ctx, resetCodeKey, c.mockCode, c.expireOn).Err()
 	if err != nil {
 		err := errors.ErrCacheSetError.Wrap(err, "could not set reset code")
-		c.logger.Error(ctx, "could not set reset code", zap.Error(err), zap.Any("phone", phone))
+		c.logger.Error(ctx, "could not set reset code", zap.Error(err), zap.Any("email", email))
 		return err
 	}
 
 	return nil
 }
 
-func (c *resetCode) DeleteResetCode(ctx context.Context, phone string) error {
-	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, phone)
+func (c *resetCode) DeleteResetCode(ctx context.Context, email string) error {
+	resetCodeKey := fmt.Sprintf(state.ResetCodeKey, email)
 	err := c.client.Del(ctx, resetCodeKey).Err()
 	if err != nil {
 		err := errors.ErrCacheDel.Wrap(err, "could not delete reset code")
-		c.logger.Error(ctx, "could not delete reset code", zap.Error(err), zap.String("phone", phone))
+		c.logger.Error(ctx, "could not delete reset code", zap.Error(err), zap.String("email", email))
 		return err
 	}
 

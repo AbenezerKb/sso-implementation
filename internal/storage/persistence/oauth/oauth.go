@@ -361,15 +361,15 @@ func (o *oauth) GetAllIdentityProviders(ctx context.Context) ([]dto.IdentityProv
 	return idpPsDTO, nil
 }
 
-func (o *oauth) ChangeUserPassword(ctx context.Context, phone, newPassword string) error {
+func (o *oauth) ChangeUserPassword(ctx context.Context, email, newPassword string) error {
 	_, err := o.db.ChangeUserPassword(ctx, db.ChangeUserPasswordParams{
 		Password: newPassword,
-		Phone:    phone,
+		Email:    utils.StringOrNull(email),
 	})
 
 	if err != nil {
 		err = errors.ErrUpdateError.Wrap(err, "error updating user password")
-		o.logger.Error(ctx, "error while updating user password on reset password request", zap.Error(err), zap.String("phone", phone))
+		o.logger.Error(ctx, "error while updating user password on reset password request", zap.Error(err), zap.String("email", email))
 		return err
 	}
 

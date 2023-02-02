@@ -2010,8 +2010,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "phone",
-                        "name": "phone",
+                        "description": "email",
+                        "name": "email",
                         "in": "query",
                         "required": true
                     }
@@ -3324,10 +3324,10 @@ const docTemplate = `{
         "dto.ResetPasswordRequest": {
             "type": "object",
             "properties": {
-                "password": {
+                "email": {
                     "type": "string"
                 },
-                "phone": {
+                "password": {
                     "type": "string"
                 },
                 "reset_code": {

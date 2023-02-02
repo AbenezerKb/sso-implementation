@@ -19,7 +19,7 @@ type forgetPasswordTest struct {
 	test.TestInstance
 	apiTest src.ApiTest
 	User    db.User
-	phone   string
+	email   string
 }
 
 func TestChangePassword(t *testing.T) {
@@ -47,11 +47,11 @@ func (c *forgetPasswordTest) iHaveAUserAccountWithTheFollowingDetails(userDetail
 	return nil
 }
 
-func (c *forgetPasswordTest) iFillMyPhoneNumberAs(phone string) error {
-	c.phone = phone
+func (c *forgetPasswordTest) iFillMyEmailAs(email string) error {
+	c.email = email
 	c.apiTest.URL = "/v1/resetCode"
 	c.apiTest.Method = http.MethodGet
-	c.apiTest.SetQueryParam("phone", phone)
+	c.apiTest.SetQueryParam("email", email)
 	return nil
 }
 
@@ -68,7 +68,7 @@ func (c *forgetPasswordTest) iShouldSuccessfullyChangeMyPasswordUsingTheRequestC
 	c.apiTest.Method = http.MethodPost
 	c.apiTest.URL = "/v1/resetPassword"
 	c.apiTest.SetBodyMap(map[string]interface{}{
-		"phone":      c.phone,
+		"email":      c.email,
 		"password":   "somePass",
 		"reset_code": "123455",
 	})
@@ -95,7 +95,7 @@ func (c *forgetPasswordTest) iShouldFailChangeMyPasswordUsingAnIncorrectRequestC
 	c.apiTest.Method = http.MethodPost
 	c.apiTest.URL = "/v1/resetPassword"
 	c.apiTest.SetBodyMap(map[string]interface{}{
-		"phone":      c.phone,
+		"email":      c.email,
 		"password":   "somePass",
 		"reset_code": "invalid",
 	})
@@ -117,7 +117,7 @@ func (c *forgetPasswordTest) InitializeScenario(ctx *godog.ScenarioContext) {
 		return ctx, nil
 	})
 
-	ctx.Step(`^I fill my phone number as "([^"]*)"$`, c.iFillMyPhoneNumberAs)
+	ctx.Step(`^I fill my email as "([^"]*)"$`, c.iFillMyEmailAs)
 	ctx.Step(`^I have a user account with the following details$`, c.iHaveAUserAccountWithTheFollowingDetails)
 	ctx.Step(`^I request to have forgotten my password$`, c.iRequestToHaveForgottenMyPassword)
 	ctx.Step(`^I should fail change my password using an incorrect request code$`, c.iShouldFailChangeMyPasswordUsingAnIncorrectRequestCode)

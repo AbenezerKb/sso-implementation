@@ -15,17 +15,17 @@ import (
 const changeUserPassword = `-- name: ChangeUserPassword :one
 UPDATE users
 SET password = $1
-WHERE phone = $2
+WHERE email = $2
 RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
 `
 
 type ChangeUserPasswordParams struct {
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
+	Password string         `json:"password"`
+	Email    sql.NullString `json:"email"`
 }
 
 func (q *Queries) ChangeUserPassword(ctx context.Context, arg ChangeUserPasswordParams) (User, error) {
-	row := q.db.QueryRow(ctx, changeUserPassword, arg.Password, arg.Phone)
+	row := q.db.QueryRow(ctx, changeUserPassword, arg.Password, arg.Email)
 	var i User
 	err := row.Scan(
 		&i.ID,

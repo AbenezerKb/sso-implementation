@@ -9,7 +9,9 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/platform/utils"
 
-	"github.com/dongri/phonenumber"
+	validation "github.com/go-ozzo/ozzo-validation/v4"
+	"github.com/go-ozzo/ozzo-validation/v4/is"
+	"github.com/joomcode/errorx"
 	"go.uber.org/zap"
 )
 
@@ -26,9 +28,9 @@ func generateResetCode() string {
 	return string(randString)
 }
 
-func (o *oauth) generateResetCode(ctx context.Context, phone string) (string, error) {
+func (o *oauth) generateResetCode(ctx context.Context, email string) (string, error) {
 	// if there is an existing resetCode, use that instead of generating a new one
-	resetCode, err := o.resetCodeCache.GetResetCode(ctx, phone)
+	resetCode, err := o.resetCodeCache.GetResetCode(ctx, email)
 	if err == nil {
 		return resetCode, err
 	}
@@ -39,45 +41,47 @@ func (o *oauth) generateResetCode(ctx context.Context, phone string) (string, er
 	return generateResetCode(), nil
 }
 
-func (o *oauth) RequestResetCode(ctx context.Context, phone string) error {
-	phone = phonenumber.Parse(phone, "ET")
-	if phone == "" {
-		err := errors.ErrInvalidUserInput.New("invalid phone number")
-		o.logger.Info(ctx, "invalid phone number", zap.Error(err))
+func (o *oauth) RequestResetCode(ctx context.Context, email string) error {
+	if err := validation.Validate(email,
+		validation.Required.Error("email is required"),
+		is.Email.Error("invalid email")); err != nil {
+		err := errors.ErrInvalidUserInput.New("invalid input")
+		o.logger.Info(ctx, "invalid input", zap.Error(err))
+
 		return err
 	}
 
-	exists, err := o.oauthPersistence.UserByPhoneExists(ctx, phone)
+	user, err := o.oauthPersistence.GetUserByEmail(ctx, email)
 	if err != nil {
+		if errorx.IsOfType(err, errors.ErrNoRecordFound) {
+			return nil // hide the error for security
+		}
+
 		return err
 	}
-	if !exists {
-		err = errors.ErrNoRecordFound.New("user with this phone does not exists")
-		o.logger.Info(ctx, "user with this phone does not exists", zap.Error(err), zap.String("phone", phone))
-		return nil // hide the error for security
-	}
-	err = o.VerifyUserStatus(ctx, phone)
+
+	err = o.VerifyUserStatus(ctx, user.Phone)
 	if err != nil {
 		return err
 	}
 
-	resetCode, err := o.generateResetCode(ctx, phone)
+	resetCode, err := o.generateResetCode(ctx, user.Email)
 	if err != nil {
 		return err
 	}
-	err = o.resetCodeCache.SaveResetCode(ctx, phone, resetCode)
+	err = o.resetCodeCache.SaveResetCode(ctx, user.Email, resetCode)
 	if err != nil {
 		return err
 	}
-	err = o.smsClient.SendSMSWithTemplate(ctx, phone, "reset_code", resetCode)
+	err = o.smsClient.SendSMSWithTemplate(ctx, user.Phone, "reset_code", resetCode)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (o *oauth) verifyResetCode(ctx context.Context, phone string, resetCode string) error {
-	resetCodeFromCache, err := o.resetCodeCache.GetResetCode(ctx, phone)
+func (o *oauth) verifyResetCode(ctx context.Context, email string, resetCode string) error {
+	resetCodeFromCache, err := o.resetCodeCache.GetResetCode(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -92,7 +96,7 @@ func (o *oauth) verifyResetCode(ctx context.Context, phone string, resetCode str
 		return err
 	}
 
-	return o.resetCodeCache.DeleteResetCode(ctx, phone)
+	return o.resetCodeCache.DeleteResetCode(ctx, email)
 }
 
 func (o *oauth) ResetPassword(ctx context.Context, request dto.ResetPasswordRequest) error {
@@ -103,10 +107,8 @@ func (o *oauth) ResetPassword(ctx context.Context, request dto.ResetPasswordRequ
 		return err
 	}
 
-	request.Phone = phonenumber.Parse(request.Phone, "ET")
-
 	// check code
-	validCode, err := o.resetCodeCache.GetResetCode(ctx, request.Phone)
+	validCode, err := o.resetCodeCache.GetResetCode(ctx, request.Email)
 	if err != nil {
 		return err
 	}
@@ -123,10 +125,10 @@ func (o *oauth) ResetPassword(ctx context.Context, request dto.ResetPasswordRequ
 	if err != nil {
 		return err
 	}
-	err = o.resetCodeCache.DeleteResetCode(ctx, request.Phone)
+	err = o.resetCodeCache.DeleteResetCode(ctx, request.Email)
 	if err != nil {
 		return err
 	}
 
-	return o.oauthPersistence.ChangeUserPassword(ctx, request.Phone, passwordHash)
+	return o.oauthPersistence.ChangeUserPassword(ctx, request.Email, passwordHash)
 }
