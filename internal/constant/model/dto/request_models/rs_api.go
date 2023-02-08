@@ -2,6 +2,7 @@ package request_models
 
 import (
 	"fmt"
+
 	"github.com/dongri/phonenumber"
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/go-ozzo/ozzo-validation/v4/is"
@@ -24,9 +25,10 @@ type RSAPIUsersRequest struct {
 func (r RSAPIUsersRequest) Validate() error {
 	return validation.ValidateStruct(&r,
 		validation.Field(&r.IDs,
-			validation.When(len(r.Phones) == 0, validation.Required.Error("ids or phones is required")),
+			//validation.When(len(r.Phones) == 0, validation.Required.Error("ids or phones is required")),
 			validation.When(len(r.IDs) > 0, validation.Each(is.UUID))),
-		validation.Field(&r.Phones, validation.When(len(r.IDs) == 0, validation.Required.Error("ids or phones is required")),
+		validation.Field(&r.Phones,
+			//validation.When(len(r.IDs) == 0, validation.Required.Error("ids or phones is required")),
 			validation.When(len(r.Phones) > 0, validation.Each(validation.By(validatePhone)))),
 	)
 }
