@@ -8,36 +8,41 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	"sso/test"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/cucumber/godog"
 	"github.com/segmentio/kafka-go"
 	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
-	"go.uber.org/zap"
 )
 
 type processMiniRideEventsTest struct {
 	test.TestInstance
-	apiTest        src.ApiTest
-	StreamedEvents []kafkaEvent
-	Users          []dto.User
-}
-
-type kafkaEvent struct {
-	Event  string
-	Driver request_models.Driver
+	apiTest src.ApiTest
+	Users   []dto.User
 }
 
 func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
 	p.TestInstance = test.Initiate("../../../../")
-	p.apiTest = src.ApiTest{}
-	p.apiTest.InitializeTest(t, "process miniRide event's", "features/process_mini_ride_events.feature", p.InitializeScenario)
+	p.apiTest.InitializeServer(p.Server)
+	p.apiTest.RunTest(t,
+		"sync sso with ride-mini",
+		&src.TestOptions{
+			Paths: []string{"features/process_mini_ride_events.feature"},
+		},
+		p.InitializeScenario,
+		func(ctx *godog.TestSuiteContext) {
+			ctx.AfterSuite(func() {
+				if err := p.DBCleanUp(); err != nil {
+					t.Error(err)
+				}
+			})
+		},
+	)
 }
 
-func (p *processMiniRideEventsTest) theyAreTheFollowingUsersOnSso(users *godog.Table) error {
+func (p *processMiniRideEventsTest) thereAreTheFollowingUserDataOnSso(users *godog.Table) error {
 	usersJson, err := p.apiTest.ReadRows(users, nil, false)
 	if err != nil {
 		return err
@@ -86,81 +91,102 @@ func (p *processMiniRideEventsTest) theyAreTheFollowingUsersOnSso(users *godog.T
 	return nil
 }
 
-func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(events *godog.Table) error {
-	eventsString, err := p.apiTest.ReadRows(events, []src.Type{
+func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniData *godog.Table) error {
+
+	rows, err := p.apiTest.ReadRows(rideMiniData, []src.Type{
 		{
-			WithName: "driver",
-			Kind:     src.Object,
-			Columns:  []string{"first_name", "middle_name", "last_name", "phone", "profile_picture", "status", "swap_phones", "driverId", "id"},
+			Column: "event",
+			Ignore: true,
 		},
 		{
 			Column: "swap_phones",
 			Kind:   src.Array,
 		},
-	}, true)
+		{
+			Column: "id",
+			Kind:   src.String,
+		},
+		{
+			Column: "full_name",
+			Kind:   src.String,
+		},
+
+		{
+			Column: "driver_id",
+			Kind:   src.String,
+		},
+		{
+			Column: "driver_license",
+			Kind:   src.String,
+		},
+		{
+			Column: "phone",
+			Kind:   src.String,
+		},
+		{
+			Column: "profile_picture",
+			Kind:   src.String,
+		},
+		{
+			Column: "status",
+			Kind:   src.String,
+		},
+	}, false)
 	if err != nil {
+
+		return err
+	}
+	eventsString, err := p.apiTest.ReadRows(rideMiniData, []src.Type{
+		{
+			Column: "event",
+			Kind:   src.String,
+		}}, false)
+	if err != nil {
+
 		return err
 	}
 
-	err = p.apiTest.UnmarshalJSON([]byte(eventsString), &p.StreamedEvents)
+	var eventStringArray []struct {
+		Event string `json:"event"`
+	}
+
+	err = p.apiTest.UnmarshalJSON([]byte(eventsString), &eventStringArray)
 	if err != nil {
+
 		return err
 	}
-	defer p.KafkaConn.Close()
-	for i := 0; i < len(p.StreamedEvents); i++ {
-		msg, err := json.Marshal(p.StreamedEvents[i].Driver)
+	rideMiniDrivers := []request_models.MiniRideDriverResponse{}
+	err = p.apiTest.UnmarshalJSON([]byte(rows), &rideMiniDrivers)
+	if err != nil {
+
+		return err
+	}
+	messages := []kafka.Message{}
+	for i := 0; i < len(rideMiniDrivers); i++ {
+
+		rideminiDriver, err := json.Marshal(rideMiniDrivers[i])
 		if err != nil {
+
 			return err
 		}
-
-		_, err = p.KafkaConn.WriteMessages(kafka.Message{
-			Key:   []byte(p.StreamedEvents[i].Event),
-			Value: msg,
+		messages = append(messages, kafka.Message{
+			Key:   []byte(eventStringArray[i].Event),
+			Value: rideminiDriver,
 		})
-		if err != nil {
-			return err
-		}
 	}
 
+	_, err = p.KafkaConn.WriteMessages(messages...)
+	if err != nil {
+
+		return err
+	}
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-
-	t := time.NewTicker(1 * time.Second)
-	wg := new(sync.WaitGroup)
-
-	defer func() {
-		err := p.KafkaReader.Close()
-		if err != nil {
-			p.Logger.Info(context.Background(), "error closing")
-			return
-		}
-	}()
-
-	for range t.C {
-		ctx, _ := context.WithTimeout(context.Background(), time.Duration(time.Second*5))
-
-		msg, err := p.KafkaReader.ReadMessage(ctx)
-		if err != nil {
-			p.Logger.Info(context.Background(), "error in kafka read message", zap.Error(err))
-			break
-		}
-
-		var rsp request_models.MinRideEvent
-		rsp.Event = string(msg.Key)
-		err = json.Unmarshal(msg.Value, &rsp.Driver)
-		if err != nil {
-			return err
-		}
-		wg.Add(1)
-		go p.Module.MiniRideModule.ProcessEvents(context.Background(), &rsp, wg)
-	}
-
-	wg.Wait()
+	time.Sleep(time.Second)
 	return nil
 }
-
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
 	usersJson, err := p.apiTest.ReadRows(users, nil, false)
 	if err != nil {
@@ -202,19 +228,8 @@ func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users 
 }
 
 func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		for i := 0; i < len(p.Users); i++ {
-			_, _ = p.DB.DeleteUser(ctx, p.Users[i].ID)
-		}
-		for i := 0; i < len(p.StreamedEvents); i++ {
-			if p.StreamedEvents[i].Event == "CREATE" {
-				_, _ = p.DB.DeleteUser(ctx, p.StreamedEvents[i].Driver.ID)
-			}
-		}
-		return ctx, nil
-	})
 	ctx.Step(`^I process those event\'s$`, p.iProcessThoseEvents)
 	ctx.Step(`^mini ride streamed the following event\'s$`, p.miniRideStreamedTheFollowingEvents)
-	ctx.Step(`^they are the following user\'s on sso$`, p.theyAreTheFollowingUsersOnSso)
+	ctx.Step(`^there are the following user data on sso$`, p.thereAreTheFollowingUserDataOnSso)
 	ctx.Step(`^they will have effect on following sso user\'s$`, p.theyWillHaveEffectOnFollowingSsoUsers)
 }

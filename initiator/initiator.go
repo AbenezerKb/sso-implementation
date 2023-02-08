@@ -93,6 +93,8 @@ func Initiate() {
 	log.Info(context.Background(), "initializing module")
 	module := InitModule(persistence, cacheLayer, viper.GetString("private_key"), platformLayer, log, enforcer, state)
 	log.Info(context.Background(), "module initialized")
+	platformLayer.Kafka.RegisterKafkaEventHandler(string("CREATE"), module.MiniRideModule.CreateUser)
+	platformLayer.Kafka.RegisterKafkaEventHandler(string("UPDATE"), module.MiniRideModule.UpdateUser)
 
 	log.Info(context.Background(), "initializing handler")
 	handler := InitHandler(module, log)

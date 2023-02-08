@@ -1,8 +1,6 @@
 package initiator
 
 import (
-	"context"
-
 	"sso/internal/module"
 	"sso/internal/module/asset"
 	"sso/internal/module/client"
@@ -40,7 +38,6 @@ type Module struct {
 
 func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string, platformLayer PlatformLayer, log logger.Logger, enforcer *casbin.Enforcer, state State) Module {
 	miniRideModule := mini_ride.InitMinRide(log, persistence.MiniRidePersistence, platformLayer.Kafka)
-	go miniRideModule.ListenMiniRideEvent(context.Background())
 
 	return Module{
 		userModule: user.Init(
@@ -97,6 +94,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
 		rsAPI:            rs_api.Init(log.Named("rs_api_module"), persistence.UserPersistence),
 		asset:            asset.Init(log.Named("asset-module"), platformLayer.Asset, state.UploadParams),
+		MiniRideModule:   miniRideModule,
 	}
 }
 

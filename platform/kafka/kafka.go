@@ -1,69 +1,115 @@
-package kafka_consumer
+package kafkaconsumer
 
 import (
 	"context"
 	"encoding/json"
+
 	"sso/internal/constant/errors"
-	"sso/internal/constant/model/dto/request_models"
-	"sso/platform"
 	"sso/platform/logger"
-	"strings"
 
 	kafka "github.com/segmentio/kafka-go"
 	"go.uber.org/zap"
 )
 
+// EventHandler is a function signature that is used to affect messages on the socket and triggered
+// depending on the type
+type EventHandler func(ctx context.Context, event json.RawMessage) error
+type Kafka interface {
+	RegisterKafkaEventHandler(EventType string, handler EventHandler)
+	Close() error
+}
 type kafkaClient struct {
-	kafkaURL    string
-	topic       string
-	kafkaReader *kafka.Reader
-	log         logger.Logger
-	groupID     string
+	kafkaURL      string
+	topic         string
+	kafkaConn     *kafka.Conn
+	log           logger.Logger
+	groupID       string
+	maxBytes      int
+	eventHandlers map[string]EventHandler
 }
 
-func NewKafkaConnection(kafkaURL, topic, groupID string, log logger.Logger) platform.Kafka {
-	kafkaClient := kafkaClient{
-		kafkaURL: kafkaURL,
-		topic:    topic,
-		groupID:  groupID,
-		log:      log,
+func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
+	conn, err := kafka.DialLeader(context.Background(), "tcp", kafkaURL, topic, 0)
+	if err != nil {
+		log.Error(context.Background(), "failed not dail kafka leader", zap.Error(err))
+		return nil
 	}
-	kafkaReader := kafkaClient.getKafkaReader()
-	kafkaClient.kafkaReader = kafkaReader
+	kafkaClient := kafkaClient{
+		kafkaURL:      kafkaURL,
+		topic:         topic,
+		groupID:       groupID,
+		log:           log,
+		maxBytes:      maxBytes,
+		eventHandlers: make(map[string]EventHandler),
+	}
+	kafkaClient.kafkaConn = conn
+	// run the read message
+	go kafkaClient.readMessage(context.Background())
 	return &kafkaClient
 }
-
-func (k *kafkaClient) getKafkaReader() *kafka.Reader {
-	brokers := strings.Split(k.kafkaURL, ",")
-	return kafka.NewReader(kafka.ReaderConfig{
-		Brokers: brokers,
-		Topic:   k.topic,
-		GroupID: k.groupID,
-	})
+func (k *kafkaClient) RegisterKafkaEventHandler(EventType string, handler EventHandler) {
+	// event handlers for kafka event rypes
+	h, ok := k.eventHandlers[EventType]
+	if ok {
+		k.log.Warn(context.Background(), "kafka event handler is being over written by a new event handler",
+			zap.Any("old-handler:", h), zap.Any("new-handler:", handler))
+	}
+	k.eventHandlers[EventType] = handler
 }
 
 func (k *kafkaClient) Close() error {
-	return k.kafkaReader.Close()
+	return k.kafkaConn.Close()
 }
 
-func (k *kafkaClient) ReadMessage(ctx context.Context) (*request_models.MinRideEvent, error) {
-	var rsp request_models.MinRideEvent
-	msg, err := k.kafkaReader.ReadMessage(ctx)
-	if err != nil {
-		err = errors.ErrKafkaRead.Wrap(err, "couldn't read kafka event")
-		k.log.Debug(context.Background(), "couldn't read message from kafka", zap.Error(err))
-		return nil, err
+// routeEvent is used to make sure the correct event goes into the correct handler
+func (k *kafkaClient) routeEvent(ctx context.Context, payload kafka.Message) error {
+	// Marshal incoming data into a Event struct
+	var request json.RawMessage
+	if err := json.Unmarshal(payload.Value, &request); err != nil {
+		err = errors.ErrInvalidUserInput.Wrap(err, "invalid message data")
+		k.log.Info(ctx, "tried to read invalid message data", zap.Error(err))
+		return err
 	}
-
-	rsp.Event = string(msg.Key)
-
-	err = json.Unmarshal(msg.Value, &rsp.Driver)
-	if err != nil {
-		err = errors.ErrKafkaInvalidEvent.Wrap(err, "couldn't unmarshal kafka key")
-		k.log.Error(context.Background(), "couldn't unmarshal kafka value", zap.Any("value", msg.Value))
-		return nil, err
+	handler, ok := k.eventHandlers[string(payload.Key)]
+	if !ok {
+		err := errors.ErrKafkaInvalidEvent.New("this event does not have a handler set:%v", string(payload.Key))
+		k.log.Warn(ctx, "unsupported event by kafka handlers", zap.Error(err))
+		return err
 	}
-	k.log.Info(ctx, "successFully read message from kafka", zap.Any("msg", rsp))
+	// Execute the handler and return any nil
+	err := handler(ctx, request)
+	if err != nil {
+		return err
+	}
+	return nil
 
-	return &rsp, nil
+}
+
+// this should be run on a go routine
+func (k *kafkaClient) readMessage(ctx context.Context) {
+	// read the message and route to the correct handler
+	defer func() {
+		// Graceful Close the Connection once this
+		// function is done
+		k.Close()
+	}()
+
+	// Loop Forever
+	for {
+
+		payload, err := k.kafkaConn.ReadMessage(k.maxBytes)
+		if err != nil {
+			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
+			return
+		}
+		if payload.Value == nil {
+			k.log.Warn(ctx, "kafka sent empty message", zap.Any("key:", payload.Key))
+			continue
+		}
+
+		if err := k.routeEvent(ctx, payload); err != nil {
+			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
+		}
+
+	}
 }

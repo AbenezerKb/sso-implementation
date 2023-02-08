@@ -2,8 +2,8 @@ package module
 
 import (
 	"context"
+	"encoding/json"
 	"mime/multipart"
-	"sync"
 
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
@@ -84,8 +84,8 @@ type ResourceServerModule interface {
 }
 
 type MiniRideModule interface {
-	ListenMiniRideEvent(ctx context.Context)
-	ProcessEvents(ctx context.Context, miniRideEvent *request_models.MinRideEvent, wg *sync.WaitGroup)
+	CreateUser(ctx context.Context, data json.RawMessage) error
+	UpdateUser(ctx context.Context, data json.RawMessage) error
 	CheckPhone(ctx context.Context, phone string) (*dto.MiniRideResponse, error)
 }
 
