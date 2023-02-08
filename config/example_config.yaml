@@ -77,7 +77,7 @@ kafka:
   topic: example-topic
   url: kafka:9092
   group_id: test
-
+  max_read_bytes: 5000
 mini_ride:
   username: mini-ride
   password: fbL50Wgr1E7o3vvmR
