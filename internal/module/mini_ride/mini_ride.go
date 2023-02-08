@@ -50,15 +50,15 @@ func (m *miniRide) parseRideMiniResponse(ctx context.Context, rideMiniData []byt
 		ProfilePicture: rideMiniResponse.ProfilePicture,
 		SwapPhones:     rideMiniResponse.SwapPhones,
 	}
-	for i, n := range names {
+	for i := range names {
 		if i == 0 {
-			result.FirstName = n
+			result.FirstName = names[0]
 		}
 		if i == 1 {
-			result.MiddleName = n
+			result.MiddleName = names[1]
 		}
 		if i == 2 {
-			result.LastName = n
+			result.LastName = names[2]
 		}
 	}
 	return result, nil
