@@ -184,7 +184,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
