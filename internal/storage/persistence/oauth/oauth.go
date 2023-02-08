@@ -272,6 +272,12 @@ func (o *oauth) UpdateInternalRefreshToken(ctx context.Context, oldToken, newTok
 		RefreshToken_2: newToken,
 	})
 	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "refresh token not found")
+			o.logger.Warn(ctx, "refresh token was not found while trying to update the refresh token")
+
+			return nil, err
+		}
 		err := errors.ErrWriteError.Wrap(err, "unable to update the refresh token")
 		o.logger.Error(ctx, "error updating the user refresh token", zap.Error(err), zap.String("old-token", oldToken), zap.String("new-token", newToken))
 		return nil, err
