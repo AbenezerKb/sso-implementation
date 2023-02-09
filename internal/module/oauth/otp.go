@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+
 	"sso/internal/constant/errors"
 
 	"github.com/dongri/phonenumber"
@@ -88,14 +89,30 @@ func (o *oauth) RequestOTP(ctx context.Context, phone string, rqType string) err
 	if err != nil {
 		return err
 	}
+
+	var defaultFound bool
+
+	for _, v := range o.options.ExcludedPhones.Phones {
+		if phone == v {
+			otp = o.options.ExcludedPhones.DefaultOTP
+			defaultFound = true
+
+			break
+		}
+	}
+
 	err = o.otpCache.SetOTP(ctx, phone, otp)
 	if err != nil {
 		return err
 	}
-	err = o.smsClient.SendSMSWithTemplate(ctx, phone, "otp", otp)
-	if err != nil {
-		return err
+
+	if !defaultFound || o.options.ExcludedPhones.SendSMS {
+		err = o.smsClient.SendSMSWithTemplate(ctx, phone, "otp", otp)
+		if err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 

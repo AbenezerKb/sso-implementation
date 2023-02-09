@@ -93,3 +93,9 @@ assets:
       - jpg
       - jpeg
     max_size: 2000001 # bytes
+
+excluded_phones:
+  send_sms: false
+  default_otp: "000000"
+  phones:
+    - 0912121212
