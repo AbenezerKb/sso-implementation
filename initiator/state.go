@@ -8,12 +8,15 @@ import (
 	"sso/platform/asset"
 	"sso/platform/logger"
 
+	"github.com/dongri/phonenumber"
 	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 type State struct {
-	URLs         state.URLs
-	UploadParams state.UploadParams
+	URLs           state.URLs
+	UploadParams   state.UploadParams
+	ExcludedPhones state.ExcludedPhones
 }
 
 func InitState(logger logger.Logger) State {
@@ -52,6 +55,25 @@ func InitState(logger logger.Logger) State {
 	if err != nil {
 		logger.Fatal(context.Background(), "unable to parse frontend.logout_url")
 	}
+
+	phones := viper.GetStringSlice("excluded_phones.phones")
+	defaultOTP := viper.GetString("excluded_phones.default_otp")
+	sendSMS := viper.GetBool("excluded_phones.send_sms")
+
+	logger.Info(context.Background(), "using default otp",
+		zap.String("default-otp", defaultOTP),
+		zap.Bool("send-sms", sendSMS))
+
+	for k, v := range phones {
+		phone := phonenumber.Parse(v, "ET")
+		if phone == "" {
+			logger.Fatal(context.Background(),
+				"invalid phone number for excluded phones", zap.String("phone", v))
+		}
+
+		phones[k] = phone
+	}
+
 	return State{
 		URLs: state.URLs{
 			ErrorURL:   errorURL,
@@ -61,5 +83,10 @@ func InitState(logger logger.Logger) State {
 		UploadParams: asset.SetParams(logger, state.UploadParams{
 			FileTypes: fileTypes,
 		}),
+		ExcludedPhones: state.ExcludedPhones{
+			DefaultOTP: defaultOTP,
+			Phones:     phones,
+			SendSMS:    sendSMS,
+		},
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	"sso/internal/constant/state"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -40,6 +41,7 @@ type Options struct {
 	AccessTokenExpireTime  time.Duration
 	RefreshTokenExpireTime time.Duration
 	IDTokenExpireTime      time.Duration
+	ExcludedPhones         state.ExcludedPhones
 }
 
 func SetOptions(options Options) Options {
@@ -51,6 +53,9 @@ func SetOptions(options Options) Options {
 	}
 	if options.IDTokenExpireTime == 0 {
 		options.IDTokenExpireTime = time.Minute * 10
+	}
+	if options.ExcludedPhones.DefaultOTP == "" {
+		options.ExcludedPhones.DefaultOTP = "000000"
 	}
 	return options
 }

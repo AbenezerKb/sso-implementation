@@ -55,3 +55,9 @@ func (f *FileType) SetValues(values map[string]any) {
 		f.MaxSize = int64(size)
 	}
 }
+
+type ExcludedPhones struct {
+	DefaultOTP string
+	Phones     []string
+	SendSMS    bool
+}
