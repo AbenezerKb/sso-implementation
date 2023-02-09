@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/segmentio/kafka-go"
 	"net/http"
 	"os"
 	"sso/initiator"
@@ -18,6 +16,9 @@ import (
 	"sso/platform/rand"
 	"sso/platform/utils"
 	"strings"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/segmentio/kafka-go"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -126,7 +127,8 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "initializing module")
 	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state, path)
 	log.Info(context.Background(), "module initialized")
-
+	platformLayer.Kafka.RegisterKafkaEventHandler(string("CREATE"), module.MiniRideModule.CreateUser)
+	platformLayer.Kafka.RegisterKafkaEventHandler(string("UPDATE"), module.MiniRideModule.UpdateUser)
 	log.Info(context.Background(), "initializing handler")
 	handler := initiator.InitHandler(module, log)
 	log.Info(context.Background(), "handler initialized")

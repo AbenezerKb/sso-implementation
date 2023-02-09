@@ -25,7 +25,7 @@ import (
 type PlatformLayer struct {
 	Sms    platform.SMSClient
 	Token  platform.Token
-	Kafka  platform.Kafka
+	Kafka  kafka_consumer.Kafka
 	SelfIP platform.IdentityProvider
 	Asset  platform.Asset
 }
@@ -51,7 +51,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
+		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
 		SelfIP: self.Init(),
 		Asset:  asset.Init(logger.Named("asset-platform"), "assets"),
 	}
@@ -66,7 +66,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), logger),
+		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
 		SelfIP: identityProvider.InitIP("some_id", "some_secret", "veryLegitCode", "legitAccessToken", dto.UserInfo{
 			FirstName: "john",
 			Email:     "john@gmail.com",

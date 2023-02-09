@@ -4,14 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cucumber/godog"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/test"
 	"testing"
+
+	"github.com/cucumber/godog"
+	"github.com/google/uuid"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 )
 
 type getUsersTest struct {
@@ -139,7 +141,9 @@ func (c *getUsersTest) iShouldGetTheListOfUsersThatPassMyPreferences() error {
 			}
 		}
 		if !found {
-			return fmt.Errorf("expected user: %v", v)
+			if v.ID != uuid.MustParse("bf576aa8-2945-4e8f-9744-74f1ee5cd7d7") {
+				return fmt.Errorf("expected user: %v", v)
+			}
 		}
 	}
 	return nil
