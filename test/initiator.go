@@ -46,6 +46,7 @@ type TestInstance struct {
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
 	KafkaConn          *kafka.Conn
+	KafkaWriter        *kafka.Writer
 	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
@@ -152,7 +153,7 @@ func Initiate(path string) TestInstance {
 
 	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	AddOffset(kafkaConn, kafkaReader)
-
+	kafkaWriter := kafkaWriter(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -165,6 +166,7 @@ func Initiate(path string) TestInstance {
 		CacheLayer:    cacheLayer,
 		KafkaConn:     kafkaConn,
 		KafkaReader:   kafkaReader,
+		KafkaWriter:   kafkaWriter,
 		PersistDB:     persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
@@ -372,7 +374,15 @@ func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	})
 	return reader
 }
-
+func kafkaWriter(address, topic, groupID string) *kafka.Writer {
+	brokers := strings.Split(address, ",")
+	w := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:  brokers,
+		Topic:    topic,
+		Balancer: &kafka.LeastBytes{},
+	})
+	return w
+}
 func AddOffset(kafkaConn *kafka.Conn, reader *kafka.Reader) {
 	var dialer kafka.Dialer
 	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})

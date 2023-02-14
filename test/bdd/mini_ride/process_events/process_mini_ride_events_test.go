@@ -163,7 +163,6 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 	}
 	messages := []kafka.Message{}
 	for i := 0; i < len(rideMiniDrivers); i++ {
-
 		rideminiDriver, err := json.Marshal(rideMiniDrivers[i])
 		if err != nil {
 
@@ -174,8 +173,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
-
-	_, err = p.KafkaConn.WriteMessages(messages...)
+	err = p.KafkaWriter.WriteMessages(context.Background(), messages...)
 	if err != nil {
 
 		return err

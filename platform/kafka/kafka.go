@@ -51,7 +51,9 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		eventHandlers: make(map[string]EventHandler),
 	}
 	kafkaClient.kafkaConn = conn
+	lastOffset, _ := conn.ReadLastOffset()
 	kafkaClient.kafkaReader = r
+	kafkaClient.kafkaReader.SetOffset(lastOffset)
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
 	return &kafkaClient
