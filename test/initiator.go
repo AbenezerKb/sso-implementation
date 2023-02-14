@@ -45,7 +45,6 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
-	KafkaConn          *kafka.Conn
 	KafkaWriter        *kafka.Writer
 	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
@@ -149,10 +148,8 @@ func Initiate(path string) TestInstance {
 	v1 := server.Group("/v1")
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
-	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
 
 	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
-	AddOffset(kafkaConn, kafkaReader)
 	kafkaWriter := kafkaWriter(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	return TestInstance{
 		Server:        server,
@@ -164,7 +161,6 @@ func Initiate(path string) TestInstance {
 		Conn:          testConn,
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
-		KafkaConn:     kafkaConn,
 		KafkaReader:   kafkaReader,
 		KafkaWriter:   kafkaWriter,
 		PersistDB:     persistDB,
@@ -357,14 +353,6 @@ func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, err
 	return user, nil
 }
 
-func kafkaConn(address, topic string) *kafka.Conn {
-	KafkaConn, err := kafka.DialLeader(context.Background(), "tcp", address, topic, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return KafkaConn
-}
-
 func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	brokers := strings.Split(address, ",")
 	reader := kafka.NewReader(kafka.ReaderConfig{
@@ -382,10 +370,4 @@ func kafkaWriter(address, topic, groupID string) *kafka.Writer {
 		Balancer: &kafka.LeastBytes{},
 	})
 	return w
-}
-func AddOffset(kafkaConn *kafka.Conn, reader *kafka.Reader) {
-	var dialer kafka.Dialer
-	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
-	lastOffset, _ := conn.ReadLastOffset()
-	reader.SetOffset(lastOffset)
 }
