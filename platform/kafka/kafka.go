@@ -22,6 +22,7 @@ type kafkaClient struct {
 	kafkaURL      string
 	topic         string
 	kafkaConn     *kafka.Conn
+	kafkaReader   *kafka.Reader
 	log           logger.Logger
 	groupID       string
 	maxBytes      int
@@ -34,6 +35,13 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		log.Error(context.Background(), "failed not dail kafka leader", zap.Error(err))
 		return nil
 	}
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:   []string{kafkaURL},
+		Topic:     topic,
+		Partition: 0,
+		MinBytes:  10e3, // 10KB
+		MaxBytes:  10e6, // 10MB
+	})
 	kafkaClient := kafkaClient{
 		kafkaURL:      kafkaURL,
 		topic:         topic,
@@ -43,6 +51,7 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		eventHandlers: make(map[string]EventHandler),
 	}
 	kafkaClient.kafkaConn = conn
+	kafkaClient.kafkaReader = r
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
 	return &kafkaClient
@@ -58,7 +67,7 @@ func (k *kafkaClient) RegisterKafkaEventHandler(EventType string, handler EventH
 }
 
 func (k *kafkaClient) Close() error {
-	return k.kafkaConn.Close()
+	return k.kafkaReader.Close()
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -97,7 +106,7 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 	// Loop Forever
 	for {
 
-		payload, err := k.kafkaConn.ReadMessage(k.maxBytes)
+		payload, err := k.kafkaReader.ReadMessage(ctx)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
 			return
