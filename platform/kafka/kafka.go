@@ -3,7 +3,6 @@ package kafkaconsumer
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	"sso/internal/constant/errors"
 	"sso/internal/storage"
@@ -48,12 +47,14 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		maxBytes:      maxBytes,
 		eventHandlers: make(map[string]EventHandler),
 	}
-	// r.SetOffset()
 	offset, err := kafkaClient.offsetStore.GetOffset(context.Background())
 	if err != nil {
 		log.Fatal(context.Background(), "unable to get offset for kafka connection", zap.Error(err))
 	}
-	kafkaClient.kafkaConn.Seek(offset, kafka.SeekStart)
+	_, err = kafkaClient.kafkaConn.Seek(offset, kafka.SeekStart)
+	if err != nil {
+		log.Fatal(context.Background(), "unable to get offset for kafka connection", zap.Error(err))
+	}
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
 	return kafkaClient
@@ -115,15 +116,11 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 			k.log.Warn(ctx, "kafka sent empty message", zap.Any("key:", payload.Key))
 			continue
 		}
-		lastOffset, err := k.kafkaConn.ReadLastOffset()
+		err = k.offsetStore.SetOffset(ctx, payload.Offset+1)
 		if err != nil {
-			log.Fatal("read last offset faild")
+			err = errors.ErrInternalServerError.Wrap(err, "faild to set offset for sso consumer")
+			k.log.Error(ctx, "faild to set consumer offset", zap.Error(err))
 		}
-		err = k.offsetStore.SetOffset(ctx, lastOffset)
-		if err != nil {
-			log.Fatal("faild to set offset")
-		}
-		log.Printf("last offset %v", lastOffset)
 		if err := k.routeEvent(ctx, payload); err != nil {
 			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
 		}
