@@ -16,9 +16,11 @@ import (
 	"sso/platform/rand"
 	"sso/platform/utils"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
+	"go.uber.org/zap"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -45,8 +47,7 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
-	KafkaWriter        *kafka.Writer
-	KafkaReader        *kafka.Reader
+	KafkaConn          *kafka.Conn
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error
@@ -148,9 +149,10 @@ func Initiate(path string) TestInstance {
 	v1 := server.Group("/v1")
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
-
-	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
-	kafkaWriter := kafkaWriter(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
+	conn, err := kafka.DialLeader(context.Background(), "tcp", viper.GetString("kafka.url"), viper.GetString("kafka.topic"), 0)
+	if err != nil {
+		log.Fatal(context.Background(), "failed to dial leader:", zap.Error(err))
+	}
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -160,9 +162,8 @@ func Initiate(path string) TestInstance {
 		Logger:        log,
 		Conn:          testConn,
 		PlatformLayer: platformLayer,
+		KafkaConn:     conn,
 		CacheLayer:    cacheLayer,
-		KafkaReader:   kafkaReader,
-		KafkaWriter:   kafkaWriter,
 		PersistDB:     persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
@@ -364,10 +365,14 @@ func kafkaReader(address, topic, groupID string) *kafka.Reader {
 }
 func kafkaWriter(address, topic, groupID string) *kafka.Writer {
 	brokers := strings.Split(address, ",")
+	dialer := &kafka.Dialer{
+		Timeout: 10 * time.Second,
+	}
 	w := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  brokers,
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
+		Dialer:   dialer,
 	})
 	return w
 }

@@ -51,9 +51,7 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		eventHandlers: make(map[string]EventHandler),
 	}
 	kafkaClient.kafkaConn = conn
-	lastOffset, _ := conn.ReadLastOffset()
 	kafkaClient.kafkaReader = r
-	kafkaClient.kafkaReader.SetOffset(lastOffset)
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
 	return &kafkaClient
@@ -69,7 +67,7 @@ func (k *kafkaClient) RegisterKafkaEventHandler(EventType string, handler EventH
 }
 
 func (k *kafkaClient) Close() error {
-	return k.kafkaReader.Close()
+	return k.kafkaConn.Close()
 }
 
 // routeEvent is used to make sure the correct event goes into the correct handler
@@ -108,7 +106,7 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 	// Loop Forever
 	for {
 
-		payload, err := k.kafkaReader.ReadMessage(ctx)
+		payload, err := k.kafkaConn.ReadMessage(k.maxBytes)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
 			return
