@@ -226,6 +226,13 @@ func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users 
 }
 
 func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContext) {
+	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		kerr := p.KafkaConn.DeleteTopics("example-topic")
+		if err != nil {
+			return ctx, kerr
+		}
+		return ctx, nil
+	})
 	ctx.Step(`^I process those event\'s$`, p.iProcessThoseEvents)
 	ctx.Step(`^mini ride streamed the following event\'s$`, p.miniRideStreamedTheFollowingEvents)
 	ctx.Step(`^there are the following user data on sso$`, p.thereAreTheFollowingUserDataOnSso)
