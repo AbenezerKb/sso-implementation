@@ -73,6 +73,10 @@ type IpAccessToken struct {
 	UpdatedAt    time.Time      `json:"updated_at"`
 }
 
+type KafkaOffset struct {
+	OffsetVal int32 `json:"offset_val"`
+}
+
 type RefreshToken struct {
 	ID           uuid.UUID      `json:"id"`
 	RefreshToken string         `json:"refresh_token"`

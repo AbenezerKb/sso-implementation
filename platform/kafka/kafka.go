@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"log"
-	"time"
 
 	"sso/internal/constant/errors"
+	"sso/internal/storage"
 	"sso/platform/logger"
 
 	kafka "github.com/segmentio/kafka-go"
@@ -24,45 +24,39 @@ type kafkaClient struct {
 	kafkaURL      string
 	topic         string
 	kafkaConn     *kafka.Conn
-	kafkaReader   *kafka.Reader
 	log           logger.Logger
+	offsetStore   storage.Kafka
 	groupID       string
 	maxBytes      int
 	eventHandlers map[string]EventHandler
 }
 
-func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
+func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger, offsetPersitence storage.Kafka) Kafka {
 	conn, err := kafka.DialLeader(context.Background(), "tcp", kafkaURL, topic, 0)
 	if err != nil {
 		log.Error(context.Background(), "failed not dail kafka leader", zap.Error(err))
 		return nil
 	}
-	dialer := &kafka.Dialer{
-		Timeout: 10 * time.Second,
-	}
-	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   []string{kafkaURL},
-		Topic:     topic,
-		Partition: 0,
-		GroupID:   groupID,
-		Dialer:    dialer,
-		MinBytes:  10e3, // 10KB
-		MaxBytes:  10e6, // 10MB
-	})
-	kafkaClient := kafkaClient{
+
+	kafkaClient := &kafkaClient{
 		kafkaURL:      kafkaURL,
 		topic:         topic,
 		groupID:       groupID,
 		log:           log,
 		kafkaConn:     conn,
-		kafkaReader:   r,
+		offsetStore:   offsetPersitence,
 		maxBytes:      maxBytes,
 		eventHandlers: make(map[string]EventHandler),
 	}
-
+	// r.SetOffset()
+	offset, err := kafkaClient.offsetStore.GetOffset(context.Background())
+	if err != nil {
+		log.Fatal(context.Background(), "unable to get offset for kafka connection", zap.Error(err))
+	}
+	kafkaClient.kafkaConn.Seek(offset, kafka.SeekStart)
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
-	return &kafkaClient
+	return kafkaClient
 }
 func (k *kafkaClient) RegisterKafkaEventHandler(EventType string, handler EventHandler) {
 	// event handlers for kafka event rypes
@@ -110,10 +104,8 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 		// function is done
 		k.Close()
 	}()
-
 	// Loop Forever
 	for {
-
 		payload, err := k.kafkaConn.ReadMessage(k.maxBytes)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
@@ -123,7 +115,15 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 			k.log.Warn(ctx, "kafka sent empty message", zap.Any("key:", payload.Key))
 			continue
 		}
-		log.Printf("kafka event :==%v ", string(payload.Key))
+		lastOffset, err := k.kafkaConn.ReadLastOffset()
+		if err != nil {
+			log.Fatal("read last offset faild")
+		}
+		err = k.offsetStore.SetOffset(ctx, lastOffset)
+		if err != nil {
+			log.Fatal("faild to set offset")
+		}
+		log.Printf("last offset %v", lastOffset)
 		if err := k.routeEvent(ctx, payload); err != nil {
 			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
 		}

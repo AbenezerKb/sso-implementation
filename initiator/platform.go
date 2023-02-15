@@ -30,7 +30,7 @@ type PlatformLayer struct {
 	Asset  platform.Asset
 }
 
-func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
+func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, persistence Persistence) PlatformLayer {
 
 	return PlatformLayer{
 		Sms: sms.InitSMS(
@@ -51,13 +51,13 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
+		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger, persistence.KafkaStore),
 		SelfIP: self.Init(),
 		Asset:  asset.Init(logger.Named("asset-platform"), "assets"),
 	}
 }
 
-func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string) PlatformLayer {
+func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, persistence Persistence) PlatformLayer {
 	return PlatformLayer{
 		Sms: sms2.InitMockSMS(
 			platform.SMSConfig{},
@@ -66,7 +66,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
+		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger, persistence.KafkaStore),
 		SelfIP: identityProvider.InitIP("some_id", "some_secret", "veryLegitCode", "legitAccessToken", dto.UserInfo{
 			FirstName: "john",
 			Email:     "john@gmail.com",

@@ -154,3 +154,7 @@ type IdentityProviderPersistence interface {
 	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
 	GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }
+type Kafka interface {
+	GetOffset(ctx context.Context) (int64, error)
+	SetOffset(ctx context.Context, offset int64) error
+}

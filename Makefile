@@ -6,5 +6,7 @@ migrate-create:
 	- migrate create -ext sql -dir internal/constant/query/schemas -seq user
 swagger-init:
 	- swag init -g initiator/initiator.go
+sqlc:
+	- sqlc generate -f ./config/sqlc.yaml
 go-test:
 	- go test -v ./... -p=1 -count=1

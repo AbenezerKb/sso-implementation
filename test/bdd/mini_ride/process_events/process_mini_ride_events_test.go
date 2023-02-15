@@ -173,9 +173,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
-	// defer p.KafkaWriter.Close()
-
-	_, err = p.KafkaConn.WriteMessages(messages...)
+	err = p.KafkaWriter.WriteMessages(context.Background(), messages...)
 	if err != nil {
 		return err
 	}

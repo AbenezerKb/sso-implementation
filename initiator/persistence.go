@@ -5,6 +5,7 @@ import (
 	"sso/internal/storage"
 	"sso/internal/storage/persistence/client"
 	identity_provider "sso/internal/storage/persistence/identity-provider"
+	"sso/internal/storage/persistence/kafka"
 	"sso/internal/storage/persistence/mini_ride"
 	"sso/internal/storage/persistence/oauth"
 	"sso/internal/storage/persistence/oauth2"
@@ -27,6 +28,7 @@ type Persistence struct {
 	ResourceServerPersistence   storage.ResourceServerPersistence
 	MiniRidePersistence         storage.MiniRidePersistence
 	RolePersistence             storage.RolePersistence
+	KafkaStore                  storage.Kafka
 	IdentityProviderPersistence storage.IdentityProviderPersistence
 }
 
@@ -41,6 +43,7 @@ func InitPersistence(db persistencedb.PersistenceDB, log logger.Logger) Persiste
 		ResourceServerPersistence:   resource_server.InitResourceServerPersistence(log.Named("resource-server-persistence"), &db),
 		MiniRidePersistence:         mini_ride.InitMiniRidePersistence(log.Named("mini-ride-persistence"), &db),
 		RolePersistence:             role.InitRolePersistence(log.Named("role-persistence"), &db),
+		KafkaStore:                  kafka.InitKafkaPersistence(log.Named("role-persistence"), &db),
 		IdentityProviderPersistence: identity_provider.InitIdentityProviderPersistence(log.Named("identity-provider-persistence"), &db),
 	}
 }

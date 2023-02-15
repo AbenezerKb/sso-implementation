@@ -16,7 +16,6 @@ import (
 	"sso/platform/rand"
 	"sso/platform/utils"
 	"strings"
-	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
@@ -120,7 +119,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")
-	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"))
+	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"), persistence)
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing state")
@@ -370,16 +369,12 @@ func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	})
 	return reader
 }
-func kafkaWriter(address, topic, groupID string) *kafka.Writer {
-	brokers := strings.Split(address, ",")
-	dialer := &kafka.Dialer{
-		Timeout: 10 * time.Second,
-	}
+func kafkaWriter(kafkaUrl, topic, groupID string) *kafka.Writer {
+
 	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  brokers,
+		Brokers:  []string{kafkaUrl},
 		Topic:    topic,
 		Balancer: &kafka.LeastBytes{},
-		Dialer:   dialer,
 	})
 	return w
 }
