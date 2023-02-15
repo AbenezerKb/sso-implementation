@@ -173,9 +173,10 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
+	// defer p.KafkaWriter.Close()
+
 	_, err = p.KafkaConn.WriteMessages(messages...)
 	if err != nil {
-
 		return err
 	}
 	return nil
@@ -227,6 +228,7 @@ func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users 
 
 func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContext) {
 	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
+		defer p.KafkaConn.Close()
 		kerr := p.KafkaConn.DeleteTopics("example-topic")
 		if err != nil {
 			return ctx, kerr

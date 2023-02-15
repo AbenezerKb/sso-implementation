@@ -3,6 +3,8 @@ package kafkaconsumer
 import (
 	"context"
 	"encoding/json"
+	"log"
+	"time"
 
 	"sso/internal/constant/errors"
 	"sso/platform/logger"
@@ -35,10 +37,15 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		log.Error(context.Background(), "failed not dail kafka leader", zap.Error(err))
 		return nil
 	}
+	dialer := &kafka.Dialer{
+		Timeout: 10 * time.Second,
+	}
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   []string{kafkaURL},
 		Topic:     topic,
 		Partition: 0,
+		GroupID:   groupID,
+		Dialer:    dialer,
 		MinBytes:  10e3, // 10KB
 		MaxBytes:  10e6, // 10MB
 	})
@@ -47,11 +54,12 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 		topic:         topic,
 		groupID:       groupID,
 		log:           log,
+		kafkaConn:     conn,
+		kafkaReader:   r,
 		maxBytes:      maxBytes,
 		eventHandlers: make(map[string]EventHandler),
 	}
-	kafkaClient.kafkaConn = conn
-	kafkaClient.kafkaReader = r
+
 	// run the read message
 	go kafkaClient.readMessage(context.Background())
 	return &kafkaClient
@@ -115,7 +123,7 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 			k.log.Warn(ctx, "kafka sent empty message", zap.Any("key:", payload.Key))
 			continue
 		}
-
+		log.Printf("kafka event :==%v ", string(payload.Key))
 		if err := k.routeEvent(ctx, payload); err != nil {
 			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
 		}

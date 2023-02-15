@@ -47,7 +47,9 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
+	KafkaWriter        *kafka.Writer
 	KafkaConn          *kafka.Conn
+	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error
@@ -153,6 +155,8 @@ func Initiate(path string) TestInstance {
 	if err != nil {
 		log.Fatal(context.Background(), "failed to dial leader:", zap.Error(err))
 	}
+	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
+	kafkaWriter := kafkaWriter(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -162,8 +166,10 @@ func Initiate(path string) TestInstance {
 		Logger:        log,
 		Conn:          testConn,
 		PlatformLayer: platformLayer,
-		KafkaConn:     conn,
 		CacheLayer:    cacheLayer,
+		KafkaReader:   kafkaReader,
+		KafkaConn:     conn,
+		KafkaWriter:   kafkaWriter,
 		PersistDB:     persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
@@ -359,6 +365,7 @@ func kafkaReader(address, topic, groupID string) *kafka.Reader {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:   brokers,
 		Topic:     topic,
+		GroupID:   groupID,
 		Partition: 0,
 	})
 	return reader
