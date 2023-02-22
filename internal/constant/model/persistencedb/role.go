@@ -80,12 +80,15 @@ func (db *PersistenceDB) CheckIfPermissionExists(ctx context.Context, permission
 
 func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]dto.Role, int, error) {
 	_, sqlStr := db_pgnflt.GetFilterSQL(pgnFlt)
-	rows, err := db.pool.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
+	rows, err := db.pool.Query(ctx, db_pgnflt.GetSelectColumnsQueryWithJoins([]string{
 		"name",
 		"status",
 		"created_at",
 		"updated_at",
-	}, "roles", sqlStr))
+		`(SELECT string_to_array(string_agg(v1, ','), ',')
+        FROM casbin_rule
+        WHERE v0 = name) AS permissions`,
+	}, db_pgnflt.Table{Name: "roles"}, []db_pgnflt.JOIN{}, sqlStr))
 	if err != nil {
 		return nil, 0, err
 	}
