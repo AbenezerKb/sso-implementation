@@ -4,13 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sso/internal/constant/model/dto"
 	"strings"
+
+	"sso/internal/constant/model"
+	"sso/internal/constant/model/dto"
+
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
 // GetUsersByParsedField expects that all values in 'values' are valid for 'fieldName'.
 // Use it only if you have made sure the values are valid.
-func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName string, values []string) ([]dto.User, error) {
+func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName string, values []string, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error) {
 	var queries []string // query requests in chunks of 50 users. This is to keep the database load at safe level
 	chunks := len(values) / 50
 	for i := 0; i < chunks; i += 50 {
@@ -19,14 +23,24 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 	queries = append(queries, strings.Join(values[chunks*50:], "','")) // the remaining chunk
 
 	var users []dto.User
+	var count int
+
 	for i := 0; i < len(queries); i++ {
+		sqlStr := db_pgnflt.GetFilterSQLWithCustomWhere(fmt.Sprintf("%s in ('%s')", fieldName, queries[i]), filters)
 		err := func() error { // this is to properly defer rows.Close()
 			rows, err := db.pool.Query(ctx,
-				fmt.Sprintf(
-					`SELECT id,first_name,middle_name,last_name,email,phone,gender,profile_picture,status,created_at
-						FROM users WHERE %s in ('%s')`,
-					fieldName,
-					queries[i]))
+				db_pgnflt.GetSelectColumnsQuery([]string{
+					"id",
+					"first_name",
+					"middle_name",
+					"last_name",
+					"email",
+					"phone",
+					"gender",
+					"profile_picture",
+					"status",
+					"created_at",
+				}, "users", sqlStr))
 			defer rows.Close()
 
 			if err != nil {
@@ -47,6 +61,7 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 					&profilePicture,
 					&status,
 					&i.CreatedAt,
+					&count,
 				); err != nil {
 					return err
 				}
@@ -62,9 +77,12 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 			return nil
 		}()
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return users, nil
+	return users, &model.MetaData{
+		FilterParams: filters,
+		Total:        count,
+	}, nil
 }

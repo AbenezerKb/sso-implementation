@@ -2,15 +2,16 @@ package identity_provider
 
 import (
 	"net/http"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
 
 	"github.com/gin-gonic/gin"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -154,7 +155,7 @@ func (i *identityProvider) DeleteIdentityProvider(ctx *gin.Context) {
 // @Router /identityProviders [get]
 // @Security BearerAuth
 func (i *identityProvider) GetAllIdentityProviders(ctx *gin.Context) {
-	var filtersParam request_models.PgnFltQueryParams
+	var filtersParam db_pgnflt.PgnFltQueryParams
 	err := ctx.BindQuery(&filtersParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")

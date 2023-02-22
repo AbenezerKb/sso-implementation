@@ -1,6 +1,8 @@
 package model
 
-import "sso/internal/constant/model/dto/request_models"
+import (
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+)
 
 type Response struct {
 	// OK is only true if the request was successful.
@@ -14,7 +16,7 @@ type Response struct {
 }
 
 type MetaData struct {
-	request_models.FilterParams
+	db_pgnflt.FilterParams
 	// Total is the total number of data without pagination
 	Total int `json:"total"`
 	// Extra contains other response specific data

@@ -2,17 +2,18 @@ package identity_provider
 
 import (
 	"context"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -104,8 +105,30 @@ func (i *identityProviderModule) DeleteIdentityProvider(ctx context.Context, idP
 	return nil
 }
 
-func (i *identityProviderModule) GetAllIdentityProviders(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error) {
-	filters, err := filtersQuery.ToFilterParams(dto.IdentityProvider{})
+func (i *identityProviderModule) GetAllIdentityProviders(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams([]db_pgnflt.FieldType{
+		{Name: "name", Type: db_pgnflt.String},
+		{Name: "logo_url", Type: db_pgnflt.String},
+		{Name: "client_id", Type: db_pgnflt.String},
+		{Name: "client_secret", Type: db_pgnflt.String},
+		{Name: "redirect_uri", Type: db_pgnflt.String},
+		{Name: "authorization_uri", Type: db_pgnflt.String},
+		{Name: "token_endpoint_url", Type: db_pgnflt.String},
+		{Name: "user_info_endpoint_url", Type: db_pgnflt.String},
+		{Name: "status", Type: db_pgnflt.Enum,
+			Values: []string{"ACTIVE", "INACTIVE", "PENDING"},
+		},
+		{Name: "created_at", Type: db_pgnflt.Time},
+		{Name: "updated_at", Type: db_pgnflt.Time},
+	}, db_pgnflt.Defaults{
+		Sort: []db_pgnflt.Sort{
+			{
+				Field: "created_at",
+				Sort:  db_pgnflt.SortDesc,
+			},
+		},
+		PerPage: 10,
+	})
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
 		i.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))

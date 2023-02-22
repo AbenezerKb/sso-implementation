@@ -2,11 +2,21 @@ package db
 
 import (
 	"context"
-	"sso/platform/utils"
+
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
-func (q *Queries) GetAllScopes(ctx context.Context, pgnFlt string) ([]Scope, int, error) {
-	rows, err := q.db.Query(ctx, utils.ComposeFullFilterSQL(ctx, "scopes", pgnFlt))
+func (q *Queries) GetAllScopes(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]Scope, int, error) {
+	_, sql := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := q.db.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
+		"id",
+		"name",
+		"description",
+		"resource_server_id",
+		"resource_server_name",
+		"status",
+		"created_at",
+	}, "scopes", sql))
 	if err != nil {
 		return nil, 0, err
 	}
