@@ -8,7 +8,6 @@ import (
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform"
@@ -18,6 +17,7 @@ import (
 	"github.com/casbin/casbin/v2"
 	"github.com/dongri/phonenumber"
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -88,7 +88,8 @@ func (u *user) Create(ctx context.Context, param dto.CreateUser) (*dto.User, err
 		return nil, err
 	}
 	if exists, _ := u.enforcer.HasRoleForUser(param.Role, user.ID.String(), constant.User); !exists {
-		u.enforcer.AddRoleForUser(user.ID.String(), param.Role, constant.User)
+		_, err = u.enforcer.AddRoleForUser(user.ID.String(), param.Role, constant.User)
+		u.logger.Error(ctx, "adding user role failed", zap.String("role", param.Role), zap.String("user-phone", param.Phone))
 	}
 	return user, nil
 }
@@ -105,8 +106,28 @@ func (u *user) GetUserByID(ctx context.Context, id string) (*dto.User, error) {
 	return u.userPersistence.GetUserByID(ctx, userID)
 }
 
-func (u *user) GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error) {
-	filters, err := filtersQuery.ToFilterParams(dto.User{})
+func (u *user) GetAllUsers(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.User, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams([]db_pgnflt.FieldType{
+		{Name: "first_name", Type: db_pgnflt.String},
+		{Name: "middle_name", Type: db_pgnflt.String},
+		{Name: "last_name", Type: db_pgnflt.String},
+		{Name: "email", Type: db_pgnflt.String},
+		{Name: "phone", Type: db_pgnflt.String},
+		{Name: "gender", Type: db_pgnflt.String},
+		{Name: "status", Type: db_pgnflt.Enum,
+			Values: []string{"ACTIVE", "INACTIVE", "PENDING"},
+		},
+		{Name: "created_at", Type: db_pgnflt.Time},
+		{Name: "role", Type: db_pgnflt.String},
+	}, db_pgnflt.Defaults{
+		Sort: []db_pgnflt.Sort{
+			{
+				Field: "created_at",
+				Sort:  db_pgnflt.SortDesc,
+			},
+		},
+		PerPage: 10,
+	})
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
 		u.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))

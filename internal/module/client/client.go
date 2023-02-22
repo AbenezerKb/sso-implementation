@@ -2,16 +2,17 @@ package client
 
 import (
 	"context"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -50,8 +51,26 @@ func (c *clientModule) GetClientByID(ctx context.Context, id string) (*dto.Clien
 	return c.clientPersistence.GetClientByID(ctx, clientID)
 }
 
-func (c *clientModule) GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error) {
-	filters, err := filtersQuery.ToFilterParams(dto.Client{})
+func (c *clientModule) GetAllClients(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams([]db_pgnflt.FieldType{
+		{Name: "name", Type: db_pgnflt.String},
+		{Name: "client_type", Type: db_pgnflt.Enum, Values: []string{"Confidential", "Public"}},
+		{Name: "redirect_uris", Type: db_pgnflt.String},
+		{Name: "scopes", Type: db_pgnflt.String},
+		{Name: "status", Type: db_pgnflt.Enum,
+			Values: []string{"ACTIVE", "INACTIVE", "PENDING"},
+		},
+		{Name: "created_at", Type: db_pgnflt.Time},
+		{Name: "first_party", Type: db_pgnflt.Boolean},
+	}, db_pgnflt.Defaults{
+		Sort: []db_pgnflt.Sort{
+			{
+				Field: "created_at",
+				Sort:  db_pgnflt.SortDesc,
+			},
+		},
+		PerPage: 10,
+	})
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
 		c.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))

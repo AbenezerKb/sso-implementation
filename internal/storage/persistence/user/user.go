@@ -9,13 +9,12 @@ import (
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
-	"sso/platform/utils"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -31,8 +30,8 @@ func InitUserPersistence(logger logger.Logger, db *persistencedb.PersistenceDB) 
 	}
 }
 
-func (u *userPersistence) GetAllUsers(ctx context.Context, filters request_models.FilterParams) ([]dto.User, *model.MetaData, error) {
-	users, total, err := u.db.GetAllUsersWithRole(ctx, utils.ComposeFilterSQL(ctx, filters, u.logger))
+func (u *userPersistence) GetAllUsers(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error) {
+	users, total, err := u.db.GetAllUsersWithRole(ctx, filters)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no users found")

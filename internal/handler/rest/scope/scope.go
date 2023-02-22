@@ -2,9 +2,9 @@ package scope
 
 import (
 	"net/http"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/handler/rest"
 	"sso/internal/module"
 	"sso/platform/logger"
@@ -12,6 +12,7 @@ import (
 	"sso/internal/constant"
 
 	"github.com/gin-gonic/gin"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -45,7 +46,7 @@ func (s *scope) GetScope(ctx *gin.Context) {
 	requestCtx := ctx.Request.Context()
 	scope, err := s.scopeModule.GetScope(requestCtx, scopeName)
 	if err != nil {
-		ctx.Error(err)
+		_ = ctx.Error(err)
 		return
 	}
 
@@ -98,7 +99,7 @@ func (s *scope) CreateScope(ctx *gin.Context) {
 // @Router /oauth/scopes [get]
 // @Security BearerAuth
 func (s *scope) GetAllScopes(ctx *gin.Context) {
-	var filtersParam request_models.PgnFltQueryParams
+	var filtersParam db_pgnflt.PgnFltQueryParams
 	err := ctx.BindQuery(&filtersParam)
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")

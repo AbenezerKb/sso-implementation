@@ -2,15 +2,17 @@ package resource_server
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/module"
 	"sso/internal/storage"
 	"sso/platform/logger"
+
+	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+	"go.uber.org/zap"
 )
 
 type resourceServerModule struct {
@@ -52,8 +54,26 @@ func (r *resourceServerModule) CreateResourceServer(ctx context.Context, server 
 	return r.resourceServerPersistence.CreateResourceServer(ctx, server)
 }
 
-func (r *resourceServerModule) GetAllResourceServers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error) {
-	filters, err := filtersQuery.ToFilterParams(dto.ResourceServer{})
+func (r *resourceServerModule) GetAllResourceServers(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error) {
+	filters, err := filtersQuery.ToFilterParams([]db_pgnflt.FieldType{
+		{Name: "name", Type: db_pgnflt.String, DBName: "rs.name"},
+		{Name: "created_at", Type: db_pgnflt.Time, DBName: "rs.created_at"},
+		{Name: "updated_at", Type: db_pgnflt.Time, DBName: "rs.updated_at"},
+		{Name: "name", Type: db_pgnflt.String, DBName: "sc.name"},
+		{Name: "description", Type: db_pgnflt.String, DBName: "sc.description"},
+		{Name: "status", Type: db_pgnflt.Enum,
+			Values: []string{"ACTIVE", "INACTIVE", "PENDING"},
+			DBName: "sc.status",
+		},
+	}, db_pgnflt.Defaults{
+		Sort: []db_pgnflt.Sort{
+			{
+				Field: "created_at",
+				Sort:  db_pgnflt.SortDesc,
+			},
+		},
+		PerPage: 10,
+	})
 	if err != nil {
 		err := errors.ErrInvalidUserInput.Wrap(err, "invalid filter params")
 		r.logger.Info(ctx, "invalid filter params were given", zap.Error(err), zap.Any("filters-query", filtersQuery))

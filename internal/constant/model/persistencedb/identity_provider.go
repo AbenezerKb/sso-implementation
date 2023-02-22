@@ -2,12 +2,28 @@ package persistencedb
 
 import (
 	"context"
+
 	"sso/internal/constant/model/db"
-	"sso/platform/utils"
+
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
-func (q *PersistenceDB) GetAllIdentityProviders(ctx context.Context, pgnFlt string) ([]db.IdentityProvider, int, error) {
-	rows, err := q.pool.Query(ctx, utils.ComposeFullFilterSQL(ctx, "identity_providers", pgnFlt))
+func (q *PersistenceDB) GetAllIdentityProviders(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]db.IdentityProvider, int, error) {
+	_, sql := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := q.pool.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
+		"id",
+		"name",
+		"logo_url",
+		"client_id",
+		"client_secret",
+		"redirect_uri",
+		"authorization_uri",
+		"token_endpoint_url",
+		"user_info_endpoint_url",
+		"status",
+		"created_at",
+		"updated_at",
+	}, "identity_providers", sql))
 	if err != nil {
 		return nil, 0, err
 	}

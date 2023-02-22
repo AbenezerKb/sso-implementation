@@ -3,14 +3,29 @@ package persistencedb
 import (
 	"context"
 	"database/sql"
+
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+
 	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
-	"sso/platform/utils"
 )
 
-func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt string) ([]dto.User, int, error) {
-	rows, err := db.pool.Query(ctx, utils.ComposeFullFilterSQL(ctx, "user_role", pgnFlt))
+func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]dto.User, int, error) {
+	_, sqlStr := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := db.pool.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
+		"id",
+		"first_name",
+		"middle_name",
+		"last_name",
+		"email",
+		"phone",
+		"gender",
+		"profile_picture",
+		"status",
+		"created_at",
+		"role",
+	}, "user_role", sqlStr))
 	if err != nil {
 		return nil, 0, err
 	}

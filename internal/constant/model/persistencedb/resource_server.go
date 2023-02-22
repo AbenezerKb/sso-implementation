@@ -3,9 +3,11 @@ package persistencedb
 import (
 	"context"
 	"database/sql"
-	"fmt"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+
 	db2 "sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 )
@@ -57,23 +59,29 @@ func (db *PersistenceDB) CreateResourceServerWithTX(ctx context.Context, server 
 	}, nil
 }
 
-const getAllResourceServersWithScope = `
-SELECT
-rs.id AS resource_server_id,
-rs.name AS resource_server_name,
-rs.created_at,
-rs.updated_at,
-sc.id AS scope_id,
-sc.name AS scope_name,
-sc.description,
-sc.status,
-COUNT(*) OVER()
-FROM resource_servers rs
-    LEFT JOIN scopes sc
-        ON sc.resource_server_name = rs.name`
+func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]dto.ResourceServer, int, error) {
+	_, sqlStr := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := p.pool.Query(ctx, db_pgnflt.GetSelectColumnsQueryWithJoins([]string{
 
-func (p *PersistenceDB) GetAllResourceServers(ctx context.Context, pgnFlt string) ([]dto.ResourceServer, int, error) {
-	rows, err := p.pool.Query(ctx, fmt.Sprintf("%s %s", getAllResourceServersWithScope, pgnFlt))
+		"rs.id AS resource_server_id",
+		"rs.name AS resource_server_name",
+		"rs.created_at",
+		"rs.updated_at",
+		"sc.id AS scope_id",
+		"sc.name AS scope_name",
+		"sc.description",
+		"sc.status",
+	},
+		db_pgnflt.Table{Name: "resource_servers", Alias: "rs"}, []db_pgnflt.JOIN{
+			{
+				JoinType: "LEFT JOIN",
+				Table: db_pgnflt.Table{
+					Name:  "scopes",
+					Alias: "sc",
+				},
+				On: "sc.resource_server_name = rs.name",
+			},
+		}, sqlStr))
 	if err != nil {
 		return nil, 0, err
 	}
