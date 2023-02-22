@@ -173,7 +173,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
-	err = p.KafkaWriter.WriteMessages(context.Background(), messages...)
+	_, err = p.KafkaConn.WriteMessages(messages...)
 	if err != nil {
 		return err
 	}
@@ -181,7 +181,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
@@ -225,14 +225,6 @@ func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users 
 }
 
 func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContext) {
-	ctx.After(func(ctx context.Context, sc *godog.Scenario, err error) (context.Context, error) {
-		defer p.KafkaConn.Close()
-		kerr := p.KafkaConn.DeleteTopics("example-topic")
-		if err != nil {
-			return ctx, kerr
-		}
-		return ctx, nil
-	})
 	ctx.Step(`^I process those event\'s$`, p.iProcessThoseEvents)
 	ctx.Step(`^mini ride streamed the following event\'s$`, p.miniRideStreamedTheFollowingEvents)
 	ctx.Step(`^there are the following user data on sso$`, p.thereAreTheFollowingUserDataOnSso)

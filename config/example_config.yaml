@@ -76,7 +76,7 @@ cors:
 kafka:
   topic: example-topic
   url: kafka:9092
-  group_id: test
+  group_id: sso_group
   max_read_bytes: 5000
 mini_ride:
   username: mini-ride

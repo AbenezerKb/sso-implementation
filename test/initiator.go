@@ -15,11 +15,9 @@ import (
 	"sso/platform/logger"
 	"sso/platform/rand"
 	"sso/platform/utils"
-	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
-	"go.uber.org/zap"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/cucumber/godog"
@@ -46,7 +44,6 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
-	KafkaWriter        *kafka.Writer
 	KafkaConn          *kafka.Conn
 	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
@@ -150,12 +147,11 @@ func Initiate(path string) TestInstance {
 	v1 := server.Group("/v1")
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
+
 	conn, err := kafka.DialLeader(context.Background(), "tcp", viper.GetString("kafka.url"), viper.GetString("kafka.topic"), 0)
 	if err != nil {
-		log.Fatal(context.Background(), "failed to dial leader:", zap.Error(err))
+		panic(err.Error())
 	}
-	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
-	kafkaWriter := kafkaWriter(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -166,9 +162,7 @@ func Initiate(path string) TestInstance {
 		Conn:          testConn,
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
-		KafkaReader:   kafkaReader,
 		KafkaConn:     conn,
-		KafkaWriter:   kafkaWriter,
 		PersistDB:     persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
@@ -357,24 +351,4 @@ func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, err
 	t.AccessToken = t.response.Data.AccessToken
 	t.RefreshToken = t.response.Data.RefreshToken
 	return user, nil
-}
-
-func kafkaReader(address, topic, groupID string) *kafka.Reader {
-	brokers := strings.Split(address, ",")
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   brokers,
-		Topic:     topic,
-		GroupID:   groupID,
-		Partition: 0,
-	})
-	return reader
-}
-func kafkaWriter(kafkaUrl, topic, groupID string) *kafka.Writer {
-
-	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  []string{kafkaUrl},
-		Topic:    topic,
-		Balancer: &kafka.LeastBytes{},
-	})
-	return w
 }
