@@ -3,7 +3,6 @@ package kafkaconsumer
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	"sso/internal/constant/errors"
 	"sso/platform/logger"
@@ -101,7 +100,6 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 			k.log.Warn(ctx, "kafka sent empty message", zap.Any("key:", payload.Key))
 			continue
 		}
-		log.Printf("kafka event key %v : message %v", string(payload.Key), string(payload.Value))
 		if err := k.routeEvent(ctx, payload); err != nil {
 			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
 		}
