@@ -92,6 +92,7 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 	}()
 	// Loop Forever
 	for {
+		log.Printf("reading kafka event.....")
 		payload, err := k.kafkaReader.ReadMessage(ctx)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
