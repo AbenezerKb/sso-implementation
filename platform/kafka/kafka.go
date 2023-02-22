@@ -28,10 +28,11 @@ type kafkaClient struct {
 func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{kafkaURL},
-		GroupID:  groupID,
-		Topic:    topic,
-		MaxBytes: maxBytes,
+		Brokers:     []string{kafkaURL},
+		GroupID:     groupID,
+		Topic:       topic,
+		MaxBytes:    maxBytes,
+		StartOffset: kafka.FirstOffset,
 	})
 
 	kafkaClient := &kafkaClient{
