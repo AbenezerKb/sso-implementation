@@ -28,11 +28,11 @@ type kafkaClient struct {
 func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:     []string{kafkaURL},
-		GroupID:     groupID,
-		Topic:       topic,
-		MaxBytes:    maxBytes,
-		StartOffset: kafka.FirstOffset,
+		Brokers:  []string{kafkaURL},
+		GroupID:  groupID,
+		Topic:    topic,
+		MaxBytes: maxBytes,
+		// StartOffset: kafka.FirstOffset,
 	})
 
 	kafkaClient := &kafkaClient{
@@ -92,7 +92,6 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 	}()
 	// Loop Forever
 	for {
-		log.Printf("reading kafka event.....")
 		payload, err := k.kafkaReader.ReadMessage(ctx)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
