@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
 
 	"sso/internal/constant/errors"
 	"sso/platform/logger"
@@ -90,8 +91,10 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 		// function is done
 		k.Close()
 	}()
+	t := time.NewTicker(2 * time.Second)
+
 	// Loop Forever
-	for {
+	for range t.C {
 		payload, err := k.kafkaReader.ReadMessage(ctx)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
