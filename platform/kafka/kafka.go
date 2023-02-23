@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
 
 	"sso/internal/constant/errors"
 	"sso/platform/logger"
@@ -33,6 +34,8 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger lo
 		MaxBytes:    maxBytes,
 		StartOffset: kafka.LastOffset,
 		Logger:      logger,
+		// wait for at most 3 seconds before receiving new data
+		MaxWait: 3 * time.Second,
 	})
 	kafkaClient := &kafkaClient{
 		log:           logger,
