@@ -2,17 +2,18 @@ package resource_server
 
 import (
 	"context"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
-	"sso/platform/utils"
+
+	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+	"go.uber.org/zap"
 )
 
 type resourceServerPersistence struct {
@@ -59,8 +60,8 @@ func (r *resourceServerPersistence) GetResourceServerByName(ctx context.Context,
 	}, nil
 }
 
-func (r *resourceServerPersistence) GetAllResourceServers(ctx context.Context, filters request_models.FilterParams) ([]dto.ResourceServer, *model.MetaData, error) {
-	resourceServers, total, err := r.db.GetAllResourceServers(ctx, utils.ComposeFilterSQL(ctx, filters, r.logger))
+func (r *resourceServerPersistence) GetAllResourceServers(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.ResourceServer, *model.MetaData, error) {
+	resourceServers, total, err := r.db.GetAllResourceServers(ctx, filters)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no resource servers found")

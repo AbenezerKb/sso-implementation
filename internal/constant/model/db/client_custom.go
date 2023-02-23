@@ -2,11 +2,24 @@ package db
 
 import (
 	"context"
-	"sso/platform/utils"
+
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
-func (q *Queries) GetAllClients(ctx context.Context, pgnFlt string) ([]Client, int, error) {
-	rows, err := q.db.Query(ctx, utils.ComposeFullFilterSQL(ctx, "clients", pgnFlt))
+func (q *Queries) GetAllClients(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]Client, int, error) {
+	_, sql := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := q.db.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
+		"id",
+		"name",
+		"client_type",
+		"redirect_uris",
+		"scopes",
+		"secret",
+		"logo_url",
+		"status",
+		"created_at",
+		"first_party",
+	}, "clients", sql))
 	if err != nil {
 		return nil, 0, err
 	}

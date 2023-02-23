@@ -3,18 +3,18 @@ package identity_provider
 import (
 	"context"
 	"database/sql"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/storage"
 	"sso/platform/logger"
-	"sso/platform/utils"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -239,8 +239,8 @@ func (i *identityProviderPersistence) DeleteIdentityProvider(ctx context.Context
 	return nil
 }
 
-func (i *identityProviderPersistence) GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error) {
-	idPs, total, err := i.db.GetAllIdentityProviders(ctx, utils.ComposeFilterSQL(ctx, filters, i.logger))
+func (i *identityProviderPersistence) GetAllIdentityProviders(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error) {
+	idPs, total, err := i.db.GetAllIdentityProviders(ctx, filters)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no identity providers found")

@@ -2,8 +2,10 @@ package persistencedb
 
 import (
 	"context"
-	"fmt"
+
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+
 	"sso/internal/constant"
 	"sso/internal/constant/errors/sqlcerr"
 	db2 "sso/internal/constant/model/db"
@@ -76,19 +78,17 @@ func (db *PersistenceDB) CheckIfPermissionExists(ctx context.Context, permission
 	return true, nil
 }
 
-const getAllRoles = `
-SELECT r.name,
-       r.status,
-       r.created_at,
-       r.updated_at,
-       (SELECT string_to_array(string_agg(v1, ','), ',')
+func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]dto.Role, int, error) {
+	_, sqlStr := db_pgnflt.GetFilterSQL(pgnFlt)
+	rows, err := db.pool.Query(ctx, db_pgnflt.GetSelectColumnsQueryWithJoins([]string{
+		"name",
+		"status",
+		"created_at",
+		"updated_at",
+		`(SELECT string_to_array(string_agg(v1, ','), ',')
         FROM casbin_rule
-        WHERE v0 = r.name) AS permissions,
-       count(*) over()
-FROM roles r`
-
-func (db *PersistenceDB) GetAllRoles(ctx context.Context, pgnFlt string) ([]dto.Role, int, error) {
-	rows, err := db.pool.Query(ctx, fmt.Sprintf("%s %s", getAllRoles, pgnFlt))
+        WHERE v0 = name) AS permissions`,
+	}, db_pgnflt.Table{Name: "roles"}, []db_pgnflt.JOIN{}, sqlStr))
 	if err != nil {
 		return nil, 0, err
 	}

@@ -10,6 +10,7 @@ import (
 	"sso/internal/constant/model/dto/request_models"
 
 	"github.com/joomcode/errorx"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 
 	"github.com/google/uuid"
 )
@@ -43,7 +44,7 @@ type OAuth2Module interface {
 type UserModule interface {
 	Create(ctx context.Context, user dto.CreateUser) (*dto.User, error)
 	GetUserByID(ctx context.Context, id string) (*dto.User, error)
-	GetAllUsers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.User, *model.MetaData, error)
+	GetAllUsers(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.User, *model.MetaData, error)
 	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID string) error
 	UpdateUserRole(ctx context.Context, userID string, role dto.AssignRole) error
 	RevokeUserRole(ctx context.Context, userID string) error
@@ -54,7 +55,7 @@ type ClientModule interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 	GetClientByID(ctx context.Context, id string) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id string) error
-	GetAllClients(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
+	GetAllClients(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.Client, *model.MetaData, error)
 	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, id string) error
 	UpdateClient(ctx context.Context, client dto.Client, id string) error
 }
@@ -62,7 +63,7 @@ type ClientModule interface {
 type ScopeModule interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	CreateScope(ctx context.Context, scope dto.Scope) (dto.Scope, error)
-	GetAllScopes(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error)
+	GetAllScopes(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.Scope, *model.MetaData, error)
 	DeleteScopeByName(ctx context.Context, name string) error
 	UpdateScope(ctx context.Context, updateScopeParam dto.UpdateScopeParam, scopeName string) error
 }
@@ -79,7 +80,7 @@ type ProfileModule interface {
 
 type ResourceServerModule interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
-	GetAllResourceServers(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error)
+	GetAllResourceServers(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.ResourceServer, *model.MetaData, error)
 	GetResourceServerByID(ctx context.Context, rsID string) (*dto.ResourceServer, error)
 }
 
@@ -95,7 +96,7 @@ type RoleModule interface {
 	GetRoleForUser(ctx context.Context, userID string) (string, error)
 	GetRoleStatusForUser(ctx context.Context, userID string) (string, error)
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
-	GetAllRoles(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.Role, *model.MetaData, error)
+	GetAllRoles(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.Role, *model.MetaData, error)
 	UpdateRoleStatus(ctx context.Context, updateRoleStatusParam dto.UpdateRoleStatus, roleName string) error
 	GetRoleByName(ctx context.Context, roleName string) (dto.Role, error)
 	DeleteRole(ctx context.Context, roleName string) error
@@ -107,12 +108,14 @@ type IdentityProviderModule interface {
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider, idPID string) error
 	GetIdentityProvider(ctx context.Context, idPID string) (dto.IdentityProvider, error)
 	DeleteIdentityProvider(ctx context.Context, idPID string) error
-	GetAllIdentityProviders(ctx context.Context, filtersQuery request_models.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error)
+	GetAllIdentityProviders(ctx context.Context, filtersQuery db_pgnflt.PgnFltQueryParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }
 
 type RSAPI interface {
 	GetUserByIDOrPhone(ctx context.Context, request request_models.RSAPIUserRequest) (*dto.User, error)
-	GetUsersByIDOrPhone(ctx context.Context, request request_models.RSAPIUsersRequest) (*dto.RSAPIUsersResponse, error)
+	GetUsersByIDOrPhone(ctx context.Context,
+		request request_models.RSAPIUsersRequest,
+		filters db_pgnflt.PgnFltQueryParams) (*dto.RSAPIUsersResponse, *model.MetaData, error)
 }
 
 type Asset interface {

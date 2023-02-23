@@ -3,16 +3,17 @@ package scope
 import (
 	"context"
 	"database/sql"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
 
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -96,8 +97,8 @@ func (s *scopePersistence) GetScopeNameOnly(ctx context.Context, scopes ...strin
 	return scopeStr, nil
 }
 
-func (s *scopePersistence) GetAllScopes(ctx context.Context, filters request_models.FilterParams) ([]dto.Scope, *model.MetaData, error) {
-	scopes, total, err := s.db.GetAllScopes(ctx, utils.ComposeFilterSQL(ctx, filters, s.logger))
+func (s *scopePersistence) GetAllScopes(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.Scope, *model.MetaData, error) {
+	scopes, total, err := s.db.GetAllScopes(ctx, filters)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no scope found")

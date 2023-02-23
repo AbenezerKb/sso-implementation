@@ -3,17 +3,18 @@ package client
 import (
 	"context"
 	"database/sql"
+
 	"sso/internal/constant/errors"
 	"sso/internal/constant/errors/sqlcerr"
 	"sso/internal/constant/model"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
 	"sso/internal/storage"
 	"sso/platform/logger"
 	"sso/platform/utils"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -100,8 +101,8 @@ func (c *clientPersistence) DeleteClientByID(ctx context.Context, id uuid.UUID) 
 	return nil
 }
 
-func (c *clientPersistence) GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error) {
-	clients, total, err := c.db.GetAllClients(ctx, utils.ComposeFilterSQL(ctx, filters, c.logger))
+func (c *clientPersistence) GetAllClients(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.Client, *model.MetaData, error) {
+	clients, total, err := c.db.GetAllClients(ctx, filters)
 	if err != nil {
 		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
 			err := errors.ErrNoRecordFound.Wrap(err, "no clients found")

@@ -4,15 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cucumber/godog"
-	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
 	"net/http"
-	"sso/internal/constant/model/db"
-	"sso/internal/constant/model/dto"
-	"sso/internal/constant/model/dto/request_models"
-	"sso/test"
 	"testing"
 	"time"
+
+	"github.com/cucumber/godog"
+	"gitlab.com/2ftimeplc/2fbackend/bdd-testing-framework/src"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
+
+	"sso/internal/constant/model/db"
+	"sso/internal/constant/model/dto"
+	"sso/test"
 )
 
 type GetAuthorizedClientsTest struct {
@@ -20,7 +22,7 @@ type GetAuthorizedClientsTest struct {
 	apiTest           src.ApiTest
 	user              db.User
 	clients           []db.Client
-	filters           []request_models.Filter
+	filters           []db_pgnflt.Filter
 	authRefreshTokens []db.RefreshToken
 }
 

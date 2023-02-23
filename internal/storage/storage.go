@@ -8,6 +8,7 @@ import (
 	"sso/internal/constant/model/dto/request_models"
 
 	"github.com/google/uuid"
+	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
 type OAuthPersistence interface {
@@ -68,7 +69,7 @@ type ClientPersistence interface {
 	Create(ctx context.Context, client dto.Client) (*dto.Client, error)
 	GetClientByID(ctx context.Context, id uuid.UUID) (*dto.Client, error)
 	DeleteClientByID(ctx context.Context, id uuid.UUID) error
-	GetAllClients(ctx context.Context, filters request_models.FilterParams) ([]dto.Client, *model.MetaData, error)
+	GetAllClients(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.Client, *model.MetaData, error)
 	UpdateClientStatus(ctx context.Context, updateClientStatusParam dto.UpdateClientStatus, clientID uuid.UUID) error
 	UpdateClient(ctx context.Context, client dto.Client) error
 }
@@ -90,20 +91,20 @@ type ScopePersistence interface {
 	GetScope(ctx context.Context, scope string) (dto.Scope, error)
 	GetListedScopes(ctx context.Context, scopes ...string) ([]dto.Scope, error)
 	GetScopeNameOnly(ctx context.Context, scopes ...string) (string, error)
-	GetAllScopes(ctx context.Context, filters request_models.FilterParams) ([]dto.Scope, *model.MetaData, error)
+	GetAllScopes(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.Scope, *model.MetaData, error)
 	DeleteScopeByName(ctx context.Context, name string) error
 	UpdateScope(ctx context.Context, scopeUpdateParam dto.Scope) error
 }
 
 type UserPersistence interface {
-	GetAllUsers(ctx context.Context, filters request_models.FilterParams) ([]dto.User, *model.MetaData, error)
+	GetAllUsers(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error)
 	UpdateUserStatus(ctx context.Context, updateUserStatusParam dto.UpdateUserStatus, userID uuid.UUID) error
 	UpdateUserRole(ctx context.Context, userID uuid.UUID, roleName string) error
 	RevokeUserRole(ctx context.Context, userID uuid.UUID) error
 	GetUserByID(ctx context.Context, Id uuid.UUID) (*dto.User, error)
 	GetUserByPhone(ctx context.Context, phone string) (*dto.User, error)
-	GetUsersByPhone(ctx context.Context, phones []string) ([]dto.User, error)
-	GetUsersByID(ctx context.Context, ids []string) ([]dto.User, error)
+	GetUsersByPhone(ctx context.Context, phones []string, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error)
+	GetUsersByID(ctx context.Context, ids []string, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error)
 	UpdateUserPassword(ctx context.Context, userID uuid.UUID, newPassword string) (*dto.User, error)
 }
 
@@ -119,7 +120,7 @@ type ProfilePersistence interface {
 type ResourceServerPersistence interface {
 	CreateResourceServer(ctx context.Context, server dto.ResourceServer) (dto.ResourceServer, error)
 	GetResourceServerByName(ctx context.Context, name string) (dto.ResourceServer, error)
-	GetAllResourceServers(ctx context.Context, filters request_models.FilterParams) ([]dto.ResourceServer, *model.MetaData, error)
+	GetAllResourceServers(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.ResourceServer, *model.MetaData, error)
 	GetResourceServerByID(ctx context.Context, rsID uuid.UUID) (*dto.ResourceServer, error)
 }
 
@@ -137,7 +138,7 @@ type RolePersistence interface {
 	GetRoleStatusForUser(ctx context.Context, userID uuid.UUID) (string, error)
 	CreateRole(ctx context.Context, role dto.Role) (dto.Role, error)
 	CheckIfPermissionExists(ctx context.Context, permission string) (bool, error)
-	GetAllRoles(ctx context.Context, filters request_models.FilterParams) ([]dto.Role, *model.MetaData, error)
+	GetAllRoles(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.Role, *model.MetaData, error)
 	GetRoleByName(ctx context.Context, roleName string) (dto.Role, error)
 	UpdateRoleStatus(ctx context.Context, updateStatusParam dto.UpdateRoleStatus, roleName string) error
 	DeleteRole(ctx context.Context, roleName string) error
@@ -152,5 +153,5 @@ type IdentityProviderPersistence interface {
 	UpdateIpAccessToken(ctx context.Context, ipAccessToken dto.IPAccessToken) (dto.IPAccessToken, error)
 	UpdateIdentityProvider(ctx context.Context, idPParam dto.IdentityProvider) error
 	DeleteIdentityProvider(ctx context.Context, idPID uuid.UUID) error
-	GetAllIdentityProviders(ctx context.Context, filters request_models.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
+	GetAllIdentityProviders(ctx context.Context, filters db_pgnflt.FilterParams) ([]dto.IdentityProvider, *model.MetaData, error)
 }
