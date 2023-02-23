@@ -25,12 +25,12 @@ type kafkaClient struct {
 	eventHandlers map[string]EventHandler
 }
 
-func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
+func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger logger.Logger) Kafka {
 	_, err := kafka.DialLeader(context.Background(), "tcp", kafkaURL, topic, 0)
 	if err != nil {
-		log.Fatal(context.Background(), "failed to connect kafka leader %v", zap.Error(err))
+		logger.Fatal(context.Background(), "failed to connect kafka leader %v", zap.Error(err))
 	}
-
+	log.Printf("url: %v topic:  %v", kafkaURL, topic)
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:  []string{kafkaURL},
 		GroupID:  groupID,
@@ -39,7 +39,7 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logge
 	})
 
 	kafkaClient := &kafkaClient{
-		log:           log,
+		log:           logger,
 		kafkaReader:   r,
 		eventHandlers: make(map[string]EventHandler),
 	}
