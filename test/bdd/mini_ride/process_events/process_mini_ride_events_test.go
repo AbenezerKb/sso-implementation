@@ -180,16 +180,12 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 		return err
 	}
 	log.Printf("message writen successfully....byte:=%v\n", wr)
-	log.Print("sleeping for 8 sec....\n")
-
-	time.Sleep(8 * time.Second)
-
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	log.Print("more sleep for 8 sec....\n")
-	time.Sleep(8 * time.Second)
+	time.Sleep(2 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
