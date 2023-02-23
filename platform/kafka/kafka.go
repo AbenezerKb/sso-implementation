@@ -33,7 +33,7 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger lo
 		Topic:       topic,
 		MaxBytes:    maxBytes,
 		StartOffset: kafka.LastOffset,
-		Logger:      logger,
+		Logger:      logger.Named("kafka-reader"),
 		// wait for at most 3 seconds before receiving new data
 		MaxWait: 3 * time.Second,
 	})

@@ -154,7 +154,7 @@ func Initiate(path string) TestInstance {
 		BatchSize:    10,
 		BatchTimeout: 3 * time.Second,
 		RequiredAcks: 1, //leading broker should acknowledge
-		Logger:       log,
+		Logger:       log.Named("kafka-writter"),
 	})
 	return TestInstance{
 		Server:        server,
