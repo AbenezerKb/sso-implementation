@@ -93,7 +93,7 @@ func (p *processMiniRideEventsTest) thereAreTheFollowingUserDataOnSso(users *god
 }
 
 func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniData *godog.Table) error {
-
+	defer p.KafkaWritter.Close()
 	rows, err := p.apiTest.ReadRows(rideMiniData, []src.Type{
 		{
 			Column: "event",
@@ -175,11 +175,11 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 		})
 	}
 	log.Print("writting message....\n")
-	wr, err := p.KafkaConn.WriteMessages(messages...)
+	err = p.KafkaWritter.WriteMessages(context.Background(), messages...)
 	if err != nil {
 		return err
 	}
-	log.Printf("message writen successfully....byte:=%v\n", wr)
+	log.Printf("message writen successfully....\n")
 	return nil
 }
 

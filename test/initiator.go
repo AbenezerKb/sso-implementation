@@ -15,6 +15,7 @@ import (
 	"sso/platform/logger"
 	"sso/platform/rand"
 	"sso/platform/utils"
+	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
@@ -44,7 +45,7 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
-	KafkaConn          *kafka.Conn
+	KafkaWritter       *kafka.Writer
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error
@@ -147,10 +148,14 @@ func Initiate(path string) TestInstance {
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
 
-	conn, err := kafka.DialLeader(context.Background(), "tcp", viper.GetString("kafka.url"), viper.GetString("kafka.topic"), 0)
-	if err != nil {
-		panic(err.Error())
-	}
+	w := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:      []string{viper.GetString("kafka.url")},
+		Topic:        viper.GetString("kafka.topic"),
+		BatchSize:    10,
+		BatchTimeout: 2 * time.Second,
+		RequiredAcks: 1, //leading broker should acknowledge
+		Logger:       log,
+	})
 	return TestInstance{
 		Server:        server,
 		DB:            sqlConn,
@@ -161,7 +166,7 @@ func Initiate(path string) TestInstance {
 		Conn:          testConn,
 		PlatformLayer: platformLayer,
 		CacheLayer:    cacheLayer,
-		KafkaConn:     conn,
+		KafkaWritter:  w,
 		PersistDB:     persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))

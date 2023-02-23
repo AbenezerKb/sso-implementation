@@ -2,8 +2,9 @@ package logger
 
 import (
 	"context"
-	"github.com/jackc/pgx/v4"
 	"time"
+
+	"github.com/jackc/pgx/v4"
 
 	"go.uber.org/zap"
 )
@@ -30,8 +31,8 @@ type Logger interface {
 	Log(ctx context.Context, level pgx.LogLevel, msg string, data map[string]interface{})
 
 	extract(ctx context.Context) []zap.Field
+	Printf(string, ...interface{})
 }
-
 type logger struct {
 	logger *zap.Logger
 }
@@ -77,7 +78,9 @@ func (l *logger) Panic(ctx context.Context, msg string, fields ...zap.Field) {
 func (l *logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.With(l.extract(ctx)...).Fatal(msg, fields...)
 }
-
+func (l *logger) Printf(msg string, fields ...interface{}) {
+	l.logger.Info(msg, zap.Any("fields", fields))
+}
 func (l *logger) extract(ctx context.Context) []zap.Field {
 	var fields []zap.Field
 	fields = append(fields, zap.String("time", time.Now().Format(time.RFC3339)))
