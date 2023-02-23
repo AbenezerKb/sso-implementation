@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
@@ -173,14 +174,18 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
+	log.Print("writting message....\n")
 	_, err = p.KafkaConn.WriteMessages(messages...)
 	if err != nil {
 		return err
 	}
+	log.Print("message writen successfully....\n")
+
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
+	log.Print("sleeping for 8 sec....\n")
 	time.Sleep(8 * time.Second)
 	return nil
 }
