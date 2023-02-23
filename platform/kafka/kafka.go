@@ -26,12 +26,16 @@ type kafkaClient struct {
 }
 
 func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
+	_, err := kafka.DialLeader(context.Background(), "tcp", kafkaURL, topic, 0)
+	if err != nil {
+		log.Fatal(context.Background(), "failed to connect kafka leader %v", zap.Error(err))
+	}
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{"kafka:9092"},
-		GroupID:  "sso_group",
-		Topic:    "example-topic",
-		MaxBytes: 10e6,
+		Brokers:  []string{kafkaURL},
+		GroupID:  groupID,
+		Topic:    topic,
+		MaxBytes: maxBytes,
 	})
 
 	kafkaClient := &kafkaClient{

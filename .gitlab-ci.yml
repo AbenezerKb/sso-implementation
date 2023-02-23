@@ -37,6 +37,7 @@ test:
     ALLOW_PLAINTEXT_LISTENER: "yes"
     ALLOW_ANONYMOUS_LOGIN: "yes"
     KAFKA_CREATE_TOPICS: "example-topic"
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
   tags:
     - sso
   before_script:
