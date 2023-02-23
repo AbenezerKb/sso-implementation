@@ -15,7 +15,6 @@ import (
 	"sso/platform/logger"
 	"sso/platform/rand"
 	"sso/platform/utils"
-	"time"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
@@ -151,9 +150,7 @@ func Initiate(path string) TestInstance {
 	w := kafka.NewWriter(kafka.WriterConfig{
 		Brokers:      []string{viper.GetString("kafka.url")},
 		Topic:        viper.GetString("kafka.topic"),
-		BatchSize:    10,
-		BatchTimeout: 3 * time.Second,
-		RequiredAcks: 1, //leading broker should acknowledge
+		RequiredAcks: -1, //leading broker should acknowledge
 		Logger:       log.Named("kafka-writter"),
 	})
 	return TestInstance{
