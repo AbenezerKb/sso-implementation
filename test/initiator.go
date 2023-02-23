@@ -45,7 +45,6 @@ type TestInstance struct {
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
 	KafkaConn          *kafka.Conn
-	KafkaReader        *kafka.Reader
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error

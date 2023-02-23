@@ -175,17 +175,20 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 		})
 	}
 	log.Print("writting message....\n")
-	_, err = p.KafkaConn.WriteMessages(messages...)
+	wr, err := p.KafkaConn.WriteMessages(messages...)
 	if err != nil {
 		return err
 	}
-	log.Print("message writen successfully....\n")
+	log.Printf("message writen successfully....byte:=%v\n", wr)
+	log.Print("sleeping for 8 sec....\n")
+
+	time.Sleep(8 * time.Second)
 
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	log.Print("sleeping for 8 sec....\n")
+	log.Print("more sleep for 8 sec....\n")
 	time.Sleep(8 * time.Second)
 	return nil
 }
