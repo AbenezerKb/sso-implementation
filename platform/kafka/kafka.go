@@ -28,11 +28,12 @@ type kafkaClient struct {
 func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, log logger.Logger) Kafka {
 
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{kafkaURL},
-		GroupID:  groupID,
-		Topic:    topic,
-		MaxBytes: maxBytes,
+		Brokers:  []string{"kafka:9092"},
+		GroupID:  "sso_group",
+		Topic:    "example-topic",
+		MaxBytes: 10e6,
 	})
+
 	kafkaClient := &kafkaClient{
 		log:           log,
 		kafkaReader:   r,
@@ -92,7 +93,7 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 	// Loop Forever
 	for {
 		log.Print("reading message....\n")
-		payload, err := k.kafkaReader.ReadMessage(ctx)
+		payload, err := k.kafkaReader.FetchMessage(ctx)
 		if err != nil {
 			k.log.Info(ctx, "kafka connection error", zap.Error(err), zap.Error(err))
 			return
@@ -104,6 +105,11 @@ func (k *kafkaClient) readMessage(ctx context.Context) {
 		log.Printf("kafka event key %v : message %v", string(payload.Key), string(payload.Value))
 		if err := k.routeEvent(ctx, payload); err != nil {
 			k.log.Warn(ctx, "event handler faild to process kafka request", zap.Error(err))
+		} else {
+			err := k.kafkaReader.CommitMessages(ctx, payload)
+			if err != nil {
+				k.log.Warn(ctx, "failed to commit processed message", zap.Error(err))
+			}
 		}
 
 	}
