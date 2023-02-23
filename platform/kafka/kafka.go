@@ -32,10 +32,11 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger lo
 	}
 	log.Printf("url: %v topic:  %v", kafkaURL, topic)
 	r := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:  []string{kafkaURL},
-		GroupID:  groupID,
-		Topic:    topic,
-		MaxBytes: maxBytes,
+		Brokers:   []string{kafkaURL},
+		GroupID:   groupID,
+		Topic:     topic,
+		Partition: 0,
+		MaxBytes:  maxBytes,
 	})
 
 	kafkaClient := &kafkaClient{
