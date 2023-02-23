@@ -35,7 +35,6 @@ func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger lo
 		Brokers:     []string{kafkaURL},
 		GroupID:     groupID,
 		Topic:       topic,
-		Partition:   0,
 		MaxBytes:    maxBytes,
 		StartOffset: kafka.LastOffset,
 		Logger:      logger,
