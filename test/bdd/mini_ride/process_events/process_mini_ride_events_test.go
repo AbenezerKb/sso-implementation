@@ -185,7 +185,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
 	log.Print("more sleep for 8 sec....\n")
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {

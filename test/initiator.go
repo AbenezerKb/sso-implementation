@@ -152,7 +152,7 @@ func Initiate(path string) TestInstance {
 		Brokers:      []string{viper.GetString("kafka.url")},
 		Topic:        viper.GetString("kafka.topic"),
 		BatchSize:    10,
-		BatchTimeout: 2 * time.Second,
+		BatchTimeout: 3 * time.Second,
 		RequiredAcks: 1, //leading broker should acknowledge
 		Logger:       log,
 	})
