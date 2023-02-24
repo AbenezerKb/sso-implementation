@@ -28,16 +28,15 @@ func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
 
 	p.TestInstance = test.Initiate("../../../../")
-	w := kafka.NewWriter(kafka.WriterConfig{
+	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaTopic, p.KafkaGroupID, p.KafkaMaxBytes, p.KafkaLogger)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
+	p.KafkaWritter = kafka.NewWriter(kafka.WriterConfig{
 		Brokers:      []string{p.KafkaBroker},
 		Topic:        p.KafkaTopic,
 		RequiredAcks: -1, //leading broker should acknowledge
 		Logger:       p.TestInstance.KafkaLogger,
 	})
-	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaTopic, p.KafkaGroupID, p.KafkaMaxBytes, p.KafkaLogger)
-	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
-	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
-	p.KafkaWritter = w
 	p.apiTest.InitializeServer(p.Server)
 	p.apiTest.RunTest(t,
 		"sync sso with ride-mini",
