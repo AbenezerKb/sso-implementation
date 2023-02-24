@@ -35,7 +35,8 @@ func TestProcessMiniRideEvents(t *testing.T) {
 		Brokers:      []string{p.KafkaBroker},
 		Topic:        p.KafkaTopic,
 		RequiredAcks: -1, //leading broker should acknowledge
-		Logger:       p.TestInstance.KafkaLogger,
+		Logger:       p.KafkaLogger.Named("kafka-writter"),
+		ErrorLogger:  p.KafkaLogger.Named("kafka-wrriter-errors"),
 	})
 	p.apiTest.InitializeServer(p.Server)
 	p.apiTest.RunTest(t,
@@ -193,7 +194,7 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	time.Sleep(2 * time.Second)
+	time.Sleep(10 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {

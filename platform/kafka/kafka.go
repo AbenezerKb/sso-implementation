@@ -3,6 +3,7 @@ package kafkaconsumer
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"sso/internal/constant/errors"
 	"sso/platform/logger"
@@ -25,16 +26,18 @@ type kafkaClient struct {
 }
 
 func NewKafkaConnection(kafkaURL, topic, groupID string, maxBytes int, logger logger.Logger) Kafka {
-
+	_, err := kafka.DialLeader(context.Background(), "tcp", kafkaURL, topic, 0)
+	if err != nil {
+		log.Fatal("failed to dial leader:", err)
+	}
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     []string{kafkaURL},
 		GroupID:     groupID,
 		Topic:       topic,
 		MinBytes:    10,
 		MaxBytes:    maxBytes,
-		Partition:   0,
 		Logger:      logger.Named("kafka-reader"),
-		ErrorLogger: logger.Named("kafka-errors"),
+		ErrorLogger: logger.Named("kafka-reader-errors"),
 	})
 	kafkaClient := &kafkaClient{
 		log:           logger,

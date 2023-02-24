@@ -168,7 +168,7 @@ func Initiate(path string) TestInstance {
 		KafkaBroker:    viper.GetString("kafka.url"),
 		KafkaGroupID:   viper.GetString("kafka.group_id"),
 		KafkaMaxBytes:  viper.GetInt("kafka.max_read_bytes"),
-		KafkaLogger:    log.Named("kafka-writter"),
+		KafkaLogger:    log,
 		PersistDB:      persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
