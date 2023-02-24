@@ -80,7 +80,7 @@ func (l *logger) Fatal(ctx context.Context, msg string, fields ...zap.Field) {
 	l.logger.With(l.extract(ctx)...).Fatal(msg, fields...)
 }
 func (l *logger) Printf(msg string, fields ...interface{}) {
-	l.logger.Info(fmt.Sprintf(msg, fields...))
+	l.Info(context.Background(), fmt.Sprintf(msg, fields...))
 }
 func (l *logger) extract(ctx context.Context) []zap.Field {
 	var fields []zap.Field

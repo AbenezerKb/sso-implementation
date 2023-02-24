@@ -66,7 +66,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
+		// Kafka: kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
 		SelfIP: identityProvider.InitIP("some_id", "some_secret", "veryLegitCode", "legitAccessToken", dto.UserInfo{
 			FirstName: "john",
 			Email:     "john@gmail.com",

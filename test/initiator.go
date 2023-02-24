@@ -12,6 +12,7 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/handler/middleware"
+	kafkaconsumer "sso/platform/kafka"
 	"sso/platform/logger"
 	"sso/platform/rand"
 	"sso/platform/utils"
@@ -45,6 +46,12 @@ type TestInstance struct {
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
 	KafkaWritter       *kafka.Writer
+	KafkaTopic         string
+	KafkaBroker        string
+	KafkaGroupID       string
+	KafkaMaxBytes      int
+	KafkaLogger        logger.Logger
+	KafkaInitiator     kafkaconsumer.Kafka
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error
@@ -125,8 +132,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "initializing module")
 	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state, path)
 	log.Info(context.Background(), "module initialized")
-	platformLayer.Kafka.RegisterKafkaEventHandler(string("CREATE"), module.MiniRideModule.CreateUser)
-	platformLayer.Kafka.RegisterKafkaEventHandler(string("UPDATE"), module.MiniRideModule.UpdateUser)
+
 	log.Info(context.Background(), "initializing handler")
 	handler := initiator.InitHandler(module, log)
 	log.Info(context.Background(), "handler initialized")
@@ -147,24 +153,23 @@ func Initiate(path string) TestInstance {
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
 
-	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:      []string{viper.GetString("kafka.url")},
-		Topic:        viper.GetString("kafka.topic"),
-		RequiredAcks: -1, //leading broker should acknowledge
-		Logger:       log.Named("kafka-writter"),
-	})
 	return TestInstance{
-		Server:        server,
-		DB:            sqlConn,
-		Redis:         cache,
-		Module:        module,
-		enforcer:      enforcer,
-		Logger:        log,
-		Conn:          testConn,
-		PlatformLayer: platformLayer,
-		CacheLayer:    cacheLayer,
-		KafkaWritter:  w,
-		PersistDB:     persistDB,
+		Server:         server,
+		DB:             sqlConn,
+		Redis:          cache,
+		Module:         module,
+		enforcer:       enforcer,
+		Logger:         log,
+		Conn:           testConn,
+		PlatformLayer:  platformLayer,
+		CacheLayer:     cacheLayer,
+		KafkaInitiator: platformLayer.Kafka,
+		KafkaTopic:     viper.GetString("kafka.topic"),
+		KafkaBroker:    viper.GetString("kafka.url"),
+		KafkaGroupID:   viper.GetString("kafka.group_id"),
+		KafkaMaxBytes:  viper.GetInt("kafka.max_read_bytes"),
+		KafkaLogger:    log.Named("kafka-writter"),
+		PersistDB:      persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
 			if err != nil {

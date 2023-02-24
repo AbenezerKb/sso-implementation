@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"log"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	kafkaconsumer "sso/platform/kafka"
 	"sso/test"
 	"testing"
 	"time"
@@ -19,13 +19,25 @@ import (
 
 type processMiniRideEventsTest struct {
 	test.TestInstance
-	apiTest src.ApiTest
-	Users   []dto.User
+	apiTest   src.ApiTest
+	Users     []dto.User
+	AfterFunc func()
 }
 
 func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
+
 	p.TestInstance = test.Initiate("../../../../")
+	w := kafka.NewWriter(kafka.WriterConfig{
+		Brokers:      []string{p.KafkaBroker},
+		Topic:        p.KafkaTopic,
+		RequiredAcks: -1, //leading broker should acknowledge
+		Logger:       p.TestInstance.KafkaLogger,
+	})
+	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaTopic, p.KafkaGroupID, p.KafkaMaxBytes, p.KafkaLogger)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
+	p.KafkaWritter = w
 	p.apiTest.InitializeServer(p.Server)
 	p.apiTest.RunTest(t,
 		"sync sso with ride-mini",
@@ -174,18 +186,15 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
-	log.Print("writting message....\n")
 	err = p.KafkaWritter.WriteMessages(context.Background(), messages...)
 	if err != nil {
 		return err
 	}
-	log.Printf("message writen successfully....\n")
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	log.Print("more sleep for 8 sec....\n")
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
@@ -233,4 +242,5 @@ func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContex
 	ctx.Step(`^mini ride streamed the following event\'s$`, p.miniRideStreamedTheFollowingEvents)
 	ctx.Step(`^there are the following user data on sso$`, p.thereAreTheFollowingUserDataOnSso)
 	ctx.Step(`^they will have effect on following sso user\'s$`, p.theyWillHaveEffectOnFollowingSsoUsers)
+
 }
