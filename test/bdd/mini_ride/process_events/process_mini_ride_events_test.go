@@ -7,6 +7,7 @@ import (
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
+	kafkaconsumer "sso/platform/kafka"
 	"sso/test"
 	"testing"
 	"time"
@@ -18,13 +19,25 @@ import (
 
 type processMiniRideEventsTest struct {
 	test.TestInstance
-	apiTest src.ApiTest
-	Users   []dto.User
+	apiTest   src.ApiTest
+	Users     []dto.User
+	AfterFunc func()
 }
 
 func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
+
 	p.TestInstance = test.Initiate("../../../../")
+	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaTopic, p.KafkaGroupID, p.KafkaMaxBytes, p.KafkaLogger)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
+	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
+	p.KafkaWritter = kafka.NewWriter(kafka.WriterConfig{
+		Brokers:      []string{p.KafkaBroker},
+		Topic:        p.KafkaTopic,
+		RequiredAcks: -1, //leading broker should acknowledge
+		Logger:       p.KafkaLogger.Named("kafka-writter"),
+		ErrorLogger:  p.KafkaLogger.Named("kafka-wrriter-errors"),
+	})
 	p.apiTest.InitializeServer(p.Server)
 	p.apiTest.RunTest(t,
 		"sync sso with ride-mini",
@@ -92,7 +105,7 @@ func (p *processMiniRideEventsTest) thereAreTheFollowingUserDataOnSso(users *god
 }
 
 func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniData *godog.Table) error {
-
+	defer p.KafkaWritter.Close()
 	rows, err := p.apiTest.ReadRows(rideMiniData, []src.Type{
 		{
 			Column: "event",
@@ -163,7 +176,6 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 	}
 	messages := []kafka.Message{}
 	for i := 0; i < len(rideMiniDrivers); i++ {
-
 		rideminiDriver, err := json.Marshal(rideMiniDrivers[i])
 		if err != nil {
 
@@ -174,17 +186,15 @@ func (p *processMiniRideEventsTest) miniRideStreamedTheFollowingEvents(rideMiniD
 			Value: rideminiDriver,
 		})
 	}
-
-	_, err = p.KafkaConn.WriteMessages(messages...)
+	err = p.KafkaWritter.WriteMessages(context.Background(), messages...)
 	if err != nil {
-
 		return err
 	}
 	return nil
 }
 
 func (p *processMiniRideEventsTest) iProcessThoseEvents() error {
-	time.Sleep(time.Second)
+	time.Sleep(10 * time.Second)
 	return nil
 }
 func (p *processMiniRideEventsTest) theyWillHaveEffectOnFollowingSsoUsers(users *godog.Table) error {
@@ -232,4 +242,5 @@ func (p *processMiniRideEventsTest) InitializeScenario(ctx *godog.ScenarioContex
 	ctx.Step(`^mini ride streamed the following event\'s$`, p.miniRideStreamedTheFollowingEvents)
 	ctx.Step(`^there are the following user data on sso$`, p.thereAreTheFollowingUserDataOnSso)
 	ctx.Step(`^they will have effect on following sso user\'s$`, p.theyWillHaveEffectOnFollowingSsoUsers)
+
 }

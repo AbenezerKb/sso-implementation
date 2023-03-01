@@ -12,10 +12,10 @@ import (
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/persistencedb"
 	"sso/internal/handler/middleware"
+	kafkaconsumer "sso/platform/kafka"
 	"sso/platform/logger"
 	"sso/platform/rand"
 	"sso/platform/utils"
-	"strings"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/segmentio/kafka-go"
@@ -45,8 +45,13 @@ type TestInstance struct {
 	Conn               *pgxpool.Pool
 	PlatformLayer      initiator.PlatformLayer
 	CacheLayer         initiator.CacheLayer
-	KafkaConn          *kafka.Conn
-	KafkaReader        *kafka.Reader
+	KafkaWritter       *kafka.Writer
+	KafkaTopic         string
+	KafkaBroker        string
+	KafkaGroupID       string
+	KafkaMaxBytes      int
+	KafkaLogger        logger.Logger
+	KafkaInitiator     kafkaconsumer.Kafka
 	PersistDB          persistencedb.PersistenceDB
 	GrantRoleAfterFunc func() error
 	DBCleanUp          func() error
@@ -117,7 +122,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")
-	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"))
+	platformLayer := initiator.InitMockPlatformLayer(log, path+viper.GetString("private_key"), path+viper.GetString("public_key"), persistence)
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing state")
@@ -127,8 +132,7 @@ func Initiate(path string) TestInstance {
 	log.Info(context.Background(), "initializing module")
 	module := initiator.InitMockModule(persistence, cacheLayer, path+viper.GetString("private_key"), platformLayer, log, enforcer, state, path)
 	log.Info(context.Background(), "module initialized")
-	platformLayer.Kafka.RegisterKafkaEventHandler(string("CREATE"), module.MiniRideModule.CreateUser)
-	platformLayer.Kafka.RegisterKafkaEventHandler(string("UPDATE"), module.MiniRideModule.UpdateUser)
+
 	log.Info(context.Background(), "initializing handler")
 	handler := initiator.InitHandler(module, log)
 	log.Info(context.Background(), "handler initialized")
@@ -148,24 +152,24 @@ func Initiate(path string) TestInstance {
 	v1 := server.Group("/v1")
 	initiator.InitRouter(server, v1, handler, module, log, enforcer, platformLayer)
 	log.Info(context.Background(), "router initialized")
-	kafkaConn := kafkaConn(viper.GetString("kafka.url"), viper.GetString("kafka.topic"))
-
-	kafkaReader := kafkaReader(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"))
-	AddOffset(kafkaConn, kafkaReader)
 
 	return TestInstance{
-		Server:        server,
-		DB:            sqlConn,
-		Redis:         cache,
-		Module:        module,
-		enforcer:      enforcer,
-		Logger:        log,
-		Conn:          testConn,
-		PlatformLayer: platformLayer,
-		CacheLayer:    cacheLayer,
-		KafkaConn:     kafkaConn,
-		KafkaReader:   kafkaReader,
-		PersistDB:     persistDB,
+		Server:         server,
+		DB:             sqlConn,
+		Redis:          cache,
+		Module:         module,
+		enforcer:       enforcer,
+		Logger:         log,
+		Conn:           testConn,
+		PlatformLayer:  platformLayer,
+		CacheLayer:     cacheLayer,
+		KafkaInitiator: platformLayer.Kafka,
+		KafkaTopic:     viper.GetString("kafka.topic"),
+		KafkaBroker:    viper.GetString("kafka.url"),
+		KafkaGroupID:   viper.GetString("kafka.group_id"),
+		KafkaMaxBytes:  viper.GetInt("kafka.max_read_bytes"),
+		KafkaLogger:    log,
+		PersistDB:      persistDB,
 		DBCleanUp: func() error {
 			_, err = pgxConn.Exec(context.Background(), fmt.Sprintf("DROP DATABASE %s", dbName))
 			if err != nil {
@@ -353,29 +357,4 @@ func (t *TestInstance) AuthenticateWithParam(credentials dto.User) (db.User, err
 	t.AccessToken = t.response.Data.AccessToken
 	t.RefreshToken = t.response.Data.RefreshToken
 	return user, nil
-}
-
-func kafkaConn(address, topic string) *kafka.Conn {
-	KafkaConn, err := kafka.DialLeader(context.Background(), "tcp", address, topic, 0)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return KafkaConn
-}
-
-func kafkaReader(address, topic, groupID string) *kafka.Reader {
-	brokers := strings.Split(address, ",")
-	reader := kafka.NewReader(kafka.ReaderConfig{
-		Brokers:   brokers,
-		Topic:     topic,
-		Partition: 0,
-	})
-	return reader
-}
-
-func AddOffset(kafkaConn *kafka.Conn, reader *kafka.Reader) {
-	var dialer kafka.Dialer
-	conn, _ := dialer.DialPartition(context.Background(), "tcp", "", kafka.Partition{Topic: viper.GetString("kafka.topic"), ID: 0, Leader: kafka.Broker{Host: kafkaConn.Broker().Host, ID: kafkaConn.Broker().ID, Rack: kafkaConn.Broker().Rack, Port: kafkaConn.Broker().Port}})
-	lastOffset, _ := conn.ReadLastOffset()
-	reader.SetOffset(lastOffset)
 }

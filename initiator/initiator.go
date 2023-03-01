@@ -83,7 +83,7 @@ func Initiate() {
 	log.Info(context.Background(), "cache layer initialized")
 
 	log.Info(context.Background(), "initializing platform layer")
-	platformLayer := InitPlatformLayer(log, viper.GetString("private_key"), viper.GetString("public_key"))
+	platformLayer := InitPlatformLayer(log, viper.GetString("private_key"), viper.GetString("public_key"), persistence)
 	log.Info(context.Background(), "platform layer initialized")
 
 	log.Info(context.Background(), "initializing state")
