@@ -3,8 +3,12 @@ package initiator
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"time"
+
 	"sso/platform/logger"
+
+	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/spf13/viper"
 )
 
 func InitDB(url string, log logger.Logger) *pgxpool.Pool {
@@ -13,7 +17,12 @@ func InitDB(url string, log logger.Logger) *pgxpool.Pool {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))
 	}
 	config.ConnConfig.Logger = log.Named("pgx")
-	config.MaxConns = 1000 // Not tested yet
+	checkPeriod := viper.GetDuration("database.health_check_period")
+	if checkPeriod == 0 {
+		checkPeriod = 5 * time.Minute
+	}
+	config.HealthCheckPeriod = checkPeriod
+
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))
