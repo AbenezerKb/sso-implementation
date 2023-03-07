@@ -2,6 +2,7 @@ debug: false
 dev: true
 database:
   url: postgresql://root@db:26257/defaultdb?sslmode=disable
+  health_check_interval: 5m
 test_database:
   user: root
   password:
