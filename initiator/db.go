@@ -17,11 +17,12 @@ func InitDB(url string, log logger.Logger) *pgxpool.Pool {
 		log.Fatal(context.Background(), fmt.Sprintf("Failed to connect to database: %v", err))
 	}
 	config.ConnConfig.Logger = log.Named("pgx")
-	checkPeriod := viper.GetDuration("database.health_check_period")
-	if checkPeriod == 0 {
-		checkPeriod = 5 * time.Minute
+
+	idleConnTimeout := viper.GetDuration("database.idle_conn_timeout")
+	if idleConnTimeout == 0 {
+		idleConnTimeout = 4 * time.Minute
 	}
-	config.HealthCheckPeriod = checkPeriod
+	config.MaxConnIdleTime = idleConnTimeout
 
 	conn, err := pgxpool.ConnectConfig(context.Background(), config)
 	if err != nil {
