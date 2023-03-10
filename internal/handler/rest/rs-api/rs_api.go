@@ -11,7 +11,6 @@ import (
 	"sso/platform/logger"
 
 	"github.com/gin-gonic/gin"
-	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 	"go.uber.org/zap"
 )
 
@@ -72,7 +71,6 @@ func (i *rsAPI) GetUserByPhoneOrID(ctx *gin.Context) {
 // @Security	BasicAuth
 func (i *rsAPI) GetUsersByPhoneOrID(ctx *gin.Context) {
 	var req request_models.RSAPIUsersRequest
-	var filtersParam db_pgnflt.PgnFltQueryParams
 
 	err := ctx.ShouldBind(&req)
 	if err != nil {
@@ -84,18 +82,8 @@ func (i *rsAPI) GetUsersByPhoneOrID(ctx *gin.Context) {
 		return
 	}
 
-	err = ctx.BindQuery(&filtersParam)
-	if err != nil {
-		err := errors.ErrInvalidUserInput.Wrap(err, "invalid query params")
-		i.logger.Info(ctx, "invalid query params", zap.Error(err), zap.Any("query-params", ctx.Request.URL.Query()))
-
-		_ = ctx.Error(err)
-
-		return
-	}
-
 	requestCtx := ctx.Request.Context()
-	user, metaData, err := i.rsAPI.GetUsersByIDOrPhone(requestCtx, req, filtersParam)
+	user, err := i.rsAPI.GetUsersByIDOrPhone(requestCtx, req)
 	if err != nil {
 		_ = ctx.Error(err)
 
@@ -103,5 +91,5 @@ func (i *rsAPI) GetUsersByPhoneOrID(ctx *gin.Context) {
 	}
 
 	i.logger.Info(ctx, "users detail fetched")
-	constant.SuccessResponse(ctx, http.StatusOK, user, metaData)
+	constant.SuccessResponse(ctx, http.StatusOK, user, nil)
 }
