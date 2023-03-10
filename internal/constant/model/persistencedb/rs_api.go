@@ -6,15 +6,12 @@ import (
 	"fmt"
 	"strings"
 
-	"sso/internal/constant/model"
 	"sso/internal/constant/model/dto"
-
-	db_pgnflt "gitlab.com/2ftimeplc/2fbackend/repo/db-pgnflt"
 )
 
 // GetUsersByParsedField expects that all values in 'values' are valid for 'fieldName'.
 // Use it only if you have made sure the values are valid.
-func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName string, values []string, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error) {
+func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName string, values []string) ([]dto.User, error) {
 	var queries []string // query requests in chunks of 50 users. This is to keep the database query length at safe level
 	const chunkSize = 50
 	chunks := len(values) / chunkSize
@@ -27,24 +24,16 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 	}
 
 	var users []dto.User
-	var count int
 
 	for i := 0; i < len(queries); i++ {
-		sqlStr := db_pgnflt.GetFilterSQLWithCustomWhere(fmt.Sprintf("%s in ('%s')", fieldName, queries[i]), filters)
 		err := func() error { // this is to properly defer rows.Close()
 			rows, err := db.pool.Query(ctx,
-				db_pgnflt.GetSelectColumnsQuery([]string{
-					"id",
-					"first_name",
-					"middle_name",
-					"last_name",
-					"email",
-					"phone",
-					"gender",
-					"profile_picture",
-					"status",
-					"created_at",
-				}, "users", sqlStr))
+				fmt.Sprintf(
+					`SELECT 
+    id,first_name,middle_name,last_name,email,phone,gender,profile_picture,status,created_at
+						FROM users WHERE %s in ('%s')`,
+					fieldName,
+					queries[i]))
 			defer rows.Close()
 
 			if err != nil {
@@ -65,7 +54,6 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 					&profilePicture,
 					&status,
 					&i.CreatedAt,
-					&count,
 				); err != nil {
 					return err
 				}
@@ -81,12 +69,9 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 			return nil
 		}()
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 	}
 
-	return users, &model.MetaData{
-		FilterParams: filters,
-		Total:        count,
-	}, nil
+	return users, nil
 }
