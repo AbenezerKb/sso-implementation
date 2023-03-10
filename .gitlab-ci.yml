@@ -130,7 +130,7 @@ deployment:
     - echo "$SSH_KEY_SSO" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - ssh-keyscan $SERVERIP_MAIN >> ~/.ssh/known_hosts
+    - ssh-keyscan $SERVER_IP >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
 
   script:
