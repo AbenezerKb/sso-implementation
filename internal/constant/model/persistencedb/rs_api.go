@@ -15,12 +15,16 @@ import (
 // GetUsersByParsedField expects that all values in 'values' are valid for 'fieldName'.
 // Use it only if you have made sure the values are valid.
 func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName string, values []string, filters db_pgnflt.FilterParams) ([]dto.User, *model.MetaData, error) {
-	var queries []string // query requests in chunks of 50 users. This is to keep the database load at safe level
-	chunks := len(values) / 50
-	for i := 0; i < chunks; i += 50 {
-		queries = append(queries, strings.Join(values[i:i+50], "','"))
+	var queries []string // query requests in chunks of 50 users. This is to keep the database query length at safe level
+	const chunkSize = 50
+	chunks := len(values) / chunkSize
+	for i := 0; i < chunks*chunkSize; i += chunkSize {
+		queries = append(queries, strings.Join(values[i:i+chunkSize], "','"))
 	}
-	queries = append(queries, strings.Join(values[chunks*50:], "','")) // the remaining chunk
+	lastChunk := strings.Join(values[chunks*chunkSize:], "','")
+	if len(lastChunk) != 0 {
+		queries = append(queries, lastChunk) // the remaining chunk
+	}
 
 	var users []dto.User
 	var count int
