@@ -128,4 +128,5 @@ type User struct {
 	ProfilePicture sql.NullString `json:"profile_picture"`
 	Status         sql.NullString `json:"status"`
 	CreatedAt      time.Time      `json:"created_at"`
+	DeletedAt      sql.NullTime   `json:"deleted_at"`
 }
