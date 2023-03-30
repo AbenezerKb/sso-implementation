@@ -31,7 +31,7 @@ func (db *PersistenceDB) GetUsersByParsedField(ctx context.Context, fieldName st
 				fmt.Sprintf(
 					`SELECT 
     id,first_name,middle_name,last_name,email,phone,gender,profile_picture,status,created_at
-						FROM users WHERE %s in ('%s')`,
+						FROM users WHERE %s in ('%s') AND deleted_at is NULL`,
 					fieldName,
 					queries[i]))
 			defer rows.Close()
