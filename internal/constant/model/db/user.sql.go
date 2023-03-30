@@ -16,7 +16,7 @@ const changeUserPassword = `-- name: ChangeUserPassword :one
 UPDATE users
 SET password = $1
 WHERE email = $2
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type ChangeUserPasswordParams struct {
@@ -40,6 +40,7 @@ func (q *Queries) ChangeUserPassword(ctx context.Context, arg ChangeUserPassword
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -48,7 +49,7 @@ const changeUserPasswordByID = `-- name: ChangeUserPasswordByID :one
 UPDATE users
 SET password = $1
 WHERE id = $2
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type ChangeUserPasswordByIDParams struct {
@@ -72,6 +73,7 @@ func (q *Queries) ChangeUserPasswordByID(ctx context.Context, arg ChangeUserPass
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -87,7 +89,7 @@ INSERT INTO users (first_name,
                    gender,
                    profile_picture)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type CreateUserParams struct {
@@ -128,6 +130,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -144,7 +147,7 @@ INSERT INTO users (id,
                    gender,
                    profile_picture)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type CreateUserWithIDParams struct {
@@ -187,6 +190,7 @@ func (q *Queries) CreateUserWithID(ctx context.Context, arg CreateUserWithIDPara
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -195,7 +199,7 @@ const deleteUser = `-- name: DeleteUser :one
 DELETE
 FROM users
 WHERE id = $1
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -214,14 +218,15 @@ func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 FROM users
-WHERE email = $1
+WHERE email = $1 AND deleted_at is NULL
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email sql.NullString) (User, error) {
@@ -240,14 +245,15 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email sql.NullString) (Use
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 FROM users
-WHERE id = $1
+WHERE id = $1 AND deleted_at is NULL
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
@@ -266,14 +272,15 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByPhone = `-- name: GetUserByPhone :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 FROM users
-WHERE phone = $1
+WHERE phone = $1 AND deleted_at is Null
 `
 
 func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error) {
@@ -292,15 +299,16 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
 
 const getUserByPhoneOrEmail = `-- name: GetUserByPhoneOrEmail :one
-SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 FROM users
 WHERE phone = $1
-   OR email = $1
+   OR email = $1 AND deleted_at is NULL
 `
 
 func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User, error) {
@@ -319,6 +327,7 @@ func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -326,7 +335,7 @@ func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User
 const getUserStatus = `-- name: GetUserStatus :one
 SELECT status
 FROM users
-WHERE id = $1
+WHERE id = $1 AND deleted_at is Null
 `
 
 func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullString, error) {
@@ -334,6 +343,34 @@ func (q *Queries) GetUserStatus(ctx context.Context, id uuid.UUID) (sql.NullStri
 	var status sql.NullString
 	err := row.Scan(&status)
 	return status, err
+}
+
+const removeUser = `-- name: RemoveUser :one
+UPDATE users
+set deleted_at = now()
+WHERE id =$1
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
+`
+
+func (q *Queries) RemoveUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRow(ctx, removeUser, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.MiddleName,
+		&i.LastName,
+		&i.Email,
+		&i.Phone,
+		&i.Password,
+		&i.UserName,
+		&i.Gender,
+		&i.ProfilePicture,
+		&i.Status,
+		&i.CreatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
 }
 
 const updatePhone = `-- name: UpdatePhone :exec
@@ -365,7 +402,7 @@ SET first_name      = coalesce($1, first_name),
     status          = coalesce($9, status),
     profile_picture = coalesce($10)
 WHERE id = $11
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type UpdateUserParams struct {
@@ -410,6 +447,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, e
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }
@@ -423,7 +461,7 @@ SET first_name      = $2,
     phone           = $6,
     profile_picture = $7
 WHERE id = $1
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type UpdateUserByIDParams struct {
@@ -460,6 +498,7 @@ func (q *Queries) UpdateUserByID(ctx context.Context, arg UpdateUserByIDParams) 
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

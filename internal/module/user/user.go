@@ -237,3 +237,15 @@ func (u *user) ResetUserPassword(ctx context.Context, userID string) error {
 	// send sms
 	return u.smsClient.SendSMSWithTemplate(ctx, user.Phone, "reset_password", newPassword)
 }
+func (u *user) DeleteUser(ctx context.Context, userID string) error {
+	userIDParsed, err := uuid.Parse(userID)
+	if err != nil {
+		err := errors.ErrInvalidUserInput.Wrap(err, "invalid user input")
+		u.logger.Info(ctx, "invalid user id on delete user by admin",
+			zap.String("user-id", userID),
+			zap.Error(err))
+
+		return err
+	}
+	return u.userPersistence.DeleteUser(ctx, userIDParsed)
+}

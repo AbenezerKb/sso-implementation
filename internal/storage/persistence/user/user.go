@@ -180,3 +180,19 @@ func (u *userPersistence) UpdateUserPassword(ctx context.Context, userID uuid.UU
 		CreatedAt:      user.CreatedAt,
 	}, nil
 }
+func (u *userPersistence) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := u.db.RemoveUser(ctx, userID)
+	if err != nil {
+		if sqlcerr.Is(err, sqlcerr.ErrNoRows) {
+			err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+			u.logger.Info(ctx, "user was not found", zap.Error(err),
+				zap.String("user-ID", userID.String()))
+			return err
+		}
+		err := errors.ErrDBDelError.Wrap(err, "error deleting user")
+		u.logger.Error(ctx, "error while deleting user", zap.Error(err),
+			zap.String("user-ID", userID.String()))
+		return err
+	}
+	return nil
+}

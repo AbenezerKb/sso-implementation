@@ -221,3 +221,27 @@ func (u *user) ResetUserPassword(ctx *gin.Context) {
 	u.logger.Info(ctx, "user password was reset by admin", zap.String("user-id", userID))
 	constant.SuccessResponse(ctx, http.StatusOK, nil, nil)
 }
+
+// DeleteUser	 delete user
+// @Summary      delete user data
+// @Description  delete user data
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Success      204
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /users/{id} [delete]
+// @Security	BearerAuth
+func (u *user) DeleteUser(ctx *gin.Context) {
+	userID := ctx.Param("id")
+
+	err := u.userModule.DeleteUser(ctx.Request.Context(), userID)
+	if err != nil {
+		_ = ctx.Error(err)
+
+		return
+	}
+	u.logger.Info(ctx, "user was deleted by admin", zap.String("user-id", userID))
+	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
+
+}

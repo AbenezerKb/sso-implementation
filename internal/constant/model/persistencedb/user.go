@@ -12,7 +12,7 @@ import (
 )
 
 func (db *PersistenceDB) GetAllUsersWithRole(ctx context.Context, pgnFlt db_pgnflt.FilterParams) ([]dto.User, int, error) {
-	_, sqlStr := db_pgnflt.GetFilterSQL(pgnFlt)
+	sqlStr := db_pgnflt.GetFilterSQLWithCustomWhere("deleted_at is NULL", pgnFlt)
 	rows, err := db.pool.Query(ctx, db_pgnflt.GetSelectColumnsQuery([]string{
 		"id",
 		"first_name",
@@ -79,7 +79,7 @@ profile_picture,
 status, 
 created_at,
 (select v1 from casbin_rule where v0 = cast(users.id as string) limit 1) as role
-FROM users WHERE id = $1
+FROM users WHERE id = $1 AND deleted_at is null
 `
 
 func (db *PersistenceDB) GetUserByIDWithRole(ctx context.Context, id uuid.UUID) (*dto.User, error) {

@@ -1,23 +1,23 @@
 -- name: GetUserByPhone :one
 SELECT *
 FROM users
-WHERE phone = $1;
+WHERE phone = $1 AND deleted_at is Null;
 
 -- name: GetUserStatus :one
 SELECT status
 FROM users
-WHERE id = $1;
+WHERE id = $1 AND deleted_at is Null;
 
 -- name: GetUserByPhoneOrEmail :one
 SELECT *
 FROM users
 WHERE phone = $1
-   OR email = $1;
+   OR email = $1 AND deleted_at is NULL;
 
 -- name: GetUserByEmail :one
 SELECT *
 FROM users
-WHERE email = $1;
+WHERE email = $1 AND deleted_at is NULL;
 
 -- name: CreateUser :one
 INSERT INTO users (first_name,
@@ -41,7 +41,7 @@ RETURNING *;
 -- name: GetUserById :one
 SELECT *
 FROM users
-WHERE id = $1;
+WHERE id = $1 AND deleted_at is NULL;
 
 -- name: UpdateUser :one
 UPDATE users
@@ -99,4 +99,10 @@ RETURNING *;
 UPDATE users
 SET password = $1
 WHERE id = $2
+RETURNING *;
+
+-- name: RemoveUser :one
+UPDATE users
+set deleted_at = now()
+WHERE id =$1
 RETURNING *;

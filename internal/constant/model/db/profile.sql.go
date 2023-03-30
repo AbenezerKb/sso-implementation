@@ -21,7 +21,7 @@ SET
  gender = $5,
  profile_picture = $6
 WHERE id = $1
-RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at
+RETURNING id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 `
 
 type UpdateProfileParams struct {
@@ -56,6 +56,7 @@ func (q *Queries) UpdateProfile(ctx context.Context, arg UpdateProfileParams) (U
 		&i.ProfilePicture,
 		&i.Status,
 		&i.CreatedAt,
+		&i.DeletedAt,
 	)
 	return i, err
 }

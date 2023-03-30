@@ -171,4 +171,9 @@ var (
 		Name:     "reset user password",
 		Category: "user",
 	}
+	DeleteUser = Permission{
+		ID:       "delete_user",
+		Name:     "delete user",
+		Category: "user",
+	}
 )
