@@ -43,15 +43,17 @@ type profileModule struct {
 	profilePersistence storage.ProfilePersistence
 	otpCache           storage.OTPCache
 	options            Options
+	userPersistence    storage.UserPersistence
 }
 
-func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, otpCache storage.OTPCache, options Options) module.ProfileModule {
+func InitProfile(logger logger.Logger, oauthPersistence storage.OAuthPersistence, profilePersistence storage.ProfilePersistence, otpCache storage.OTPCache, options Options, userPersistence storage.UserPersistence) module.ProfileModule {
 	return &profileModule{
 		logger:             logger,
 		oauthPersistence:   oauthPersistence,
 		profilePersistence: profilePersistence,
 		otpCache:           otpCache,
 		options:            options,
+		userPersistence:    userPersistence,
 	}
 }
 
@@ -288,4 +290,20 @@ func (p *profileModule) GetUserPermissions(ctx context.Context) ([]string, error
 	}
 
 	return p.profilePersistence.GetUserPermissions(ctx, userID)
+}
+func (p *profileModule) DeleteAccount(ctx context.Context) error {
+	id, ok := ctx.Value(constant.Context("x-user-id")).(string)
+	if !ok {
+		err := errors.ErrInvalidUserInput.New("invalid user id")
+		p.logger.Warn(ctx, "invalid user id on request context", zap.Error(err), zap.Any("user_id", id))
+		return err
+	}
+	userIDParsed, err := uuid.Parse(id)
+	if err != nil {
+		err := errors.ErrNoRecordFound.Wrap(err, "user not found")
+		p.logger.Warn(ctx, "error parsing user id on request context", zap.Error(err), zap.String("user id", id))
+		return err
+	}
+
+	return p.userPersistence.DeleteUser(ctx, userIDParsed)
 }
