@@ -307,8 +307,8 @@ func (q *Queries) GetUserByPhone(ctx context.Context, phone string) (User, error
 const getUserByPhoneOrEmail = `-- name: GetUserByPhoneOrEmail :one
 SELECT id, first_name, middle_name, last_name, email, phone, password, user_name, gender, profile_picture, status, created_at, deleted_at
 FROM users
-WHERE phone = $1
-   OR email = $1 AND deleted_at is NULL
+WHERE (phone = $1
+   OR email = $1) AND deleted_at is NULL
 `
 
 func (q *Queries) GetUserByPhoneOrEmail(ctx context.Context, phone string) (User, error) {

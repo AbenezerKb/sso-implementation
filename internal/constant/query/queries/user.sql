@@ -11,8 +11,8 @@ WHERE id = $1 AND deleted_at is Null;
 -- name: GetUserByPhoneOrEmail :one
 SELECT *
 FROM users
-WHERE phone = $1
-   OR email = $1 AND deleted_at is NULL;
+WHERE (phone = $1
+   OR email = $1) AND deleted_at is NULL;
 
 -- name: GetUserByEmail :one
 SELECT *
