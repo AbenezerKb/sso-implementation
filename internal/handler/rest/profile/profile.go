@@ -219,3 +219,25 @@ func (p *profile) GetUserPermissions(ctx *gin.Context) {
 
 	constant.SuccessResponse(ctx, http.StatusOK, permissions, nil)
 }
+
+// DeleteAccount	 remove account form the system.
+// @Summary     delete account form the system.
+// @Description  user delete his account form the system.
+// @Tags         profile
+// @Accept       json
+// @Produce      json
+// @Success      204
+// @Failure      400  {object}  model.ErrorResponse
+// @Router       /profile [delete]
+// @Security	BearerAuth
+func (p *profile) DeleteAccount(ctx *gin.Context) {
+	requestCtx := ctx.Request.Context()
+
+	err := p.profileModule.DeleteAccount(requestCtx)
+	if err != nil {
+		_ = ctx.Error(err)
+		return
+	}
+
+	constant.SuccessResponse(ctx, http.StatusNoContent, nil, nil)
+}
