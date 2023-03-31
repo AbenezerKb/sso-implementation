@@ -89,7 +89,7 @@ func InitModule(persistence Persistence, cache CacheLayer, privateKeyPath string
 			profile.SetOptions(profile.Options{
 				ProfilePictureDist:    viper.GetString("assets.profile_picture_dst"),
 				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
-			})),
+			}), persistence.UserPersistence),
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
 		identityProvider: identity_provider.InitIdentityProvider(log.Named("identity-provider-module"), persistence.IdentityProviderPersistence),
@@ -150,7 +150,7 @@ func InitMockModule(persistence Persistence, cache CacheLayer, privateKeyPath st
 			profile.SetOptions(profile.Options{
 				ProfilePictureDist:    path + viper.GetString("assets.profile_picture_dst"),
 				ProfilePictureMaxSize: viper.GetInt("assets.profile_picture_max_size"),
-			})),
+			}), persistence.UserPersistence),
 		resourceServer:   resource_server.InitResourceServer(log.Named("resource-server-module"), persistence.ResourceServerPersistence, persistence.ScopePersistence),
 		MiniRideModule:   mini_ride.InitMinRide(log.Named("mini-ride-module"), persistence.MiniRidePersistence, platformLayer.Kafka),
 		RoleModule:       role.InitRole(log.Named("role-module"), persistence.RolePersistence),
