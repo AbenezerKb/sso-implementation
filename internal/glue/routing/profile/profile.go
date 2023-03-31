@@ -77,6 +77,15 @@ func InitRoute(router *gin.RouterGroup, handler rest.Profile, authMiddleware mid
 			},
 			UnAuthorize: true,
 		},
+		{
+			Method:  http.MethodDelete,
+			Path:    "",
+			Handler: handler.DeleteAccount,
+			Middlewares: []gin.HandlerFunc{
+				authMiddleware.Authentication(),
+			},
+			UnAuthorize: true,
+		},
 	}
 	routing.RegisterRoutes(profile, profileRoutes, enforcer)
 }
