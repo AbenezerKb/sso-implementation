@@ -77,6 +77,7 @@ type ProfileModule interface {
 	ChangePassword(ctx context.Context, changePasswordParam dto.ChangePasswordParam) error
 	GetAllCurrentSessions(ctx context.Context) ([]dto.InternalRefreshToken, error)
 	GetUserPermissions(ctx context.Context) ([]string, error)
+	DeleteAccount(ctx context.Context) error
 }
 
 type ResourceServerModule interface {

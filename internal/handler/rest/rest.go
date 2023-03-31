@@ -62,6 +62,7 @@ type Profile interface {
 	ChangePassword(ctx *gin.Context)
 	GetAllCurrentSessions(ctx *gin.Context)
 	GetUserPermissions(ctx *gin.Context)
+	DeleteAccount(ctx *gin.Context)
 }
 
 type MiniRide interface {
