@@ -86,7 +86,7 @@ func (f *digitalOceanAsset) SaveAsset(ctx context.Context, asset multipart.File,
 		Bucket:      aws.String(f.bucket),
 		Key:         aws.String(dst),
 		Body:        asset,
-		ACL:         aws.String("private"),
+		ACL:         aws.String("public-read"),
 		ContentType: aws.String(mime.TypeByExtension(path.Ext(dst))),
 	}
 
