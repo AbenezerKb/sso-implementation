@@ -51,7 +51,7 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 			privateKey(privateKeyPath),
 			publicKey(publicKeyPath),
 		),
-		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
+		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.group_id"), []string{viper.GetString("kafka.drivers_topic")}, viper.GetInt("kafka.max_read_bytes"), logger),
 		SelfIP: self.Init(),
 		Asset:  asset.Init(logger.Named("asset-platform"), "assets"),
 	}

@@ -28,7 +28,7 @@ func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
 
 	p.TestInstance = test.Initiate("../../../../")
-	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaTopic, p.KafkaGroupID, p.KafkaMaxBytes, p.KafkaLogger)
+	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaGroupID, []string{p.KafkaTopic}, p.KafkaMaxBytes, p.KafkaLogger)
 	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
 	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
 	p.KafkaWritter = kafka.NewWriter(kafka.WriterConfig{
