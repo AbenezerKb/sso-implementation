@@ -3,8 +3,8 @@ package initiator
 import (
 	"context"
 	"crypto/rsa"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"sso/internal/constant/model/dto"
 	"sso/mocks/platform/identityProvider"
@@ -30,7 +30,7 @@ type PlatformLayer struct {
 	Asset  platform.Asset
 }
 
-func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, persistence Persistence) PlatformLayer {
+func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, _ Persistence) PlatformLayer {
 
 	return PlatformLayer{
 		Sms: sms.InitSMS(
@@ -53,11 +53,16 @@ func InitPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath strin
 		),
 		Kafka:  kafka_consumer.NewKafkaConnection(viper.GetString("kafka.url"), viper.GetString("kafka.topic"), viper.GetString("kafka.group_id"), viper.GetInt("kafka.max_read_bytes"), logger),
 		SelfIP: self.Init(),
-		Asset:  asset.Init(logger.Named("asset-platform"), "assets"),
+		Asset: asset.InitDigitalOceanAsset(logger.Named("asset-platform"),
+			viper.GetString("digital_ocean.space.key"),
+			viper.GetString("digital_ocean.space.secret"),
+			viper.GetString("digital_ocean.space.url"),
+			viper.GetString("digital_ocean.space.bucket"),
+		),
 	}
 }
 
-func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, persistence Persistence) PlatformLayer {
+func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath string, _ Persistence) PlatformLayer {
 	return PlatformLayer{
 		Sms: sms2.InitMockSMS(
 			platform.SMSConfig{},
@@ -77,7 +82,7 @@ func InitMockPlatformLayer(logger logger.Logger, privateKeyPath, publicKeyPath s
 }
 
 func privateKey(privateKeyPath string) *rsa.PrivateKey {
-	keyFile, err := ioutil.ReadFile(privateKeyPath)
+	keyFile, err := os.ReadFile(privateKeyPath)
 	if err != nil {
 		log.Fatal(context.Background(), "failed to read private key", zap.Error(err))
 	}
@@ -89,7 +94,7 @@ func privateKey(privateKeyPath string) *rsa.PrivateKey {
 	return privateKey
 }
 func publicKey(publicKeyPath string) *rsa.PublicKey {
-	certificate, err := ioutil.ReadFile(publicKeyPath)
+	certificate, err := os.ReadFile(publicKeyPath)
 	if err != nil {
 		log.Fatal(context.Background(), "Error reading own certificate : \n", zap.Error(err))
 	}

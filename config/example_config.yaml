@@ -100,3 +100,10 @@ excluded_phones:
   default_otp: "000000"
   phones:
     - 0912121212
+
+digital_ocean:
+  space:
+    key: key
+    secret: secret
+    url: url
+    bucket: bucket
