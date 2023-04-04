@@ -4,11 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"log"
+	"net"
 	"sso/internal/constant/model/db"
 	"sso/internal/constant/model/dto"
 	"sso/internal/constant/model/dto/request_models"
 	kafkaconsumer "sso/platform/kafka"
 	"sso/test"
+	"strconv"
 	"testing"
 	"time"
 
@@ -28,6 +31,38 @@ func TestProcessMiniRideEvents(t *testing.T) {
 	p := &processMiniRideEventsTest{}
 
 	p.TestInstance = test.Initiate("../../../../")
+
+	conn, err := kafka.Dial("tcp", p.KafkaBroker)
+	if err != nil {
+		log.Fatal("failed to dial leader:", err)
+	}
+	defer conn.Close()
+
+	controller, err := conn.Controller()
+	if err != nil {
+		log.Fatal("failed to get the current kafka controller:", err)
+	}
+	var controllerConn *kafka.Conn
+	controllerConn, err = kafka.Dial("tcp", net.JoinHostPort(controller.Host, strconv.Itoa(controller.Port)))
+	if err != nil {
+		log.Fatal("failed to dail kafka leader via non leader broker:", err)
+	}
+	defer controllerConn.Close()
+
+	topicConfigs := []kafka.TopicConfig{
+		{
+			Topic:             p.KafkaTopic,
+			NumPartitions:     1,
+			ReplicationFactor: 1,
+		},
+	}
+	err = controllerConn.CreateTopics(topicConfigs...)
+	if err != nil {
+		if err != kafka.TopicAlreadyExists {
+			log.Fatal("failed to create topics:", err)
+		}
+	}
+
 	p.KafkaInitiator = kafkaconsumer.NewKafkaConnection(p.KafkaBroker, p.KafkaGroupID, []string{p.KafkaTopic}, p.KafkaMaxBytes, p.KafkaLogger)
 	p.KafkaInitiator.RegisterKafkaEventHandler(string("CREATE"), p.Module.MiniRideModule.CreateUser)
 	p.KafkaInitiator.RegisterKafkaEventHandler(string("UPDATE"), p.Module.MiniRideModule.UpdateUser)
