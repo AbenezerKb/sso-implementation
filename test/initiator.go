@@ -164,7 +164,7 @@ func Initiate(path string) TestInstance {
 		PlatformLayer:  platformLayer,
 		CacheLayer:     cacheLayer,
 		KafkaInitiator: platformLayer.Kafka,
-		KafkaTopic:     viper.GetString("kafka.topic"),
+		KafkaTopic:     viper.GetString("kafka.drivers_topic"),
 		KafkaBroker:    viper.GetString("kafka.url"),
 		KafkaGroupID:   viper.GetString("kafka.group_id"),
 		KafkaMaxBytes:  viper.GetInt("kafka.max_read_bytes"),

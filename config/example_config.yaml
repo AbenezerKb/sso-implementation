@@ -75,7 +75,7 @@ cors:
     - DELETE
     - PATCH
 kafka:
-  topic: example-topic
+  drivers_topic: ride-onde.drivers.sync
   url: kafka:9092
   group_id: sso_group
   max_read_bytes: 5000
